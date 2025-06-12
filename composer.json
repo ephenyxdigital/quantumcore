@@ -1,0 +1,33 @@
+{
+    "name": "ephenyxdigital/quantumcore",
+    "description": "Deploy Ephenyx Digital Core",  
+    "homepage": "https://github.com/ephenyxdigital/quantumcore",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jeff Hunger",
+            "homepage": "https://ephenyx.com"
+        }
+    ],    
+    "require": {
+        "php": "^8.0",
+        "defuse/php-encryption": "^2",
+        "nicolab/php-ftp-client": "^2",
+        "phpseclib/phpseclib":"~3.0",
+        "smarty/smarty": "^5",
+        "php-curl-class/php-curl-class": "^12",
+        "phpmailer/phpmailer": "^6",
+        "pear/archive_tar": "^1",
+        "phenyxdigital/digitalspreadsheet": "^4",
+        "rosell-dk/webp-convert": "^2",			
+        "rosell-dk/webp-convert-cloud-service": "^2",
+        "rosell-dk/dom-util-for-webp": "^0.6",
+        "phenyxdigital/einvoice": "^1",
+        "phenyxdigital/devicedetect": "^1"
+    },  
+	"autoload": {
+		"classmap": {"digitalCore": "src/"},
+        "files": ["digitalcore.composer.php"]
+	}
+}

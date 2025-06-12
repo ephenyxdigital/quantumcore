@@ -1,0 +1,66 @@
+/* CSS Document */
+.form-group.header {
+    justify-content: flex-start; 
+    padding: 5px 10px
+}
+button.updateversion {
+    height: 40px;
+}
+#mustUpdate,
+#mustCreate,
+#mustDelete,
+#commonTables,
+#missingEducationType,
+#cleanUnusedTable,
+#existingEducations,
+#existingEducationType {
+	padding: 20px;
+}
+.commonTables {
+	padding: 10px;
+}
+#ace-countdonwn {
+	color: green
+}
+
+#rssBlock{
+  display: block;
+  margin: 0 auto;
+  overflow: hidden;
+  color: white;
+  height: 80px;
+}
+
+/*remove p*/
+.cnnContents {
+  position: relative;
+  width:100%;
+  line-height: 80px;
+  margin:0 auto;
+  font-size: 30px;
+  white-space: nowrap;
+  font-family: 'Museo';
+  font-weight: 300;
+}
+
+.marqueeStyle {
+  display:inline-block;
+  /* Apply animation to this element */
+  -webkit-animation: scrolling-right 20s linear infinite;
+  animation: scrolling-right 20s linear infinite;
+}
+
+@keyframes scrolling-right {
+    0% {transform: translateX(-100%);
+        -webkit-transform: translateX(-100%);}
+      100% {transform: translateX(100%);
+          -webkit-transform: translateX(100%);}
+}
+
+@-webkit-keyframes scrolling-right {
+    0% {-webkit-transform: translateX(-100%);}
+      100% {-webkit-transform: translateX(100%);}
+}
+
+
+

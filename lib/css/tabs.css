@@ -1,0 +1,38 @@
+/* CSS Document */
+#contentLink_renderTabs ul {
+    padding: 20px 10px;
+    list-style: none;
+}
+
+#contentLink_renderTabs ul li.li-niveau1 {
+    border: 1px solid
+}
+
+#contentLink_renderTabs ul li.li-niveau1 ul {
+    margin: 20px 20px 20px 30px;
+    border: 1px solid
+}
+
+ul.topbars table {
+    margin: 20px;
+    width: 90%
+}
+
+ul.topbars table tr>td {
+    padding: 10px 5px
+}
+#contentLink_renderDbmaintenance {
+    padding: 20px 10px;
+}
+
+#contentLink_renderDbmaintenance table tr>td {
+    padding: 10px 5px
+}
+
+#contentLink_renderDbmaintenance table tr>td.action button {
+    display: block;
+    width: 100%;
+    margin-bottom: unset;
+    margin: 10px 5px
+}
+
