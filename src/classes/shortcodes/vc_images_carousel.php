@@ -93,7 +93,7 @@ if ($attach_id > 0) {
     $post_thumbnail = getImageBySize(['attach_id' => $attach_id, 'thumb_size' => $img_size]);
 } else {
     $post_thumbnail = [];
-    $post_thumbnail['thumbnail'] = '<img src="' . vc_asset_url('vc/no_image.png') . '" />';
+    $post_thumbnail['thumbnail'] = '<img src="' . vc_asset_url('vc/no_image.png') . '"  loading="lazy" />';
     $post_thumbnail['p_img_large'] = vc_asset_url('vc/no_image.png');
 }
 

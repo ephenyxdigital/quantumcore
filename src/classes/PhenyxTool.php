@@ -111,6 +111,31 @@ class PhenyxTool {
         return $result;
     }
     
+    public function getCategoryFullPath($category) {
+        
+        if (!is_object($category)) {
+            $category = new Category($category, $this->context->language->id);
+        }
+        $tag = null;
+        if($category->id_parent > 1) {
+            $parent = new Category($category->id_parent, $this->context->language->id);
+        } else {
+            return '<span class="navigation_category">'.$category->name.'</span>';
+        }
+        $ajax_mode = $this->context->phenyxConfig->get('EPH_FRONT_AJAX') ? 1 : 0;
+        
+        $category_ajax_mode = $this->context->phenyxConfig->get('EPH_CATEGORY_AJAX') ? 1 : 0;
+        $pipe = $this->context->phenyxConfig->get('EPH_NAVIGATION_PIPE');
+        if (empty($pipe)) {
+            $pipe = '>';
+        }
+        if($ajax_mode && $category_ajax_mode) {
+            return '<span class="navigation-pipe"><a href="javascript:void(0)"  onClick="openAjaxCategory('.$parent->id.')" title="'.htmlentities($category->name, ENT_NOQUOTES, 'UTF-8').'" title="'.htmlentities($category->name, ENT_NOQUOTES, 'UTF-8').'">'.$parent->name.'</a></span><span class="navigation-pipe">'.$pipe.'</span><span class="navigation_cms">'.$category->name.'</span>';
+        }
+        return '<span class="navigation-pipe"><a href="'.$this->context->_link->getCategoryLink($parent).'"  title="'.htmlentities($category->name, ENT_NOQUOTES, 'UTF-8').'">'.$parent->name.'</a></span><span class="navigation-pipe">'.$pipe.'</span><span class="navigation_cms">'.$category->name.'</span>';
+
+    }
+    
     public function getCmsFullPath($cms) {
         
         if (!is_object($cms)) {

@@ -40,7 +40,7 @@ foreach ($my_query as $qpost) {
 	$post->excerpt = $qpost['short_description'];
 
 	$post->thumbnail_data = $this->getPostThumbnail($post->id, $thumb_size);
-	$post->thumbnail = "<img alt='{$post->title_attribute}' src='{$smartblog_url}{$post->thumbnail_data}' />";
+	$post->thumbnail = "<img alt='{$post->title_attribute}'  loading='lazy' src='{$smartblog_url}{$post->thumbnail_data}' />";
 
 	$post->image_link = $smartblog_url . $this->getPostThumbnail($post->id);
 	$post->categories_css = $this->getCategoriesCss($post->id);

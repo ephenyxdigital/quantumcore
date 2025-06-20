@@ -315,7 +315,7 @@ class Composer {
             $output .= '<div ' . $el_id . ' class="' . $class . '" ' . $attribute . '><div class="wpb_wrapper">';
 
             foreach ($imageLinks as $src) {
-                $output .= '<img class="' . $borderClass . '" alt="" src="' . $src . '">';
+                $output .= '<img class="' . $borderClass . '" loading="lazy" alt="" src="' . $src . '">';
             }
 
             $output .= '</div></div>';

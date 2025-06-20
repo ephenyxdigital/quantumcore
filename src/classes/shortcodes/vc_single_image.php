@@ -25,7 +25,7 @@ $img_id = preg_replace('/[^\d]/', '', $image);
 $img = getImageBySize(['attach_id' => $img_id, 'thumb_size' => $img_size, 'class' => $style . $border_color]);
 
 if ($img == NULL) {
-	$img['thumbnail'] = '<img  alt=""  class="' . $style . $border_color . '" src="' . _EPH_ADMIN_THEME_DIR_ . '/vc/no_image.png' . '" />';
+	$img['thumbnail'] = '<img  alt=""  class="' . $style . $border_color . '" src="' . _EPH_ADMIN_THEME_DIR_ . '/vc/no_image.png' . '" loading="lazy" />';
 }
 //'
 

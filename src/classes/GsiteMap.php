@@ -447,15 +447,23 @@ class GsiteMap extends PhenyxObjectModel {
 
 			foreach ($cmss_id as $cms_id) {
 				$cms = new CMS((int) $cms_id['id_cms'], $lang['id_lang']);
+                $image_cms = null;
 				$cms->link_rewrite = urlencode((is_array($cms->link_rewrite) ? $cms->link_rewrite[(int) $lang['id_lang']] : $cms->link_rewrite));
 				$url = $this->context->_link->getCMSLink($cms, null, null, $lang['id_lang']);
+                if (isset($cms->image_hash)) {
+                    $image_cms = [
+                        'title_img' => htmlspecialchars(strip_tags($cms->meta_title)),
+                        'caption'   => htmlspecialchars(strip_tags(Composer::removeShortCode($cms->content))),
+                        'link'      => $cms->image_hash,
+                    ];
+                }
 
 				if (!$this->_addLinkToSitemap(
 					$link_sitemap, [
 						'type'  => 'cms',
 						'page'  => 'cms',
 						'link'  => $url,
-						'image' => false,
+						'image' => $image_cms,
 					], $lang['iso_code'], $index, $i, $cms_id['id_cms']
 				)) {
 					return false;
