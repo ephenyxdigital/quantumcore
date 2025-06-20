@@ -19,12 +19,12 @@
         "php-curl-class/php-curl-class": "^12",
         "phpmailer/phpmailer": "^6",
         "pear/archive_tar": "^1",
-        "phenyxdigital/digitalspreadsheet": "^4",
+        "ephenyxdigital/digitalspreadsheet": "^4",
         "rosell-dk/webp-convert": "^2",			
         "rosell-dk/webp-convert-cloud-service": "^2",
         "rosell-dk/dom-util-for-webp": "^0.6",
-        "phenyxdigital/einvoice": "^1",
-        "phenyxdigital/devicedetect": "^1"
+        "ephenyxdigital/einvoice": "^1",
+        "ephenyxdigital/devicedetect": "^1"
     },  
 	"autoload": {
 		"classmap": {"digitalCore": "src/"},
