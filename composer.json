@@ -23,7 +23,7 @@
         "rosell-dk/webp-convert": "^2",			
         "rosell-dk/webp-convert-cloud-service": "^2",
         "rosell-dk/dom-util-for-webp": "^0.6",
-        "ephenyxdigital/einvoice": "^1",
+        "ephenyxdigital/einvoice": "^2",
         "ephenyxdigital/devicedetect": "^1"
     },  
 	"autoload": {
