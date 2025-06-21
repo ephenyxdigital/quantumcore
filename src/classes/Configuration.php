@@ -273,6 +273,26 @@ class Configuration extends PhenyxObjectModel {
 
         return $value;
     }
+    
+    public function getLangs($key) {
+        
+        $value = [];
+        foreach (Language::getIDs(false) as $idLang) {
+            $sql = new DbQuery();
+            $sql->select('cl.`value_lang`');
+            $sql->from('configuration_lang', 'cl');
+            $sql->leftJoin('configuration', 'c', 'c.id_configuration = cl.id_configuration');
+            $sql->where('c.`name` = \'' . $key . '\'');
+            $sql->where('cl.id_lang = ' . $idLang);
+            
+            $value[$idLang] = Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue($sql);
+            
+        }
+
+
+
+        return $value;
+    }
 
     public function getKey($key, $idLang = null, $use_cache = true) {
 
