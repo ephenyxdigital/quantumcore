@@ -57,6 +57,8 @@ class Theme extends PhenyxObjectModel {
     
     public $img_theme;
     
+    public $loc_img_theme;
+    
     public $mail_theme;
     
     public $pdf_theme;
@@ -99,6 +101,7 @@ class Theme extends PhenyxObjectModel {
                 $this->css_theme = $this->localpath.'css'. DIRECTORY_SEPARATOR;
                 $this->js_theme = $this->localpath.'js'. DIRECTORY_SEPARATOR;
                 $this->img_theme = $this->localpath.'img'. DIRECTORY_SEPARATOR;
+                $this->loc_img_theme = $this->path.'img'. DIRECTORY_SEPARATOR;
                 $this->mail_theme = $this->localpath.'mail'. DIRECTORY_SEPARATOR;
                 $this->pdf_theme = $this->localpath.'pdf'. DIRECTORY_SEPARATOR;
                 
@@ -108,6 +111,7 @@ class Theme extends PhenyxObjectModel {
                 $this->css_theme = $this->localpath.'css'. DIRECTORY_SEPARATOR;
                 $this->js_theme = $this->localpath.'js'. DIRECTORY_SEPARATOR;
                 $this->img_theme = $this->localpath.'img'. DIRECTORY_SEPARATOR;
+                $this->loc_img_theme = $this->path.'img'. DIRECTORY_SEPARATOR;
                 $this->mail_theme = $this->localpath.'mail'. DIRECTORY_SEPARATOR;
                 $this->pdf_theme = $this->localpath.'pdf'. DIRECTORY_SEPARATOR;
             }
@@ -128,7 +132,8 @@ class Theme extends PhenyxObjectModel {
                 $objectData['localpath'] = DIRECTORY_SEPARATOR. 'includes/plugins/' . $objectData['plugin'] . DIRECTORY_SEPARATOR.'views/themes/' . $objectData['directory'] . DIRECTORY_SEPARATOR;                
                 $objectData['css_theme'] = $objectData['localpath'].'css'. DIRECTORY_SEPARATOR;
                 $objectData['js_theme'] = $objectData['localpath'].'js'. DIRECTORY_SEPARATOR;
-                $objectData['img_theme'] = $objectData['localpath'].'img'. DIRECTORY_SEPARATOR;                
+                $objectData['img_theme'] = $objectData['localpath'].'img'. DIRECTORY_SEPARATOR;     
+                $objectData['loc_img_theme'] = $objectData['path'].'img'. DIRECTORY_SEPARATOR;  
                 $objectData['mail_theme'] = $objectData['localpath'].'mail'. DIRECTORY_SEPARATOR;                
                 $objectData['pdf_theme'] = $objectData['localpath'].'pdf'. DIRECTORY_SEPARATOR;
                 
@@ -138,6 +143,7 @@ class Theme extends PhenyxObjectModel {
                 $objectData['css_theme'] = $objectData['localpath'].'css'. DIRECTORY_SEPARATOR;
                 $objectData['js_theme'] = $objectData['localpath'].'js'. DIRECTORY_SEPARATOR;
                 $objectData['img_theme'] = $objectData['localpath'].'img'. DIRECTORY_SEPARATOR;
+                $objectData['loc_img_theme'] = $objectData['path'].'img'. DIRECTORY_SEPARATOR; 
                 $objectData['mail_theme'] = $objectData['localpath'].'mail'. DIRECTORY_SEPARATOR;
                 $objectData['pdf_theme'] = $objectData['localpath'].'pdf'. DIRECTORY_SEPARATOR;
             }
