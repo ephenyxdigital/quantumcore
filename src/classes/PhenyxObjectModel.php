@@ -477,6 +477,10 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
             $sql->select('b.*');
             $sql->leftJoin($def['table'] . '_lang', 'b', 'a.`' . bqSQL($def['primary']) . '` = b.`' . bqSQL($def['primary']) . '` AND b.`id_lang` = ' . (int) $id_lang);
 
+        } else if (isset($def['multilang']) && $def['multilang']) {
+            $sql->select('b.*');
+            $sql->leftJoin($def['table'] . '_lang', 'b', 'a.`' . bqSQL($def['primary']) . '` = b.`' . bqSQL($def['primary']) . '`');
+
         }
         
         if (isset($def['have_meta']) && $def['have_meta']) {
