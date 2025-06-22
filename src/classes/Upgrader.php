@@ -753,6 +753,7 @@ class Upgrader {
 			 }
             
             }
+            $newObjet->id_parent = BackTab::getIdBackTabByClass($backtab->parent_class);
             
             $result = $newObjet->add();
         } else {

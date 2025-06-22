@@ -77,8 +77,19 @@ class BackTab extends PhenyxObjectModel {
     public static function buildObject( $id, $idLang = null, $className = null) {
         
         $objectData = parent::buildObject( $id, $idLang, $className);
+        $objectData['parent_class'] = self::getParentClass($objectData['id_parent']);
 		       
         return Tools::jsonDecode(Tools::jsonEncode($objectData));
+    }
+    
+    public static function getParentClass($id_parent) {
+        
+        return Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue(
+            (new DbQuery())
+                ->select('class_name')
+                ->from('back_tab')
+                ->where('id_back_tab = ' . $id_parent)
+        );
     }
 
     public static function getInstance($id = null, $idLang = null) {
