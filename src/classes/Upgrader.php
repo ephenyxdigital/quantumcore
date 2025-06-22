@@ -774,6 +774,7 @@ class Upgrader {
             
             $result = $newObjet->update();
         }
+        $this->context->_tools->generateTabs(false);
         
         return $result;
 		

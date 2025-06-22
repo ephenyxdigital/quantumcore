@@ -741,9 +741,7 @@ class BackTab extends PhenyxObjectModel {
         if (parent::add($autoDate, $nullValues)) {
             //forces cache to be reloaded
             static::$_getIdFromClassName = null;
-            if($this->context->cache_enable && is_object($this->context->cache_api)) {
-                $this->context->cache_api->removeData('generateTabs');
-            }
+            $this->context->_tools->generateTabs(false);
             if ($init) {
                 return BackTab::initAccess($this);
             }
@@ -797,9 +795,7 @@ class BackTab extends PhenyxObjectModel {
         Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'employee_access` WHERE `id_back_tab` = ' . (int) $this->id);
         
         $result = parent::delete();
-        if($this->context->cache_enable && is_object($this->context->cache_api)) {
-            $this->context->cache_api->cleanByStartingKey('generateTabs');
-        }
+        $this->context->_tools->generateTabs(false);
         return $result;
     }
 
@@ -808,9 +804,7 @@ class BackTab extends PhenyxObjectModel {
         static::$_cache_back_tab = [];
 
         if (parent::update($nullValues)) {
-            if($this->context->cache_enable && is_object($this->context->cache_api)) {
-                $this->context->cache_api->cleanByStartingKey('generateTabs');
-            }
+            $this->context->_tools->generateTabs(false);
             
             if ($init) {
                 return BackTab::initAccess($this);
