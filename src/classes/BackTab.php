@@ -73,6 +73,13 @@ class BackTab extends PhenyxObjectModel {
         }
 
     }
+    
+    public static function buildObject( $id, $idLang = null, $className = null) {
+        
+        $objectData = parent::buildObject( $id, $idLang, $className);
+		       
+        return Tools::jsonDecode(Tools::jsonEncode($objectData));
+    }
 
     public static function getInstance($id = null, $idLang = null) {
 
@@ -117,6 +124,16 @@ class BackTab extends PhenyxObjectModel {
         }
 
         return $idTab;
+    }
+    
+    public static function getIdBackTabByClass($controller) {
+
+        return Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue(
+            (new DbQuery())
+                ->select('id_back_tab')
+                ->from('back_tab')
+                ->where('class_name = \'' . pSQL($controller) . '\'')
+        );
     }
 
     public static function getCurrentParentId() {

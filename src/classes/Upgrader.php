@@ -690,6 +690,93 @@ class Upgrader {
 
 		return $result;
 	}
+    
+    public function installMeta($meta) {
+
+        $exist = Meta::getIdMetaByPage($meta->page);
+        if(!$exist) {
+            $newObjet = new Meta();
+            foreach($meta as $key => $value) {
+                if(is_array($value)) {
+                    foreach (Language::getIDs(false) as $idLang) {
+                        if (property_exists($newObjet, $key)) {
+				            $newObjet->{$key}[(int) $idLang] = $value[(int) $idLang];
+			             }
+                    
+                    }
+                } else if (property_exists($newObjet, $key)) {
+				    $newObjet->{$key} = $value;
+			 }
+            
+            }
+            
+            $result = $newObjet->add();
+        } else {
+            $newObjet = new Meta($exist);
+            foreach($meta as $key => $value) {
+                if(is_array($value)) {
+                    foreach (Language::getIDs(false) as $idLang) {
+                        if (property_exists($newObjet, $key)) {
+				            $newObjet->{$key}[(int) $idLang] = $value[(int) $idLang];
+			             }
+                    
+                    }
+                } else if (property_exists($newObjet, $key)) {
+				    $newObjet->{$key} = $value;
+			 }
+            
+            }
+            
+            $result = $newObjet->update();
+        }
+        
+        return $result;
+               
+		
+	}
+    
+    public function installBackTab($backtab) {
+
+        $exist = BackTab::getIdBackTabByClass($backtab->class_name);
+        if(!$exist) {
+            $newObjet = new BackTab();
+            foreach($backtab as $key => $value) {
+                if(is_array($value)) {
+                    foreach (Language::getIDs(false) as $idLang) {
+                        if (property_exists($newObjet, $key)) {
+				            $newObjet->{$key}[(int) $idLang] = $value[(int) $idLang];
+			             }
+                    
+                    }
+                } else if (property_exists($newObjet, $key)) {
+				    $newObjet->{$key} = $value;
+			 }
+            
+            }
+            
+            $result = $newObjet->add();
+        } else {
+            $newObjet = new BackTab($exist);
+            foreach($backtab as $key => $value) {
+                if(is_array($value)) {
+                    foreach (Language::getIDs(false) as $idLang) {
+                        if (property_exists($newObjet, $key)) {
+				            $newObjet->{$key}[(int) $idLang] = $value[(int) $idLang];
+			             }
+                    
+                    }
+                } else if (property_exists($newObjet, $key)) {
+				    $newObjet->{$key} = $value;
+			 }
+            
+            }
+            
+            $result = $newObjet->update();
+        }
+        
+        return $result;
+		
+	}
 
 
 }
