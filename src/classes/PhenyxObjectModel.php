@@ -454,8 +454,7 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
     }
 
     public static function buildObject($id, $id_lang = null, $className = null) {
-
-        $file = fopen("testbuildObject.txt","w");
+        
         if(is_null($className)) {
             $className = get_called_class();
         }
@@ -487,7 +486,7 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
             $sql->leftJoin($def['table'] . '_meta', 'c', 'a.`' . bqSQL($def['primary']) . '` = c.`' . bqSQL($def['primary']).'`' );
 
         }
-        fwrite($file,$sql.PHP_EOL);
+       
         $results = Db::getInstance()->getRow($sql);
         if (is_null($id_lang) && isset($def['multilang']) && $def['multilang']) {
             $fieldLangs = self::getFieldLangs($def);
@@ -497,6 +496,7 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
                     $sql = new DbQuery();
                     $sql->select($fieldLang);
                     $sql->from($def['table'] . '_lang');
+                    $sql->where(bqSQL($def['primary']) .'='. $id);
                     $sql->where('id_lang = '.$lang['id_lang']);
                     $results[$fieldLang][$lang['iso_code']] = Db::getInstance()->getValue($sql);
                 }
@@ -504,7 +504,7 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
             
 
         }
-        fwrite($file,print_r($results, true));
+        
         return $results;
     }
     

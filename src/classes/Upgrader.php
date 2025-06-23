@@ -693,6 +693,7 @@ class Upgrader {
     
     public function installMeta($meta) {
 
+        $meta = Tools::jsonDecode(Tools::jsonEncode($meta), true);
         $exist = Meta::getIdMetaByPage($meta->page);
         if(!$exist) {
             $newObjet = new Meta();
@@ -715,9 +716,9 @@ class Upgrader {
             $newObjet = new Meta($exist);
             foreach($meta as $key => $value) {
                 if(is_array($value)) {
-                    foreach (Language::getIDs(false) as $idLang) {
+                    foreach (Language::getLanguages(true) as $lang) {
                         if (property_exists($newObjet, $key)) {
-				            $newObjet->{$key}[(int) $idLang] = $value[(int) $idLang];
+				            $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
 			             }
                     
                     }
@@ -736,9 +737,11 @@ class Upgrader {
 	}
     
     public function installBackTab($backtab) {
-
-        $exist = BackTab::getIdBackTabByClass($backtab->class_name);
+        
+        $backtab = Tools::jsonDecode(Tools::jsonEncode($backtab), true);
+        $exist = BackTab::getIdBackTabByClass($backtab['class_name']);
         if(!$exist) {
+            
             $newObjet = new BackTab();
             foreach($backtab as $key => $value) {
                 if(is_array($value)) {
@@ -753,16 +756,17 @@ class Upgrader {
 			 }
             
             }
-            $newObjet->id_parent = BackTab::getIdBackTabByClass($backtab->parent_class);
+            $newObjet->id_parent = BackTab::getIdBackTabByClass($backtab['parent_class']);
             
             $result = $newObjet->add();
         } else {
+            
             $newObjet = new BackTab($exist);
             foreach($backtab as $key => $value) {
                 if(is_array($value)) {
-                    foreach (Language::getIDs(false) as $idLang) {
+                    foreach (Language::getLanguages(true) as $lang) {
                         if (property_exists($newObjet, $key)) {
-				            $newObjet->{$key}[(int) $idLang] = $value[(int) $idLang];
+				            $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
 			             }
                     
                     }
