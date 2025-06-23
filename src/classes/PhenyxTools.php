@@ -169,6 +169,14 @@ class PhenyxTools {
 
 		return PhenyxTools::$instance;
 	}
+    
+    public static function getBasesLink($domain, $ssl = null, $relativeProtocol = false) {
+       
+        $link = Link::getInstance();      
+    
+        return $link->getBasesLink($domain, $ssl, $relativeProtocol);
+    }
+    
 
 	public function generateCurrentJson($use_cache = true) {
 

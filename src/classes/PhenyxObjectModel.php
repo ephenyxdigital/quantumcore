@@ -174,6 +174,8 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
     private $services;
     
     public $_session;
+    
+    public $_langs;
 
     public function getExtraVars() {
         
@@ -453,6 +455,7 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
 
     public static function buildObject($id, $id_lang = null, $className = null) {
 
+        $file = fopen("testbuildObject.txt","w");
         if(is_null($className)) {
             $className = get_called_class();
         }
@@ -473,23 +476,54 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
         $sql->from($def['table'], 'a');
         $sql->where('a.`' . bqSQL($def['primary']) . '` = ' . (int) $id);
 
-        if ($id_lang && isset($def['multilang']) && $def['multilang']) {
+        if (!is_null($id_lang) && isset($def['multilang']) && $def['multilang']) {
             $sql->select('b.*');
             $sql->leftJoin($def['table'] . '_lang', 'b', 'a.`' . bqSQL($def['primary']) . '` = b.`' . bqSQL($def['primary']) . '` AND b.`id_lang` = ' . (int) $id_lang);
 
-        } else if (isset($def['multilang']) && $def['multilang']) {
-            $sql->select('b.*');
-            $sql->leftJoin($def['table'] . '_lang', 'b', 'a.`' . bqSQL($def['primary']) . '` = b.`' . bqSQL($def['primary']) . '`');
-
-        }
+        } 
         
         if (isset($def['have_meta']) && $def['have_meta']) {
             $sql->select('c.*');
             $sql->leftJoin($def['table'] . '_meta', 'c', 'a.`' . bqSQL($def['primary']) . '` = c.`' . bqSQL($def['primary']).'`' );
 
         }
+        fwrite($file,$sql.PHP_EOL);
+        $results = Db::getInstance()->getRow($sql);
+        if (is_null($id_lang) && isset($def['multilang']) && $def['multilang']) {
+            $fieldLangs = self::getFieldLangs($def);
+           
+            foreach (Language::getLanguages(true) as $lang) {
+                foreach($fieldLangs as $fieldLang) {
+                    $sql = new DbQuery();
+                    $sql->select($fieldLang);
+                    $sql->from($def['table'] . '_lang');
+                    $sql->where('id_lang = '.$lang['id_lang']);
+                    $results[$fieldLang][$lang['iso_code']] = Db::getInstance()->getValue($sql);
+                }
+            }
+            
 
-        return Db::getInstance()->getRow($sql);
+        }
+        fwrite($file,print_r($results, true));
+        return $results;
+    }
+    
+    public static function getFieldLangs($def) {
+
+        $values = [];
+
+        foreach ($def['fields'] as $field => $data) {
+
+            if (empty($data['lang'])) {
+                continue;
+            }
+
+            $values[] = $field;
+
+
+        }
+
+        return $values;
     }
 
     public function constructLight() {
