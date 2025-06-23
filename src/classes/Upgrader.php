@@ -700,7 +700,7 @@ class Upgrader {
             foreach($meta as $key => $value) {
                 if(is_array($value)) {
                     foreach (Language::getLanguages(true) as $lang) {
-                        if (property_exists($newObjet, $key)) {
+                        if (property_exists($newObjet, $key) && isset($value[$lang['iso_code']])) {
 				            $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
 			             }
                     
@@ -717,7 +717,7 @@ class Upgrader {
             foreach($meta as $key => $value) {
                 if(is_array($value)) {
                     foreach (Language::getLanguages(true) as $lang) {
-                        if (property_exists($newObjet, $key)) {
+                        if (property_exists($newObjet, $key) && isset($value[$lang['iso_code']])) {
 				            $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
 			             }
                     
@@ -746,7 +746,7 @@ class Upgrader {
             foreach($backtab as $key => $value) {
                 if(is_array($value)) {
                     foreach (Language::getLanguages(true) as $lang) {
-                        if (property_exists($newObjet, $key)) {
+                        if (property_exists($newObjet, $key) && isset($value[$lang['iso_code']])) {
 				            $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
 			             }
                     
@@ -765,7 +765,7 @@ class Upgrader {
             foreach($backtab as $key => $value) {
                 if(is_array($value)) {
                     foreach (Language::getLanguages(true) as $lang) {
-                        if (property_exists($newObjet, $key)) {
+                        if (property_exists($newObjet, $key) && isset($value[$lang['iso_code']])) {
 				            $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
 			             }
                     
