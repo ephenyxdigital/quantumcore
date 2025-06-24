@@ -110,6 +110,15 @@ class Company extends PhenyxObjectModel {
     protected static $companies;
 
 	protected static $context_id_company;
+    
+    public $id_category;
+
+	public $capital;
+	public $company_type;
+    
+    public $activity_number;
+    public $delivery_area;
+    public $delivery_address;
 	
 	public $working_plan = '{"monday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"tuesday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"wednesday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"thursday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"friday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"saturday":null,"sunday":null}';
 
@@ -160,13 +169,21 @@ class Company extends PhenyxObjectModel {
 	public function __construct($idCompany = null) {
 
 		$this->className = get_class($this);
+        if(Plugin::isInstalled('ph_ecommerce')) {
+            self::$definition['fields']['id_category'] = ['type' => self::TYPE_INT, 'validate' => 'isNullOrUnsignedId'];
+		    self::$definition['fields']['capital'] = ['type' => self::TYPE_INT, 'validate' => 'isNullOrUnsignedId'];
+		    self::$definition['fields']['company_type'] = ['type' => self::TYPE_STRING];
+        }
+        if(Plugin::isInstalled('ph_learning')) {
+            self::$definition['fields']['activity_number'] = ['type' => self::TYPE_STRING];
+            self::$definition['fields']['delivery_area'] = ['type' => self::TYPE_STRING];
+            self::$definition['fields']['delivery_address'] = ['type' => self::TYPE_HTML];
+        }
         $this->context = Context::getContext();
         if(!isset($this->context->phenyxConfig)) {
             $this->context->phenyxConfig = new Configuration();
         }
-        if(!isset($this->context->_hook)) {
-            $this->context->_hook = Hook::getInstance();
-        }
+        
         if (!isset($this->context->language)) {
             $this->context->language = PhenyxTool::getInstance()->jsonDecode(PhenyxTool::getInstance()->jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'))));
         }
@@ -180,35 +197,7 @@ class Company extends PhenyxObjectModel {
             }
 
         }
-        if(is_null($this->extraVars)) {
-            $this->getExtraVars();
-        }
-        
-        if (is_array($this->extraVars) && count($this->extraVars)) {
-            foreach ($this->extraVars as $plugin => $vars) {
-                if (is_array($vars) && count($vars)) {
-                    foreach ($vars as $key => $value) {
-                        $this->{$key} = $value;
-                    }
-                }
-            }
-        }
-        if(is_null($this->extraDefs)) {
-            $this->getExtraDefs();
-        }
-        
-        if (is_array($this->extraDefs) && count($this->extraDefs)) {
-            foreach ($this->extraDefs as $plugin => $defs) {
-                if (is_array($defs) && count($defs)) {
-                    foreach ($defs as $key => $value) {
-                       self::$definition['fields'][$key] = $value;
-                    }
-                }
-            }
-        }
-        
-        
-		
+        	
 
 		if ($idCompany) {
             $this->id = $idCompany;
