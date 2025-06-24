@@ -75,6 +75,16 @@ class Company extends PhenyxObjectModel {
     public $exercices;
     
     public $previous_ecercices;
+    
+    public $id_category;
+    
+    public $capital;
+    public $company_type;
+    
+    public $activity_number;
+    public $delivery_area;
+    public $delivery_address;
+
 
     
 	public $active;
@@ -149,6 +159,14 @@ class Company extends PhenyxObjectModel {
 			'id_theme'                => ['type' => self::TYPE_INT, 'validate' => 'isNullOrUnsignedId'],
 			'mode'                    => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
 			'active'                  => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'copy_post' => false],
+			'deleted'                 => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'copy_post' => false],
+            'id_category'                => ['type' => self::TYPE_INT, 'validate' => 'isNullOrUnsignedId'],
+			'capital'                    => ['type' => self::TYPE_INT, 'validate' => 'isNullOrUnsignedId'],
+			'company_type'                  => ['type' => self::TYPE_STRING],
+			'deleted'                 => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'copy_post' => false],
+            'activity_number'                => ['type' => self::TYPE_STRING],
+			'delivery_area'                    => ['type' => self::TYPE_STRING],
+			'delivery_address'                  => ['type' => self::TYPE_HTML],
 			'deleted'                 => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'copy_post' => false],
 			'working_plan'            => ['type' => self::TYPE_JSON, 'copy_post' => false],
 			'date_add'                => ['type' => self::TYPE_DATE, 'validate' => 'isDate', 'copy_post' => false],
@@ -458,6 +476,27 @@ class Company extends PhenyxObjectModel {
 			return false;
 		}
         $langs = Language::getLanguages(false, $this->id, true);
+        $this->context->phenyxConfig->updateValue('EPH_COMPANY_ID', $this->id);
+		$this->context->phenyxConfig->updateValue('EPH_ROUTE_product_rule', array_map(function () {
+
+			return
+				'{category:/}{id}-{rewrite}';}, $langs));
+		$this->context->phenyxConfig->updateValue('EPH_ROUTE_category_rule', array_map(function () {
+
+			return
+				'{id}-{rewrite}';}, $langs));
+		$this->context->phenyxConfig->updateValue('EPH_ROUTE_supplier_rule', array_map(function () {
+
+			return
+				'supplier/{id}-{rewrite}';}, $langs));
+		$this->context->phenyxConfig->updateValue('EPH_ROUTE_manufacturer_rule', array_map(function () {
+
+			return
+				'brand/{id}-{rewrite}';}, $langs));
+		$this->context->phenyxConfig->updateValue('EPH_ROUTE_cms_rule', array_map(function () {
+
+			return
+				'content/{id}-{rewrite}';}, $langs));
         $url = new CompanyUrl();
         $url->active = 1;
         $url->main = 1;
@@ -528,39 +567,39 @@ class Company extends PhenyxObjectModel {
     }
     
     public static function cacheShops($refresh = false) {
-        
-        $context = Context::getComptext();
-        if (!is_null(static::$companies) && !$refresh) {
-            return;
-        }
 
-        static::$companies = [];
+		if (!is_null(static::$companies) && !$refresh) {
+			return;
+		}
 
-        $employee = $context->employee;
+		static::$companies = [];
 
-        $sql = (new DbQuery())
-            ->select('c.*, gs.`name` AS `group_name`, c.`company_name`, c.`active`')
-            ->select('cu.`domain`, cu.`domain_ssl`,  cu.`physical_uri`, cu.`virtual_uri`')
-            ->from('company', 'c')
-            ->leftJoin('company_url', 'cu', 'c.`id_shop` = cu.`id_shop` AND cu.`main` = 1')
-            ->where('c.`deleted` = 0')
-        ;
+		$employee = Context::getContext()->employee;
 
+		$sql = (new DbQuery())
+			->select('c.*, gs.`name` AS `group_name`, c.`company_name`, c.`active`')
+			->select('cu.`domain`, cu.`domain_ssl`,  cu.`physical_uri`, cu.`virtual_uri`')
+			->from('company', 'c')
+			->leftJoin('company_url', 'cu', 'c.`id_shop` = cu.`id_shop` AND cu.`main` = 1')
+			->where('c.`deleted` = 0')
+		;
 
-        if ($result = Db::getInstance(_EPH_USE_SQL_SLAVE_)->getRow($sql)) {           
+		if ($result = Db::getInstance(_EPH_USE_SQL_SLAVE_)->getRow($sql)) {
 
-                static::$companies[$result['id_company']] = [
-                    'id_shop'       => $result['id_company'],
-                    'name'          => $result['company_name'],
-                    'id_theme'      => $result['id_theme'],
-					'domain'        => $result['domain'],
-					'domain_ssl'    => $result['domain_ssl'],
-                    'uri'           => $result['physical_uri'].$result['virtual_uri'],
-                    'active'        => $result['active'],
-                ];
-           
-        }
-    }
+			static::$companies[$result['id_company']] = [
+				'id_shop'     => $result['id_company'],
+				'name'        => $result['company_name'],
+				'id_theme'    => $result['id_theme'],
+				'id_category' => $result['id_category'],
+				'domain'      => $result['domain'],
+				'domain_ssl'  => $result['domain_ssl'],
+				'uri'         => $result['physical_uri'] . $result['virtual_uri'],
+				'active'      => $result['active'],
+			];
+
+		}
+
+	}
     
     public function getUrls()  {
         return Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS(
@@ -658,6 +697,11 @@ class Company extends PhenyxObjectModel {
         return $exercice;
 
     }
+    
+    public function getCategory() {
+
+		return $this->context->phenyxConfig->get('EPH_ROOT_CATEGORY');
+	}
     
     public function l($string, $idLang = null, $context = null) {
 
