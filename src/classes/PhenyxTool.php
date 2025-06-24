@@ -117,7 +117,7 @@ class PhenyxTool {
             $category = new Category($category, $this->context->language->id);
         }
         $tag = null;
-        if($category->id_parent > 2) {
+        if($category->id_parent > $this->context->company->id_category) {
             $parent = new Category($category->id_parent, $this->context->language->id);
         } else {
             return '<span class="navigation_category">'.$category->name.'</span>';
