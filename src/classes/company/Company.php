@@ -75,18 +75,7 @@ class Company extends PhenyxObjectModel {
     public $exercices;
     
     public $previous_ecercices;
-    
-    public $id_category;
-    
-    public $capital;
-    public $company_type;
-    
-    public $activity_number;
-    public $delivery_area;
-    public $delivery_address;
-
-
-    
+            
 	public $active;
 	public $deleted = 0;
 	protected static $_idZones = [];
@@ -159,14 +148,8 @@ class Company extends PhenyxObjectModel {
 			'id_theme'                => ['type' => self::TYPE_INT, 'validate' => 'isNullOrUnsignedId'],
 			'mode'                    => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
 			'active'                  => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'copy_post' => false],
-			'deleted'                 => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'copy_post' => false],
-            'id_category'                => ['type' => self::TYPE_INT, 'validate' => 'isNullOrUnsignedId'],
-			'capital'                    => ['type' => self::TYPE_INT, 'validate' => 'isNullOrUnsignedId'],
-			'company_type'                  => ['type' => self::TYPE_STRING],
-			'deleted'                 => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'copy_post' => false],
-            'activity_number'                => ['type' => self::TYPE_STRING],
-			'delivery_area'                    => ['type' => self::TYPE_STRING],
-			'delivery_address'                  => ['type' => self::TYPE_HTML],
+			'deleted'                 => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'copy_post' => false],           
+			'deleted'                 => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'copy_post' => false],           
 			'deleted'                 => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'copy_post' => false],
 			'working_plan'            => ['type' => self::TYPE_JSON, 'copy_post' => false],
 			'date_add'                => ['type' => self::TYPE_DATE, 'validate' => 'isDate', 'copy_post' => false],
@@ -178,12 +161,35 @@ class Company extends PhenyxObjectModel {
 	public function __construct($idCompany = null) {
 
 		$this->className = get_class($this);
-        $this->context = Context::getContext();
+        $this->buildContext();
         if(!isset($this->context->phenyxConfig)) {
             $this->context->phenyxConfig = new Configuration();
         }
-        if (!isset($this->context->language)) {
-            $this->context->language = PhenyxTool::getInstance()->jsonDecode(PhenyxTool::getInstance()->jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'))));
+        if(is_null($this->extraVars)) {
+            $this->getExtraVars();
+        }
+        
+        if (is_array($this->extraVars) && count($this->extraVars)) {
+            foreach ($this->extraVars as $plugin => $vars) {
+                if (is_array($vars) && count($vars)) {
+                    foreach ($vars as $key => $value) {
+                        $this->{$key} = $value;
+                    }
+                }
+            }
+        }
+        if(is_null($this->extraDefs)) {
+            $this->getExtraDefs();
+        }
+        
+        if (is_array($this->extraDefs) && count($this->extraDefs)) {
+            foreach ($this->extraDefs as $plugin => $defs) {
+                if (is_array($defs) && count($defs)) {
+                    foreach ($defs as $key => $value) {
+                       self::$definition['fields'][$key] = $value;
+                    }
+                }
+            }
         }
         if (!isset(PhenyxObjectModel::$loaded_classes[$this->className])) {
             $this->def = PhenyxObjectModel::getDefinition($this->className);            
