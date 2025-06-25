@@ -438,7 +438,7 @@ class GsiteMap extends PhenyxObjectModel {
 				->select('p.`id_pfg`, pl.`link_rewrite`')
 				->from('pfg', 'p')
 				->leftJoin('pfg_lang', 'pl', 'p.`id_pfg` = pl.`id_pfg` AND pl.`id_lang` = ' . (int) $lang['id_lang'])
-				->where('p.`active` = 1')
+				->where('p.`active` = 1 AND p.`indexation` = 1')
 				->where('p.`id_pfg` >= ' . (int) $id_pfg)
 				->orderBy('p.`id_pfg` ASC')
 		);
