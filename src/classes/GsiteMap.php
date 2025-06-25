@@ -435,9 +435,9 @@ class GsiteMap extends PhenyxObjectModel {
 
 		$pfgs = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS(
 			(new DbQuery())
-				->select('p.`id_pfg`; pl.`title`')
+				->select('p.`id_pfg`, pl.`title`')
 				->from('pfg', 'p')
-				->leftJoin('pfg_lang', 'pl', 'p.`id_pfg` = pl.`id_pfg` AND cl.`id_lang` = ' . (int) $lang['id_lang'])
+				->leftJoin('pfg_lang', 'pl', 'p.`id_pfg` = pl.`id_pfg` AND pl.`id_lang` = ' . (int) $lang['id_lang'])
 				->where('p.`active` = 1')
 				->where('p.`id_pfg` >= ' . (int) $id_pfg)
 				->orderBy('p.`id_pfg` ASC')
