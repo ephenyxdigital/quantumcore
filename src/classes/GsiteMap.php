@@ -435,7 +435,7 @@ class GsiteMap extends PhenyxObjectModel {
 
 		$pfgs = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS(
 			(new DbQuery())
-				->select('p.`id_pfg`, pl.`title`')
+				->select('p.`id_pfg`, pl.`link_rewrite`')
 				->from('pfg', 'p')
 				->leftJoin('pfg_lang', 'pl', 'p.`id_pfg` = pl.`id_pfg` AND pl.`id_lang` = ' . (int) $lang['id_lang'])
 				->where('p.`active` = 1')
@@ -452,7 +452,7 @@ class GsiteMap extends PhenyxObjectModel {
 				if (!$this->_addLinkToSitemap(
 					$link_sitemap, [
 						'type'  => 'pfg',
-						'page'  => $pfg['title'],
+						'page'  => $pfg['link_rewrite'],
 						'link'  => $url,
 						'image' => false,
 					], $lang['iso_code'], $index, $i, $pfg['id_pfg']
