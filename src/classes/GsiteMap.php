@@ -37,7 +37,7 @@ class GsiteMap extends PhenyxObjectModel {
 
 		$this->disable_link = !empty($this->context->phenyxConfig->get('GSITEMAP_DISABLE_LINKS')) ? explode(', ', $this->context->phenyxConfig->get('GSITEMAP_DISABLE_LINKS')) : [];
 
-		$this->type_array = ['home', 'meta', 'cms', 'plugin'];
+		$this->type_array = ['home', 'meta', 'cms', 'pfg', 'plugin'];
 		$sitemapTypes = $this->context->_hook->exec('actionGetSiteMapType', ['type_array' => $this->type_array], null, true);
 
 		$this->rb_file = _EPH_ROOT_DIR_ . '/robots.txt';
@@ -431,6 +431,43 @@ class GsiteMap extends PhenyxObjectModel {
 		return true;
 	}
 
+    protected function _getPfgLink(&$link_sitemap, $lang, &$index, &$i, $id_pfg = 0) {
+
+		$pfgs = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS(
+			(new DbQuery())
+				->select('p.`id_pfg`; pl.`title`')
+				->from('pfg', 'p')
+				->leftJoin('pfg_lang', 'pl', 'p.`id_pfg` = pl.`id_pfg` AND cl.`id_lang` = ' . (int) $lang['id_lang'])
+				->where('p.`active` = 1')
+				->where('p.`id_pfg` >= ' . (int) $id_pfg)
+				->orderBy('p.`id_pfg` ASC')
+		);
+
+		foreach ($pfgs as $pfg) {
+			$url = '';
+
+			if (!in_array($meta['page'], $this->disable_link)) {
+				$url = $this->context->_link->getPFGLink($pfg['id_pfg'], null, $lang['id_lang']);
+
+				if (!$this->_addLinkToSitemap(
+					$link_sitemap, [
+						'type'  => 'pfg',
+						'page'  => $pfg['title'],
+						'link'  => $url,
+						'image' => false,
+					], $lang['iso_code'], $index, $i, $pfg['id_pfg']
+				)) {
+					return false;
+				}
+
+			}
+
+		}
+
+		return true;
+	}
+
+    
 	protected function _getCmsLink(&$link_sitemap, $lang, &$index, &$i, $id_cms = 0) {
 
 		$cmss_id = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS(
