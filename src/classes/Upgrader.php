@@ -722,7 +722,7 @@ class Upgrader {
 			             }
                     
                     }
-                } else if (property_exists($newObjet, $key)) {
+                } else if (property_exists($newObjet, $key) && $key != 'id_meta') {
 				    $newObjet->{$key} = $value;
 			 }
             
@@ -770,7 +770,7 @@ class Upgrader {
 			             }
                     
                     }
-                } else if (property_exists($newObjet, $key)) {
+                } else if (property_exists($newObjet, $key) && $key != 'id_back_tab') {
 				    $newObjet->{$key} = $value;
 			 }
             
