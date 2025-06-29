@@ -5770,12 +5770,15 @@ FileETag none
     }
 
     public function generateTabs($use_cache = true) {
-        
+        $file = fopen("testgenerateTabs.txt","a");
+        fwrite($file,$use_cache.PHP_EOL);
         if ($use_cache && $this->context->cache_enable && is_object($this->context->cache_api)) {
+            fwrite($file,'paf'.PHP_EOL);
             $value = $this->context->cache_api->getData('generateTabs_'.$this->context->employee->id);
             $temp = empty($value) ? null : $this->jsonDecode($value, true);
 
             if (!empty($temp) && is_array($temp) && count($temp)) {
+                fwrite($file,'paf'.print_r($temp, true).PHP_EOL);
                 return $temp;
             }
 
@@ -5879,13 +5882,14 @@ FileETag none
 
             $topbars[$index]['sub_tabs'] = array_values($subTabs);
         }
-        
+         fwrite($file,'topbars'.print_r($topbars, true).PHP_EOL);
         $hookBars = Hook::getInstance()->exec('actionAfterAdminTabs', ['topbars' => $topbars], null, true);
 
         if (is_array($hookBars)) {
 
             foreach ($hookBars as $plugin => $hookBar) {
                 if(is_array($hookBar)) {
+                    fwrite($file,'hookBar'.print_r($hookBar, true).PHP_EOL);
                     $topbars = $hookBar;
                 }
             }

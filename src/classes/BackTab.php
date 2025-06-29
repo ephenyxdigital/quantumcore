@@ -20,6 +20,8 @@ class BackTab extends PhenyxObjectModel {
     public $function;
 
     public $plugin;
+    
+    public $fa_duatone;
 
     public $class_name = null;
 
@@ -52,6 +54,7 @@ class BackTab extends PhenyxObjectModel {
             'position'        => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
             'function'        => ['type' => self::TYPE_STRING, 'size' => 64],
             'plugin'          => ['type' => self::TYPE_STRING],
+            'fa_duatone'      => ['type' => self::TYPE_STRING],
             'has_divider'     => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
             'is_global'       => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
             'active'          => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],

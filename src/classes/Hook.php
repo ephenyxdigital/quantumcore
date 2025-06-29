@@ -34,6 +34,10 @@ class Hook extends PhenyxObjectModel {
     public $title;
 
     public $description;
+    
+    public $plugins;
+    
+    public $plugin_count;
 
     public static $counter = 1;
 
@@ -91,6 +95,8 @@ class Hook extends PhenyxObjectModel {
             $this->id = $id;
             $entityMapper = Adapter_ServiceLocator::get("Adapter_EntityMapper");
             $entityMapper->load($this->id, $idLang, $this, $this->def, false);
+            $this->plugins = $this->getPlugins();
+            $this->plugin_count = is_array($this->plugins) ? count($this->plugins)  : 0;
         }
 
         $this->_session = PhenyxSession::getInstance();
@@ -99,6 +105,107 @@ class Hook extends PhenyxObjectModel {
             $this->memoryStart = memory_get_usage(true);
         }
 
+    }
+    
+    public static function buildObject($id, $id_lang = null, $className = null) {
+        
+        $objectData = parent::buildObject($id, null, 'Hook');
+        $objectData['plugins'] = self::getStaticPlugins($id);
+        $objectData['plugin_count'] = is_array($objectData['plugins']) ? count($objectData['plugins'])  : 0;
+        
+        return PhenyxTool::getInstance()->jsonDecode(PhenyxTool::getInstance()->jsonEncode($objectData));
+    }    
+    
+    
+    public function getPlugins() {
+        
+        
+        $plugins = [];
+        $query = new DbQuery();
+        $query->select('id_plugin');
+        $query->from('hook_plugin');
+        $query->where('id_hook = '.$this->id);
+        $query->orderBy('position');
+        
+        $resuts = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($query);
+        $i = 1;
+        foreach($resuts as $plugin) {
+            $plugs = [];
+            $pl = Plugin::getInstanceById((int) $plugin['id_plugin']);
+            $plugs['id'] = $pl->id;
+            $plugs['name'] = $pl->name;
+            $plugs['displayName'] = $pl->displayName;
+            $plugs['description'] = $pl->description;
+            $plugs['version'] = $pl->version;
+            $plugs['position'] = $i;
+            if (file_exists(_EPH_PLUGIN_DIR_ . $pl->name . '/logo.webp')) {
+                $plugs['image'] = '<img src="includes/plugins/' . $pl->name . '/logo.webp" class="imgm img-thumbnail">';
+            } else
+
+            if (file_exists(_EPH_PLUGIN_DIR_ . $pl->name . '/logo.png')) {
+                $plugs['image'] = '<img src="includes/plugins/' . $pl->name . '/logo.png" class="imgm img-thumbnail">';
+            } else
+
+            if (file_exists(_EPH_SPECIFIC_PLUGIN_DIR_ . $pl->name . '/logo.webp')) {
+                $plugs['image'] = '<img src="includes/specific_plugins/' . $pl->name . '/logo.webp" class="imgm img-thumbnail">';
+            } else
+
+            if (file_exists(_EPH_SPECIFIC_PLUGIN_DIR_ . $pl->name . '/logo.png')) {
+                $plugs['image'] = '<img src="includes/specific_plugins/' . $pl->name . '/logo.png" class="imgm img-thumbnail">';
+            } else {
+                $plugs['image'] = '<img src="content/img/no-plugin.png" class="imgm img-thumbnail">';
+            }
+            $i++;
+            $plugins[] = $plugs;
+        }
+        
+        return $plugins;
+    }
+    
+    public static function getStaticPlugins($id_hook) {
+        
+        $plugins = [];
+        $query = new DbQuery();
+        $query->select('id_plugin, id_hook_plugin');
+        $query->from('hook_plugin');
+        $query->where('id_hook = '.$id_hook);
+        $query->orderBy('position');
+        
+        $resuts = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($query);
+        $i = 1;
+        foreach($resuts as $plugin) {
+            $plugs = [];
+            $pl = Plugin::getInstanceById((int) $plugin['id_plugin']);
+            $plugs['id_hook_plugin'] = $plugin['id_hook_plugin'];  
+            $plugs['id_plugin'] = $pl->id;            
+            $plugs['name'] = $pl->name;
+            $plugs['plugin_name'] = $pl->name;
+            $plugs['name'] = '<div class="plugin_col_infos"><span class="plugin_name">
+                                    ' . $pl->displayName . ' <small class="text-muted">&nbsp;-&nbsp;v' . $pl->version . '</span>
+                                <p class="discret">' . $pl->description . '</p>
+                            </div>';
+            $plugs['displayName'] = $pl->displayName;
+            $plugs['description'] = $pl->description;
+            $plugs['version'] = $pl->version;
+            $plugs['pluginPosition'] = $i;
+            $plugs['position'] = '<div class="dragGroup"><div class="pluginPosition_' . $plugs['id_hook_plugin']. ' positions" data-id="' . $pl->id . '" data-parent="' . $plugs['id_hook_plugin'] . '" data-position="' . $i . '">' . $i . '</div></div>';;
+            
+            if (file_exists(_EPH_PLUGIN_DIR_ . $pl->name . '/logo.png')) {
+                $plugs['image'] = '<img src="/includes/plugins/' . $pl->name . '/logo.png" class="imgm img-thumbnail">';
+            } else
+
+
+            if (file_exists(_EPH_SPECIFIC_PLUGIN_DIR_ . $pl->name . '/logo.png')) {
+                $plugs['image'] = '<img src="includes/specific_plugins/' . $pl->name . '/logo.png" class="imgm img-thumbnail">';
+            } else {
+                $plugs['image'] = '<img src="content/img/no-plugin.png" class="imgm img-thumbnail">';
+            }
+            $i++;
+            
+            $plugins[] = $plugs;
+        }
+        
+        return $plugins;
     }
 
     public static function getInstance($id = null, $idLang = null) {
@@ -158,14 +265,10 @@ class Hook extends PhenyxObjectModel {
 
         $collection = [];
 
-        if (is_null($idLang)) {
-            $idLang = $this->context->language->id;
-        }
-
-        $hooks = new PhenyxCollection('Hook', $idLang);
+        $hooks = new PhenyxCollection('Hook');
 
         foreach ($hooks as $hook) {
-            $collection[] = new Hook($hook->id, $idLang);
+            $collection[] = new Hook($hook->id);
         }
 
         return $collection;
@@ -184,6 +287,68 @@ class Hook extends PhenyxObjectModel {
         $query->orderBy('`name`');
 
         return Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($query);
+    }
+    
+    public function getPluginHooks($id_plugin = 0) {
+        
+        if ($this->context->cache_enable) {
+
+            if (is_object($this->context->cache_api)) {
+                $value = $this->context->cache_api->getData('getPluginHooks_'.$id_plugin);
+                $hooks = empty($value) ? null : $this->context->_tools->jsonDecode($value, true);
+                if (!empty($hooks) && is_array($hooks)) {
+                    return $hooks;
+                }
+            }
+        }
+        
+        $hooks= $this->_session->get('getPluginHooks_'.$id_plugin);
+
+        if (!empty($hooks) && is_array($hooks)) {
+            return $hooks;
+        }
+        $hooks = [];
+        $query = new DbQuery();
+        $query->select('DISTINCT(h.id_hook), h.*');
+        $query->from('hook', 'h');
+        $query->leftJoin('hook_plugin', 'hp', 'hp.id_hook = h.id_hook');
+        
+        if($id_plugin > 0) {
+            $query->where('hp.id_plugin = '.$id_plugin);
+        } else {
+            $query->where('hp.id_plugin > 0');
+        }
+        $query->orderBy('h.`name`, hp.position');
+        $results = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($query);
+       
+        foreach($results as &$hook) {
+            $hook['plugins'] = self::getStaticPlugins($hook['id_hook']);
+            $hook['plugin_count'] = is_array($hook['plugins']) ? count($hook['plugins'])  : 0;
+            $hooks[$hook['name']] = $hook;
+            
+            
+        }
+        
+        if ($this->context->cache_enable) {
+
+            if (is_object($this->context->cache_api)) {
+                $temp = $this->context->_tools->jsonEncode($hooks);
+                $this->context->cache_api->putData('getPluginHooks_'.$id_plugin, $temp, 1864000);
+            }
+        }
+        $this->_session->set('getPluginHooks_'.$id_plugin, $hooks);
+        return $hooks;
+      
+    }
+    
+    public static function getStaticIdHookPlugin($hook) {
+        
+        $query = new DbQuery();
+        $query->select('id_hook_plugin');
+        $query->from('hook_plugin');
+        $query->where('hp.id_plugin > 0');
+        $query->orderBy('h.`name`, hp.position');
+        
     }
 
     public function getNameById($hookId) {
@@ -432,12 +597,7 @@ class Hook extends PhenyxObjectModel {
                 $controllerObj = $this->context->controller;
 
                 if (is_array($exceptions) && in_array($controller, $exceptions)) {
-                    $file = fopen("testcheckExceptions.txt", "w");
-                    fwrite($file, $controller . PHP_EOL);
-                    fwrite($file, print_r($exceptions, true) . PHP_EOL);
-                    fwrite($file, $array['id_plugin'] . PHP_EOL);
-                    fwrite($file, $array['id_hook'] . PHP_EOL);
-
+                   
                     continue;
                 }
 

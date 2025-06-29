@@ -901,6 +901,8 @@ abstract class PhenyxController {
             }
 
         }
+        
+        $this->context->phenyxgrid->docReady = 0;
 
         $this->context->phenyxgrid->paramClass = !empty($this->paramClassName) ? $this->paramClassName : $this->className;
         $this->context->phenyxgrid->paramController = !empty($this->paramController_name) ? $this->paramController_name : $this->controller_name;
@@ -1979,6 +1981,71 @@ abstract class PhenyxController {
         $this->ajaxDisplay();
 
     }
+    
+    public function ajaxProcessRefreshContent() {
+
+        $this->paragridScript = $this->generateParaGridScript();
+        $this->setAjaxMedia();
+        $data = $this->createTemplate($this->table . '.tpl');
+        $extraVars = $this->context->_hook->exec('action' . $this->controller_name . 'TargetGetExtraVars', ['controller_type' => $this->controller_type], null, true);
+
+        if (is_array($extraVars)) {
+
+            foreach ($extraVars as $plugin => $vars) {
+
+                if (is_array($vars)) {
+
+                    foreach ($vars as $key => $value) {
+                        $data->assign($key, $value);
+                    }
+
+                }
+
+            }
+
+        }
+
+        if (is_array($this->extra_vars)) {
+
+            foreach ($this->extra_vars as $key => $value) {
+                $data->assign($key, $value);
+            }
+
+        }
+
+        if (method_exists($this, 'get' . $this->className . 'Fields')) {
+            $configurationField = $this->{'get' . $this->className . 'Fields'}
+
+            ();
+            $data->assign([
+                'manageHeaderFields' => $this->manageHeaderFields,
+                'customHeaderFields' => $this->manageFieldsVisibility($configurationField),
+            ]);
+        }
+
+        $this->addJsDef([
+            'AjaxLink' . $this->controller_name => Link::getInstance()->getAdminLink($this->controller_name),
+        ]);
+
+        $data->assign([
+            'paragridScript'  => $this->paragridScript,
+            'controller'      => $this->controller_name,
+            'tableName'       => $this->table,
+            'className'       => $this->className,
+            'link'            => $this->context->_link,
+            'id_lang_default' => $this->default_language,
+            'languages'       => Language::getLanguages(false),
+            'tabs'            => $this->ajaxOptions,
+            'bo_imgdir'       => __EPH_BASE_URI__ . 'content/backoffice/' . $this->bo_theme . '/img/',
+        ]);
+
+        $this->ajax_li = null;
+        $this->ajax_content = '<div id="content' . $this->controller_name . '" class="panel wpb_text_column  wpb_slideInUp slideInUp wpb_start_animation animated col-lg-12" style="display: content;">' . $data->fetch() . '</div>';
+
+        $this->ajaxContentDisplay();
+
+    }
+
 
     public function tabDisplay() {
 
@@ -2059,7 +2126,7 @@ abstract class PhenyxController {
                         $value = $this->context->cache_api->getData($this->cacheId);
                         $result = empty($value) ? null : $this->context->_tools->jsonDecode($value, true);
 
-                        if (!empty($temp)) {
+                        if (!empty($result)) {
                             die($this->context->_tools->jsonEncode($result));
 
                         }
@@ -2114,6 +2181,56 @@ abstract class PhenyxController {
             $content = $this->context->smarty->fetch($this->ajax_layout, $this->php_self);
             $this->ajaxShowContent($content);
         }
+
+    }
+
+    public function ajaxContentDisplay() {
+
+        
+        if (($this->_back_css_cache || $this->_back_js_cache) && is_writable(_EPH_BO_ALL_THEMES_DIR_ . 'backend/cache')) {
+
+            if ($this->_back_css_cache) {
+                $this->extracss = $this->context->media->admincccCss($this->extracss);
+            }
+
+            if ($this->_back_js_cache) {
+                $this->push_js_files = $this->context->media->admincccJS($this->push_js_files);
+            }
+
+        }
+
+        $controller = $this->context->_tools->getValue('controller');
+
+        $this->context->smarty->assign(
+            [
+                'js_def'           => ($this->_defer && $this->_domAvailable) ? [] : $this->js_def,
+                'extracss'         => $this->extracss,
+                'js_heads'         => [],
+                'js_files'         => $this->_defer ? [] : $this->push_js_files,
+                'favicon_dir'      => __EPH_BASE_URI__ . 'content/backoffice/img/',
+                'meta_title'       => $this->page_title,
+                'meta_description' => $this->page_description,
+            ]
+        );
+
+        $dir = $this->context->smarty->getTemplateDir(0);
+        $override_dir = $this->context->smarty->getTemplateDir(1) . DIRECTORY_SEPARATOR;
+        $pluginListDir = $this->context->smarty->getTemplateDir(0) . 'helpers' . DIRECTORY_SEPARATOR . 'plugins_list' . DIRECTORY_SEPARATOR;
+
+        $headerTpl = file_exists($dir . 'ajax_header.tpl') ? $dir . 'ajax_header.tpl' : 'ajax_header.tpl';
+        $footerTpl = file_exists($dir . 'ajax_footer.tpl') ? $dir . 'ajax_footer.tpl' : 'ajax_footer.tpl';
+
+        $this->context->smarty->assign(
+            [
+                'content'     => $this->ajax_content,
+                'ajax_header' => $this->context->smarty->fetch($headerTpl),
+                'ajax_footer' => $this->context->smarty->fetch($footerTpl),
+            ]
+        );
+
+        $content = $this->context->smarty->fetch($this->ajax_layout);
+        $this->ajax_display == 'refresh';
+        $this->ajaxRefreshContent($content);
 
     }
 
@@ -2329,6 +2446,76 @@ abstract class PhenyxController {
         }
 
     }
+    
+    public function ajaxRefreshContent($content) {
+        
+        $this->context->cookie->write();
+        $html = '';
+        $jsTag = 'js_def';
+        $this->context->smarty->assign($jsTag, $jsTag);
+        $html = $content;
+
+        $html = trim($html);
+
+        if (!empty($html)) {
+
+            $javascript = "";
+
+            if ($this->_defer && $this->_domAvailable) {
+                $html = $this->context->media->deferInlineScripts($html);
+            }
+
+            
+            $header = $this->context->media->deferTagOutput('ajax_head', $html) . '<content>';
+            $html = trim(str_replace($header, '', $html)) . "\n";
+
+            if ($this->ajax_display == 'view') {
+                $content = $this->context->media->deferIdOutput('contentview' . $this->controller_name, $html);
+            } else {
+                $content = $this->context->media->deferIdOutput('content' . $this->controller_name, $html);
+            }
+            
+
+            $js_def = ($this->_defer && $this->_domAvailable) ? $this->js_def : [];
+            $js_files = $this->_defer ? array_unique($this->push_js_files) : [];
+            $js_inline = ($this->_defer && $this->_domAvailable) ? $this->context->media->getInlineScript() : [];
+
+            $this->context->smarty->assign(
+                [
+                    'js_def'    => $js_def,
+                    'js_files'  => $js_files,
+                    'js_inline' => $js_inline,
+                ]
+            );
+            $javascript = '<cntscript>' . $this->context->smarty->fetch(_EPH_ALL_THEMES_DIR_ . 'javascript.tpl') . '</cntscript>';
+
+            if ($this->_defer) {
+                $javascript = $javascript . '</content>';
+            }
+
+            $content = str_replace('<input>', '', $content);
+            $content = $header . $content . $javascript ;
+            $result = [                
+                'html'       => $content,
+            ];
+
+            if (_EPH_ADMIN_DEBUG_PROFILING_) {
+                $result['profiling_mode'] = true;
+                $result['profiling'] = $this->displayProfiling();
+            } else {
+
+                if (!is_null($this->cacheId) && $this->cachable && $this->context->cache_enable) {
+                    $temp = $this->context->_tools->jsonEncode($result);
+                    $this->context->cache_api->putData($this->cacheId, $temp, 1864000);
+                }
+
+            }
+
+            die($this->context->_tools->jsonEncode($result));
+
+        }
+
+    }
 
     public function ajaxProcessEditObject() {
 
@@ -2343,7 +2530,7 @@ abstract class PhenyxController {
             $_GET['update' . $this->table] = "";
 
             $html = $this->renderForm();
-            $this->ajax_li = '<li id="uperEdit' . $this->controller_name . '" data-controller="' . $this->controller_name . '"><a href="#contentEdit' . $this->controller_name . '">' . $this->editObject . '</a><button type="button" onClick="closeEditFormObject(\'' . $this->controller_name . '\', '.$this->composer_editor.');" class="close tabdetail" data-id="uperEdit' . $this->controller_name . '"><i class="fa-duotone fa-circle-xmark"></i></button></li>';
+            $this->ajax_li = '<li id="uperEdit' . $this->controller_name . '" data-controller="' . $this->controller_name . '"><a href="#contentEdit' . $this->controller_name . '">' . $this->editObject . '</a><button type="button" onClick="closeEditFormObject(\'' . $this->controller_name . '\', ' . $this->composer_editor . ');" class="close tabdetail" data-id="uperEdit' . $this->controller_name . '"><i class="fa-duotone fa-circle-xmark"></i></button></li>';
             $this->ajax_content = '<div id="contentEdit' . $this->controller_name . '" class="panel wpb_text_column  wpb_slideInUp slideInUp wpb_start_animation animated col-lg-12" style="display; flow-root;">' . $html . '</div>';
 
             $this->ajaxEditDisplay();
@@ -2369,7 +2556,7 @@ abstract class PhenyxController {
         $scriptFooter = $this->context->_hook->exec('displayBackOfficeFooter', []);
         $html = $this->renderForm();
 
-        $this->ajax_li = '<li id="uperAdd' . $this->controller_name . '" data-controller="' . $this->controller_name . '"><a href="#contentAdd' . $this->controller_name . '">' . $this->editObject . '</a><button type="button" onClick="closeAddFormObject(\'' . $this->controller_name . '\', '.$this->composer_editor.')" class="close tabdetail" data-id="uperAdd' . $this->controller_name . '"><i class="fa-duotone fa-circle-xmark"></i></button></li>';
+        $this->ajax_li = '<li id="uperAdd' . $this->controller_name . '" data-controller="' . $this->controller_name . '"><a href="#contentAdd' . $this->controller_name . '">' . $this->editObject . '</a><button type="button" onClick="closeAddFormObject(\'' . $this->controller_name . '\', ' . $this->composer_editor . ')" class="close tabdetail" data-id="uperAdd' . $this->controller_name . '"><i class="fa-duotone fa-circle-xmark"></i></button></li>';
         $this->ajax_content = '<div id="contentAdd' . $this->controller_name . '" class="panel wpb_text_column  wpb_slideInUp slideInUp wpb_start_animation animated col-lg-12" style="display; flow-root;">' . $scripHeader . $html . $scriptFooter . '</div>';
 
         $this->ajaxEditDisplay();
@@ -2727,7 +2914,7 @@ abstract class PhenyxController {
 
             $html = $this->renderForm();
 
-            $li = '<li id="uperEdit' . $this->controller_name . '" data-controller="' . $this->controller_name . '"><a href="#contentEdit' . $this->controller_name . '">' . $this->editObject . '</a><button type="button" onClick="closeEditFormObject(\'' . $this->controller_name . '\', '.$this->composer_editor.');" class="close tabdetail" data-id="uperEdit' . $this->controller_name . '"><i class="fa-duotone fa-circle-xmark"></i></button></li>';
+            $li = '<li id="uperEdit' . $this->controller_name . '" data-controller="' . $this->controller_name . '"><a href="#contentEdit' . $this->controller_name . '">' . $this->editObject . '</a><button type="button" onClick="closeEditFormObject(\'' . $this->controller_name . '\', ' . $this->composer_editor . ');" class="close tabdetail" data-id="uperEdit' . $this->controller_name . '"><i class="fa-duotone fa-circle-xmark"></i></button></li>';
 
             $html = '<div id="contentEdit' . $this->controller_name . '" class="panel wpb_text_column  wpb_slideInUp slideInUp wpb_start_animation animated col-lg-12" style="display; flow-root;">' . $html . '</div>';
 

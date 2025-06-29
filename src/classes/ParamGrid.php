@@ -255,6 +255,8 @@ class ParamGrid {
 	public $sort;
 
 	public $showBottom = true;
+    
+    public $docReady = 1;
 
 	public function __construct($class = null, $controller = null, $table = null, $identifier = null) {
 
@@ -648,8 +650,12 @@ class ParamGrid {
 			if (!empty($this->uppervar)) {
 				$jsScript .= $this->uppervar;
 			}
-
-			$jsScript .= '$(document).ready(function(){' . PHP_EOL;
+            
+            if($this->docReady) {
+                $jsScript .= '$(document).ready(function(){' . PHP_EOL;
+            } else {
+                $jsScript .= '';
+            }
 
 			foreach ($this->paragrid_option['paragrids'] as $key => $value) {
 
@@ -777,8 +783,12 @@ class ParamGrid {
 				}
 
 			}
-
-			$jsScript .= '});' . PHP_EOL . PHP_EOL;
+            
+            if($this->docReady) {
+                $jsScript .= '});' . PHP_EOL . PHP_EOL;
+            } else {
+                $jsScript .= '';
+            }
 
 		} else {
 			$is_function = true;

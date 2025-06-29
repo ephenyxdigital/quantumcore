@@ -1211,6 +1211,22 @@ abstract class Plugin {
 
         return Db::getInstance()->executeS($sql);
     }
+    
+    public static function getHookPluginsInstalled() {
+
+        $sql = (new DbQuery())
+            ->select('p.*')
+            ->from('plugin', 'p')
+            ->leftJoin('hook_plugin', 'hp', 'p.`id_plugin` = hp.`id_plugin`')
+            ->leftJoin('hook', 'h', 'h.`id_hook` = hp.`id_hook`')
+            ->where('p.active = 1')
+            ->where('hp.id_plugin > 0')
+            ->orderBy('p.position');
+
+        $plugins = Db::getInstance()->executeS($sql);
+
+        return Db::getInstance()->executeS($sql);
+    }
 
     final public static function generateTrustedXml() {
 
