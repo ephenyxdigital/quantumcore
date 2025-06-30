@@ -169,7 +169,7 @@ class Hook extends PhenyxObjectModel {
             
             $plugins[] = $plugs;
         }
-        if ($use_cache && $this->context->cache_enable) {
+        if ($this->context->cache_enable) {
 
             if (is_object($this->context->cache_api)) {
                 $temp = $this->context->_tools->jsonEncode($plugins);
@@ -233,7 +233,7 @@ class Hook extends PhenyxObjectModel {
             
             $plugins[] = $plugs;
         }
-        if ($use_cache && $context->cache_enable) {
+        if ($context->cache_enable) {
 
             if (is_object($context->cache_api)) {
                 $temp = $context->_tools->jsonEncode($plugins);
@@ -372,7 +372,7 @@ class Hook extends PhenyxObjectModel {
             
         }
         
-        if ($use_cache && $this->context->cache_enable) {
+        if ($this->context->cache_enable) {
 
             if (is_object($this->context->cache_api)) {
                 $temp = $this->context->_tools->jsonEncode($hooks);
