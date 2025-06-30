@@ -85,6 +85,19 @@ class BackTab extends PhenyxObjectModel {
         return Tools::jsonDecode(Tools::jsonEncode($objectData));
     }
     
+    public static function getGlobalTabs() {
+        
+        $backTabs = [];
+        $tabs = new PhenyxCollection('BackTab');
+        $tabs->where('is_global', '=', 1);
+        foreach($tabs as $tab) {
+            $backTabs[] = BackTab::buildObject($tab->id);
+        }
+        
+        return $backTabs;
+        
+    }
+    
     public static function getParentClass($id_parent) {
         
         return Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue(
