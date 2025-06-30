@@ -736,6 +736,103 @@ class Upgrader {
 		
 	}
     
+    public function installMetas($metas) {
+
+        $result = true;
+        $metas = Tools::jsonDecode(Tools::jsonEncode($metas), true);
+        foreach($metas as $meta) {
+            $exist = Meta::getIdMetaByPage($meta->page);
+            if(!$exist) {
+                $newObjet = new Meta();
+                foreach($meta as $key => $value) {
+                    if(is_array($value)) {
+                        foreach (Language::getLanguages(true) as $lang) {
+                            if (property_exists($newObjet, $key) && isset($value[$lang['iso_code']])) {
+				                $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
+			                 }                    
+                        }
+                    } else if (property_exists($newObjet, $key) && $key != 'id_meta') {
+				        $newObjet->{$key} = $value;
+			     }
+            
+                }
+            
+                $result &= $newObjet->add();
+            } else {
+                $newObjet = new Meta($exist);
+                foreach($meta as $key => $value) {
+                    if(is_array($value)) {
+                        foreach (Language::getLanguages(true) as $lang) {
+                            if (property_exists($newObjet, $key) && isset($value[$lang['iso_code']])) {
+				                $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
+			                 }                    
+                        }
+                    } else if (property_exists($newObjet, $key) && $key != 'id_meta') {
+				        $newObjet->{$key} = $value;
+			     }
+            
+                }
+            
+                $result &= $newObjet->update();
+            }
+        }
+        
+        
+        return $result;
+               
+		
+	}
+    
+    public function installBackTabs($backtabs) {
+        
+        $result = true;
+        $backtabs = Tools::jsonDecode(Tools::jsonEncode($backtabs), true);
+        foreach($backtabs as $backtab) {
+            $exist = BackTab::getIdBackTabByClass($backtab['class_name']);
+            if(!$exist) {
+            
+                $newObjet = new BackTab();
+                foreach($backtab as $key => $value) {
+                    if(is_array($value)) {
+                        foreach (Language::getLanguages(true) as $lang) {
+                            if (property_exists($newObjet, $key) && isset($value[$lang['iso_code']])) {
+				                $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
+			                }                    
+                        }
+                    } else if (property_exists($newObjet, $key) && $key != 'id_back_tab') {
+				        $newObjet->{$key} = $value;
+			     }
+            
+                }
+                $newObjet->id_parent = BackTab::getIdBackTabByClass($backtab['parent_class']);
+            
+                $result &= $newObjet->add();
+            } else {
+            
+                $newObjet = new BackTab($exist);
+                foreach($backtab as $key => $value) {
+                    if(is_array($value)) {
+                        foreach (Language::getLanguages(true) as $lang) {
+                            if (property_exists($newObjet, $key) && isset($value[$lang['iso_code']])) {
+				                $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
+			                 }                    
+                        }
+                    } else if (property_exists($newObjet, $key) && $key != 'id_back_tab') {
+				        $newObjet->{$key} = $value;
+			     }
+            
+                }
+            
+                $result &= $newObjet->update();
+            }
+        }
+        
+        $this->context->_tools->generateTabs(false);
+        
+        return $result;
+		
+	}
+    
     public function installBackTab($backtab) {
         
         $backtab = Tools::jsonDecode(Tools::jsonEncode($backtab), true);
