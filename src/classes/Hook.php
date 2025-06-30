@@ -117,9 +117,18 @@ class Hook extends PhenyxObjectModel {
     }    
     
     
-    public function getPlugins() {
+    public function getPlugins($use_cache = true) {
         
-        
+        if ($use_cache && $this->context->cache_enable) {
+
+            if (is_object($this->context->cache_api)) {
+                $value = $this->context->cache_api->getData('getPlugins'.$this->id);
+                $plugins = empty($value) ? null : $this->context->_tools->jsonDecode($value, true);
+                if (!empty($plugins) && is_array($plugins)) {
+                    return $plugins;
+                }
+            }
+        }
         $plugins = [];
         $query = new DbQuery();
         $query->select('id_plugin');
@@ -132,23 +141,24 @@ class Hook extends PhenyxObjectModel {
         foreach($resuts as $plugin) {
             $plugs = [];
             $pl = Plugin::getInstanceById((int) $plugin['id_plugin']);
-            $plugs['id'] = $pl->id;
+            $plugs['id_hook_plugin'] = $plugin['id_hook_plugin'];  
+            $plugs['id_plugin'] = $pl->id;            
             $plugs['name'] = $pl->name;
+            $plugs['plugin_name'] = $pl->name;
+            $plugs['name'] = '<div class="plugin_col_infos"><span class="plugin_name">
+                                    ' . $pl->displayName . ' <small class="text-muted">&nbsp;-&nbsp;v' . $pl->version . '</span>
+                                <p class="discret">' . $pl->description . '</p>
+                            </div>';
             $plugs['displayName'] = $pl->displayName;
             $plugs['description'] = $pl->description;
             $plugs['version'] = $pl->version;
-            $plugs['position'] = $i;
-            if (file_exists(_EPH_PLUGIN_DIR_ . $pl->name . '/logo.webp')) {
-                $plugs['image'] = '<img src="includes/plugins/' . $pl->name . '/logo.webp" class="imgm img-thumbnail">';
-            } else
-
+            $plugs['pluginPosition'] = $i;
+            $plugs['position'] = '<div class="dragGroup"><div class="pluginPosition_' . $plugs['id_hook_plugin']. ' positions" data-id="' . $pl->id . '" data-parent="' . $plugs['id_hook_plugin'] . '" data-position="' . $i . '">' . $i . '</div></div>';;
+            
             if (file_exists(_EPH_PLUGIN_DIR_ . $pl->name . '/logo.png')) {
-                $plugs['image'] = '<img src="includes/plugins/' . $pl->name . '/logo.png" class="imgm img-thumbnail">';
+                $plugs['image'] = '<img src="/includes/plugins/' . $pl->name . '/logo.png" class="imgm img-thumbnail">';
             } else
 
-            if (file_exists(_EPH_SPECIFIC_PLUGIN_DIR_ . $pl->name . '/logo.webp')) {
-                $plugs['image'] = '<img src="includes/specific_plugins/' . $pl->name . '/logo.webp" class="imgm img-thumbnail">';
-            } else
 
             if (file_exists(_EPH_SPECIFIC_PLUGIN_DIR_ . $pl->name . '/logo.png')) {
                 $plugs['image'] = '<img src="includes/specific_plugins/' . $pl->name . '/logo.png" class="imgm img-thumbnail">';
@@ -156,14 +166,33 @@ class Hook extends PhenyxObjectModel {
                 $plugs['image'] = '<img src="content/img/no-plugin.png" class="imgm img-thumbnail">';
             }
             $i++;
+            
             $plugins[] = $plugs;
+        }
+        if ($use_cache && $this->context->cache_enable) {
+
+            if (is_object($this->context->cache_api)) {
+                $temp = $this->context->_tools->jsonEncode($plugins);
+                $this->context->cache_api->putData('getPlugins'.$this->id, $temp, 1864000);
+            }
         }
         
         return $plugins;
     }
     
-    public static function getStaticPlugins($id_hook) {
+    public static function getStaticPlugins($id_hook, $use_cache = true) {
         
+        $context = Context::getContext();
+        if ($use_cache && $context->cache_enable) {
+
+            if (is_object($context->cache_api)) {
+                $value = $context->cache_api->getData('getPlugins'.$id_hook);
+                $plugins = empty($value) ? null : $context->_tools->jsonDecode($value, true);
+                if (!empty($plugins) && is_array($plugins)) {
+                    return $plugins;
+                }
+            }
+        }
         $plugins = [];
         $query = new DbQuery();
         $query->select('id_plugin, id_hook_plugin');
@@ -204,7 +233,13 @@ class Hook extends PhenyxObjectModel {
             
             $plugins[] = $plugs;
         }
-        
+        if ($use_cache && $context->cache_enable) {
+
+            if (is_object($context->cache_api)) {
+                $temp = $context->_tools->jsonEncode($plugins);
+                $context->cache_api->putData('getPlugins'.$id_hook, $temp, 1864000);
+            }
+        }
         return $plugins;
     }
 
@@ -219,14 +254,22 @@ class Hook extends PhenyxObjectModel {
 
     public function add($autoDate = true, $nullValues = false) {
 
-        return parent::add($autoDate, $nullValues);
+        $result = parent::add($autoDate, $nullValues);
+        if($result) {
+            $this->plugins = $this->getPlugins(false);
+        }
+
+        return $result;
     }
 
     public function update($nullValues = false) {
 
-        $return = parent::update($nullValues);
+        $result = parent::update($nullValues);
+        if($result) {
+            $this->plugins = $this->getPlugins(false);
+        }
 
-        return $return;
+        return $result;
     }
 
     public function getHookArgs() {
@@ -289,9 +332,9 @@ class Hook extends PhenyxObjectModel {
         return Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($query);
     }
     
-    public function getPluginHooks($id_plugin = 0) {
+    public function getPluginHooks($id_plugin = 0, $use_cache = true) {
         
-        if ($this->context->cache_enable) {
+        if ($use_cache && $this->context->cache_enable) {
 
             if (is_object($this->context->cache_api)) {
                 $value = $this->context->cache_api->getData('getPluginHooks_'.$id_plugin);
@@ -329,7 +372,7 @@ class Hook extends PhenyxObjectModel {
             
         }
         
-        if ($this->context->cache_enable) {
+        if ($use_cache && $this->context->cache_enable) {
 
             if (is_object($this->context->cache_api)) {
                 $temp = $this->context->_tools->jsonEncode($hooks);
