@@ -50,7 +50,7 @@ class BackTab extends PhenyxObjectModel {
         'multilang' => true,
         'fields'    => [
             'class_name'      => ['type' => self::TYPE_STRING, 'size' => 64],
-            'id_parent'       => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
+            'id_parent'       => ['type' => self::TYPE_INT, 'validate' => 'isInt'],
             'position'        => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
             'function'        => ['type' => self::TYPE_STRING, 'size' => 64],
             'plugin'          => ['type' => self::TYPE_STRING],
