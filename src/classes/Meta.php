@@ -515,7 +515,7 @@ class Meta extends PhenyxObjectModel {
             (new DbQuery())
                 ->select('id_meta')
                 ->from('meta')
-                ->where('page = \'' . pSQL($page) . '\'')
+                ->where('page LIKE \'' . pSQL($page) . '\'')
         );
     }
 
@@ -756,6 +756,18 @@ class Meta extends PhenyxObjectModel {
 
         return $return;
 
+    }
+    
+    public static function getSynchMetas() {
+        
+        $synchMetas = [];
+        $metas = new PhenyxCollection('Meta');
+        foreach($metas as $meta) {
+            $synchMetas[] = Meta::buildObject($meta->id);
+        }
+        
+        return $synchMetas;
+        
     }
 
 }

@@ -50,7 +50,7 @@ class BackTab extends PhenyxObjectModel {
         'multilang' => true,
         'fields'    => [
             'class_name'      => ['type' => self::TYPE_STRING, 'size' => 64],
-            'id_parent'       => ['type' => self::TYPE_INT, 'validate' => 'isInt'],
+            'id_parent'       => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
             'position'        => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
             'function'        => ['type' => self::TYPE_STRING, 'size' => 64],
             'plugin'          => ['type' => self::TYPE_STRING],
@@ -90,6 +90,7 @@ class BackTab extends PhenyxObjectModel {
         $backTabs = [];
         $tabs = new PhenyxCollection('BackTab');
         $tabs->where('is_global', '=', 1);
+        $tabs->where('id_back_tab', '>', 1);
         foreach($tabs as $tab) {
             $backTabs[] = BackTab::buildObject($tab->id);
         }
@@ -159,7 +160,7 @@ class BackTab extends PhenyxObjectModel {
             (new DbQuery())
                 ->select('id_back_tab')
                 ->from('back_tab')
-                ->where('class_name = \'' . pSQL($controller) . '\'')
+                ->where('class_name LIKE \'' . pSQL($controller) . '\'')
         );
     }
 
