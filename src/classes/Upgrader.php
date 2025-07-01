@@ -788,6 +788,11 @@ class Upgrader {
         $result = true;
         $backtabs = Tools::jsonDecode(Tools::jsonEncode($backtabs), true);
         foreach($backtabs as $backtab) {
+            if(!empty($backtab['plugin'])) {
+                if(!Plugin::isInstalled($backtab['plugin']))  {
+                    continue;
+                }
+            }
             $exist = BackTab::getIdBackTabByClass($backtab['class_name']);
             if(!$exist) {
             
@@ -837,6 +842,11 @@ class Upgrader {
         
         $backtab = Tools::jsonDecode(Tools::jsonEncode($backtab), true);
         $exist = BackTab::getIdBackTabByClass($backtab['class_name']);
+        if(!empty($backtab['plugin'])) {
+            if(!Plugin::isInstalled($backtab['plugin']))  {
+                return true;
+            }
+        }
         if(!$exist) {
             
             $newObjet = new BackTab();

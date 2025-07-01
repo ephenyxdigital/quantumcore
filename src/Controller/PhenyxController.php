@@ -1883,9 +1883,10 @@ abstract class PhenyxController {
             'bo_imgdir'       => __EPH_BASE_URI__ . 'content/backoffice/' . $this->bo_theme . '/img/',
         ]);
 
-        $this->ajax_content = $data->fetch();
+        $this->ajax_li = null;
+        $this->ajax_content = '<div id="content' . $this->controller_name . '" class="panel wpb_text_column  wpb_slideInUp slideInUp wpb_start_animation animated col-lg-12" style="display: content;">' . $data->fetch() . '</div>';
 
-        $this->refeshDisplay();
+        $this->ajaxContentDisplay();
 
     }
 
