@@ -827,7 +827,7 @@ class Upgrader {
 			     }
             
                 }
-            
+                $newObjet->id_parent = BackTab::getIdBackTabByClass($backtab['parent_class']);
                 $result &= $newObjet->update();
             }
         }
@@ -882,7 +882,7 @@ class Upgrader {
 			 }
             
             }
-            
+            $newObjet->id_parent = BackTab::getIdBackTabByClass($backtab['parent_class']);
             $result = $newObjet->update();
         }
         $this->context->_tools->generateTabs(false);
