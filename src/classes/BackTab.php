@@ -75,7 +75,7 @@ class BackTab extends PhenyxObjectModel {
         if ($this->id) {
 
             $this->accesses = $this->getAccesses();
-            $this->parent_class
+            $this->parent_class = $this->getParentClass();
         }
 
     }
