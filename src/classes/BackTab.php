@@ -38,6 +38,8 @@ class BackTab extends PhenyxObjectModel {
     public $is_global;
 
     public $accesses;
+    
+    public $parent_class;
 
     protected static $instance;
 
@@ -73,6 +75,7 @@ class BackTab extends PhenyxObjectModel {
         if ($this->id) {
 
             $this->accesses = $this->getAccesses();
+            $this->parent_class
         }
 
     }
@@ -80,7 +83,7 @@ class BackTab extends PhenyxObjectModel {
     public static function buildObject( $id, $idLang = null, $className = null) {
         
         $objectData = parent::buildObject( $id, $idLang, $className);
-        $objectData['parent_class'] = self::getParentClass($objectData['id_parent']);
+        $objectData['parent_class'] = self::getStaticParentClass($objectData['id_parent']);
 		       
         return Tools::jsonDecode(Tools::jsonEncode($objectData));
     }
@@ -99,7 +102,17 @@ class BackTab extends PhenyxObjectModel {
         
     }
     
-    public static function getParentClass($id_parent) {
+    public function getParentClass() {
+        
+        return Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue(
+            (new DbQuery())
+                ->select('class_name')
+                ->from('back_tab')
+                ->where('id_back_tab = ' . $this->id_parent)
+        );
+    }
+    
+    public static function getStaticParentClass($id_parent) {
         
         return Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue(
             (new DbQuery())
