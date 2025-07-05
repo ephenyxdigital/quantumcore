@@ -2525,7 +2525,7 @@ abstract class Plugin {
         return $result;
     }
 
-    public function instalPluginTab($class_name, $name, $function = true, $idParent = null, $parentName = null, $position = null, $openFunction = null, $divider = 0) {
+    public function instalPluginTab($class_name, $name, $function = true, $idParent = null, $parentName = null, $position = null, $openFunction = null, $divider = 0, $fa_duatone = null) {
 
         if (is_null($parentName) && is_null($idParent)) {
             return false;
@@ -2559,6 +2559,7 @@ abstract class Plugin {
             $tab->id_parent = $idParent;
             $tab->class_name = $class_name;
             $tab->has_divider = $divider;
+            $tab->fa_duatone = $fa_duatone;
             $tab->active = 1;
             $tab->name = [];
 
@@ -2593,6 +2594,7 @@ abstract class Plugin {
             $tab->id_parent = $idParent;
             $tab->class_name = $class_name;
             $tab->has_divider = $divider;
+            $tab->fa_duatone = $fa_duatone;
             $tab->active = 1;
             $tab->name = [];
 
