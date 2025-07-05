@@ -92,8 +92,8 @@ class BackTab extends PhenyxObjectModel {
         
         $backTabs = [];
         $tabs = new PhenyxCollection('BackTab');
-        $tabs->where('is_global', '=', 1);
         $tabs->where('id_back_tab', '>', 1);
+        $tabs->where('id_parent', '>', 0);
         foreach($tabs as $tab) {
             $backTabs[] = BackTab::buildObject($tab->id);
         }

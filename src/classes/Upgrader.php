@@ -804,7 +804,7 @@ class Upgrader {
 				                $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
 			                }                    
                         }
-                    } else if (property_exists($newObjet, $key) && $key != 'id_back_tab') {
+                    } else if (property_exists($newObjet, $key) && $key != 'id_back_tab' && $key != 'id_parent') {
 				        $newObjet->{$key} = $value;
 			     }
             
@@ -822,7 +822,7 @@ class Upgrader {
 				                $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
 			                 }                    
                         }
-                    } else if (property_exists($newObjet, $key) && $key != 'id_back_tab') {
+                    } else if (property_exists($newObjet, $key) && $key != 'id_back_tab' && $key != 'id_parent') {
 				        $newObjet->{$key} = $value;
 			     }
             
@@ -858,7 +858,7 @@ class Upgrader {
 			             }
                     
                     }
-                } else if (property_exists($newObjet, $key) && $key != 'id_back_tab') {
+                } else if (property_exists($newObjet, $key) && $key != 'id_back_tab' && $key != 'id_parent') {
 				    $newObjet->{$key} = $value;
 			 }
             
@@ -877,7 +877,7 @@ class Upgrader {
 			             }
                     
                     }
-                } else if (property_exists($newObjet, $key) && $key != 'id_back_tab') {
+                } else if (property_exists($newObjet, $key) && $key != 'id_back_tab' && $key != 'id_parent') {
 				    $newObjet->{$key} = $value;
 			 }
             
