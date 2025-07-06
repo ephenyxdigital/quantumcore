@@ -36,6 +36,8 @@ class BackTab extends PhenyxObjectModel {
     public $master;
 
     public $is_global;
+    
+    public $is_specific;
 
     public $accesses;
     
@@ -59,6 +61,7 @@ class BackTab extends PhenyxObjectModel {
             'fa_duatone'      => ['type' => self::TYPE_STRING],
             'has_divider'     => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
             'is_global'       => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
+            'is_specific'       => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
             'active'          => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
             'master'          => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
 
@@ -94,6 +97,7 @@ class BackTab extends PhenyxObjectModel {
         $tabs = new PhenyxCollection('BackTab');
         $tabs->where('id_back_tab', '>', 1);
         $tabs->where('id_parent', '>', 0);
+        $tabs->where('is_specific', '=', 0);
         foreach($tabs as $tab) {
             $backTabs[] = BackTab::buildObject($tab->id);
         }

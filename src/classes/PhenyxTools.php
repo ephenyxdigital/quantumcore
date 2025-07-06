@@ -204,7 +204,7 @@ class PhenyxTools {
 			'content/themes/phenyx-theme-default',
 			'includes/classes',
 			'includes/controllers',
-			'vendor/phenyxdigital',
+			'vendor/ephenyxdigital',
             'webephenyx',
 		];
 		$iso_langs = [];
