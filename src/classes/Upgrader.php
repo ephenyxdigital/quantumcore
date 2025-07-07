@@ -787,49 +787,8 @@ class Upgrader {
         
         $result = true;
         $backtabs = Tools::jsonDecode(Tools::jsonEncode($backtabs), true);
-        foreach($backtabs as $backtab) {
-            if(!empty($backtab['plugin'])) {
-                if(!Plugin::isInstalled($backtab['plugin']))  {
-                    continue;
-                }
-            }
-            $exist = BackTab::getIdBackTabByClass($backtab['class_name']);
-            if(!$exist) {
-            
-                $newObjet = new BackTab();
-                foreach($backtab as $key => $value) {
-                    if(is_array($value)) {
-                        foreach (Language::getLanguages(true) as $lang) {
-                            if (property_exists($newObjet, $key) && isset($value[$lang['iso_code']])) {
-				                $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
-			                }                    
-                        }
-                    } else if (property_exists($newObjet, $key) && $key != 'id_back_tab' && $key != 'id_parent') {
-				        $newObjet->{$key} = $value;
-			     }
-            
-                }
-                $newObjet->id_parent = BackTab::getIdBackTabByClass($backtab['parent_class']);
-            
-                $result &= $newObjet->add();
-            } else {
-            
-                $newObjet = new BackTab($exist);
-                foreach($backtab as $key => $value) {
-                    if(is_array($value)) {
-                        foreach (Language::getLanguages(true) as $lang) {
-                            if (property_exists($newObjet, $key) && isset($value[$lang['iso_code']])) {
-				                $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
-			                 }                    
-                        }
-                    } else if (property_exists($newObjet, $key) && $key != 'id_back_tab' && $key != 'id_parent') {
-				        $newObjet->{$key} = $value;
-			     }
-            
-                }
-                $newObjet->id_parent = BackTab::getIdBackTabByClass($backtab['parent_class']);
-                $result &= $newObjet->update();
-            }
+        foreach($backtabs as &$backtab) {
+            $result &= $this->installBackTab($backtab);
         }
         
         $this->context->_tools->generateTabs(false);
@@ -841,14 +800,13 @@ class Upgrader {
     public function installBackTab($backtab) {
         
         $backtab = Tools::jsonDecode(Tools::jsonEncode($backtab), true);
-        $exist = BackTab::getIdBackTabByClass($backtab['class_name']);
-        if(!empty($backtab['plugin'])) {
-            if(!Plugin::isInstalled($backtab['plugin']))  {
-                return true;
-            }
-        }
+        
         if(!$exist) {
-            
+            if(!empty($backtab['plugin'])) {
+                if(!Plugin::isInstalled($backtab['plugin']))  {
+                    return true;
+                }
+            }
             $newObjet = new BackTab();
             foreach($backtab as $key => $value) {
                 if(is_array($value)) {
@@ -883,6 +841,11 @@ class Upgrader {
             
             }
             $newObjet->id_parent = BackTab::getIdBackTabByClass($backtab['parent_class']);
+            if(!empty($backtab['plugin'])) {
+                if(!Plugin::isInstalled($backtab['plugin']))  {
+                   $newObjet->plugin = null;
+                }
+            }
             $result = $newObjet->update();
         }
         $this->context->_tools->generateTabs(false);
