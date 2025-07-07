@@ -816,7 +816,7 @@ class Upgrader {
 			             }
                     
                     }
-                } else if (property_exists($newObjet, $key) && $key != 'id_back_tab' && $key != 'id_parent') {
+                } else if (property_exists($newObjet, $key) && $key != 'id_back_tab' && $key != 'id_parent' && $key != 'id') {
 				    $newObjet->{$key} = $value;
 			 }
             
@@ -835,7 +835,7 @@ class Upgrader {
 			             }
                     
                     }
-                } else if (property_exists($newObjet, $key) && $key != 'id_back_tab' && $key != 'id_parent') {
+                } else if (property_exists($newObjet, $key) && $key != 'id_back_tab' && $key != 'id_parent' && $key != 'id') {
 				    $newObjet->{$key} = $value;
 			 }
             
