@@ -180,11 +180,17 @@ class PhenyxTools {
 
 	public function generateCurrentJson($use_cache = true) {
 
-		if ($use_cache && file_exists(_EPH_CONFIG_DIR_ . 'json/new_json.json')) {
-			$md5List = file_get_contents(_EPH_CONFIG_DIR_ . 'json/new_json.json');
-			unlink(_EPH_CONFIG_DIR_ . 'json/new_json.json');
-			return Tools::jsonDecode($md5List, true);
-		}
+		if ($use_cache) {
+            if (file_exists(_EPH_CONFIG_DIR_ . 'json/new_json.json')) {
+                $md5List = file_get_contents(_EPH_CONFIG_DIR_ . 'json/new_json.json');
+                unlink(_EPH_CONFIG_DIR_ . 'json/new_json.json');
+                return Tools::jsonDecode($md5List, true);
+            }
+		} else {
+            if (file_exists(_EPH_CONFIG_DIR_ . 'json/new_json.json')) {
+                unlink(_EPH_CONFIG_DIR_ . 'json/new_json.json');
+            }
+        }
 
 		$excludes = [];
 
@@ -343,8 +349,11 @@ class PhenyxTools {
 	}
 
 	public function generateOwnCurrentJson() {
+        
+        if (file_exists(_EPH_CONFIG_DIR_ . 'json/new_json.json')) {
+			unlink(_EPH_CONFIG_DIR_ . 'json/new_json.json');
 
-		if (!file_exists(_EPH_CONFIG_DIR_ . 'json/new_json.json')) {
+		} else {
 			$md5List = $this->generateCurrentJson(false);
 
 			if (is_array($md5List)) {
