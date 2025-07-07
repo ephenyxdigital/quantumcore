@@ -705,7 +705,7 @@ class Upgrader {
 			             }
                     
                     }
-                } else if (property_exists($newObjet, $key) && $key != 'id_meta') {
+                } else if (property_exists($newObjet, $key) && $key != 'id_meta' && $key != 'id') {
 				    $newObjet->{$key} = $value;
 			 }
             
@@ -722,7 +722,7 @@ class Upgrader {
 			             }
                     
                     }
-                } else if (property_exists($newObjet, $key) && $key != 'id_meta') {
+                } else if (property_exists($newObjet, $key) && $key != 'id_meta' && $key != 'id') {
 				    $newObjet->{$key} = $value;
 			 }
             
@@ -741,40 +741,8 @@ class Upgrader {
         $result = true;
         $metas = Tools::jsonDecode(Tools::jsonEncode($metas), true);
         foreach($metas as $meta) {
-            $exist = Meta::getIdMetaByPage($meta->page);
-            if(!$exist) {
-                $newObjet = new Meta();
-                foreach($meta as $key => $value) {
-                    if(is_array($value)) {
-                        foreach (Language::getLanguages(true) as $lang) {
-                            if (property_exists($newObjet, $key) && isset($value[$lang['iso_code']])) {
-				                $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
-			                 }                    
-                        }
-                    } else if (property_exists($newObjet, $key) && $key != 'id_meta') {
-				        $newObjet->{$key} = $value;
-			     }
-            
-                }
-            
-                $result &= $newObjet->add();
-            } else {
-                $newObjet = new Meta($exist);
-                foreach($meta as $key => $value) {
-                    if(is_array($value)) {
-                        foreach (Language::getLanguages(true) as $lang) {
-                            if (property_exists($newObjet, $key) && isset($value[$lang['iso_code']])) {
-				                $newObjet->{$key}[$lang['id_lang']] = $value[$lang['iso_code']];
-			                 }                    
-                        }
-                    } else if (property_exists($newObjet, $key) && $key != 'id_meta') {
-				        $newObjet->{$key} = $value;
-			     }
-            
-                }
-            
-                $result &= $newObjet->update();
-            }
+            $this->installMeta($meta);
+           
         }
         
         
