@@ -105,7 +105,7 @@ class Meta extends PhenyxObjectModel {
             $temp = empty($value) ? null : Tools::jsonDecode($value, true);
 
             if (!empty($temp)) {
-                return $temp;
+               // return $temp;
             }
 
         }
@@ -188,15 +188,15 @@ class Meta extends PhenyxObjectModel {
                 $properties = $reflection ? $reflection->getDefaultProperties() : [];
 
                 if (isset($properties['php_self'])) {
-                    $selectedPages['admin'][$properties['php_self']] = $properties['php_self'];
+                    $selectedPages['admin']['native'][] = $properties['php_self'];
                 } else
 
                 if (preg_match('/^[a-z0-9_.-]*\.php$/i', $file)) {
-                    $selectedPages['admin'][strtolower(str_replace('Controller.php', '', $file))] = strtolower(str_replace('Controller.php', '', $file));
+                    $selectedPages['admin']['native'][] = strtolower(str_replace('Controller.php', '', $file));
                 } else
 
                 if (preg_match('/^([a-z0-9_.-]*\/)?[a-z0-9_.-]*\.php$/i', $file)) {
-                    $selectedPages['admin'][strtolower(sprintf(Tools::displayError('%2$s (in %1$s)'), dirname($file), str_replace('Controller.php', '', basename($file))))] = strtolower(str_replace('Controller.php', '', basename($file)));
+                    $selectedPages['admin']['native'][] = strtolower(str_replace('Controller.php', '', basename($file)));
                 }
 
             }
@@ -219,10 +219,30 @@ class Meta extends PhenyxObjectModel {
                     $properties = $reflection ? $reflection->getDefaultProperties() : [];
 
                     if (isset($properties['php_self']) && !in_array($properties['php_self'], $exludePages)) {
-                        $selectedPages['admin'][$plugin['name'] . '/' . $properties['php_self']] = $properties['php_self'] . ' (' . $plugin['name'] . ')';
+                        $selectedPages['admin']['plugin'][$plugin['name']][] = $properties['php_self'];
                     }
 
                 }
+                
+                foreach (glob(_EPH_PLUGIN_DIR_ . $plugin['name'] . '/controllers/front/*.php') as $file) {
+                    $file = str_replace(_EPH_PLUGIN_DIR_ . $plugin['name'] . '/controllers/front/', '', $file);
+
+                    if ($file == 'index.php') {
+                        continue;
+                    }
+
+                    $className = str_replace('.php', '', $file);
+                    $reflection = class_exists($className) ? new ReflectionClass(str_replace('.php', '', $file)) : false;
+                    $properties = $reflection ? $reflection->getDefaultProperties() : [];
+                    $_GET['plugin'] = $plugin['name'];
+                    $tmpPlugin = new $className();
+
+                    if (isset($properties['php_self']) && !in_array($properties['php_self'], $exludePages)) {
+                        $selectedPages['front']['plugin'][$plugin['name']][] = $properties['php_self'];
+                    }
+
+                }
+
 
             }
 
@@ -240,56 +260,11 @@ class Meta extends PhenyxObjectModel {
                     $properties = $reflection ? $reflection->getDefaultProperties() : [];
 
                     if (isset($properties['php_self']) && !in_array($properties['php_self'], $exludePages)) {
-                        $selectedPages['admin'][$plugin['name'] . '/' . $properties['php_self']] = $properties['php_self'] . ' (' . $plugin['name'] . ')';
+                        $selectedPages['admin']['plugin'][$plugin['name']][] = $properties['php_self'];
                     }
 
                 }
-
-            }
-
-        }
-
-        foreach ($plugins as $plugin) {
-
-            if (is_dir(_EPH_PLUGIN_DIR_ . $plugin['name'])) {
-
-                foreach (glob(_EPH_PLUGIN_DIR_ . $plugin['name'] . '/controllers/front/*.php') as $file) {
-                    $file = str_replace(_EPH_PLUGIN_DIR_ . $plugin['name'] . '/controllers/front/', '', $file);
-
-                    if ($file == 'index.php') {
-                        continue;
-                    }
-
-                    $className = str_replace('.php', '', $file);
-                    $reflection = class_exists($className) ? new ReflectionClass(str_replace('.php', '', $file)) : false;
-                    $properties = $reflection ? $reflection->getDefaultProperties() : [];
-                    $_GET['plugin'] = $plugin['name'];
-                    $tmpPlugin = new $className();
-
-                    if ($tmpPlugin instanceof PluginFrontController) {
-
-                        if (isset($properties['php_self']) && !in_array($properties['php_self'], $exludePages)) {
-                            $selectedPages['plugin'][$plugin['name'] . '/' . $properties['php_self']] = $properties['php_self'] . ' (' . $plugin['name'] . ')';
-                        }
-
-                    } else {
-
-                        if (isset($properties['php_self']) && !in_array($properties['php_self'], $exludePages)) {
-                            $selectedPages['front'][$properties['php_self']] = $properties['php_self'];
-                        }
-
-                    }
-
-                }
-
-            }
-
-        }
-
-        foreach ($plugins as $plugin) {
-
-            if (is_dir(_EPH_SPECIFIC_PLUGIN_DIR_ . $plugin['name'])) {
-
+                
                 foreach (glob(_EPH_SPECIFIC_PLUGIN_DIR_ . $plugin['name'] . '/controllers/front/*.php') as $file) {
                     $file = str_replace(_EPH_SPECIFIC_PLUGIN_DIR_ . $plugin['name'] . '/controllers/front/', '', $file);
 
@@ -303,18 +278,8 @@ class Meta extends PhenyxObjectModel {
                     $_GET['plugin'] = $plugin['name'];
                     $tmpPlugin = new $className();
 
-                    if ($tmpPlugin instanceof PluginFrontController) {
-
-                        if (isset($properties['php_self']) && !in_array($properties['php_self'], $exludePages)) {
-                            $selectedPages['plugin'][$plugin['name'] . '/' . $properties['php_self']] = $properties['php_self'] . ' (' . $plugin['name'] . ')';
-                        }
-
-                    } else {
-
-                        if (isset($properties['php_self']) && !in_array($properties['php_self'], $exludePages)) {
-                            $selectedPages['front'][$properties['php_self']] = $properties['php_self'];
-                        }
-
+                    if (isset($properties['php_self']) && !in_array($properties['php_self'], $exludePages)) {
+                        $selectedPages['front']['plugin'][$plugin['name']][] = $properties['php_self'];
                     }
 
                 }
@@ -322,6 +287,8 @@ class Meta extends PhenyxObjectModel {
             }
 
         }
+
+       
 
         if (!$overrideFiles = Tools::scandir(_EPH_CORE_DIR_ . DIRECTORY_SEPARATOR . 'includes/override' . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR . 'front' . DIRECTORY_SEPARATOR, 'php', '', true)) {
             die(Tools::displayError('Cannot scan "override" directory'));
@@ -341,16 +308,16 @@ class Meta extends PhenyxObjectModel {
                 $properties = $reflection ? $reflection->getDefaultProperties() : [];
 
                 if (isset($properties['php_self'])) {
-                    $selectedPages['front'][$properties['php_self']] = $properties['php_self'];
+                    $selectedPages['front']['native'][] = $properties['php_self'];
 
                 } else
 
                 if (preg_match('/^[a-z0-9_.-]*\.php$/i', $file)) {
-                    $selectedPages['front'][strtolower(str_replace('Controller.php', '', $file))] = strtolower(str_replace('Controller.php', '', $file));
+                    $selectedPages['front']['native'][] = strtolower(str_replace('Controller.php', '', $file));
                 } else
 
                 if (preg_match('/^([a-z0-9_.-]*\/)?[a-z0-9_.-]*\.php$/i', $file)) {
-                    $selectedPages['front'][strtolower(sprintf(Tools::displayError('%2$s (in %1$s)'), dirname($file), str_replace('Controller.php', '', basename($file))))] = strtolower(str_replace('Controller.php', '', basename($file)));
+                    $selectedPages['front']['native'][] = strtolower(str_replace('Controller.php', '', basename($file)));
                 }
 
             }
