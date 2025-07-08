@@ -1896,7 +1896,7 @@ abstract class PhenyxController {
     public function ajaxProcessViewTargetController() {
 
         $this->ajax_display = 'view';
-        $this->ajax_li = '<li id="view' . $this->controller_name . '" data-self="' . $this->link_rewrite . '" data-name="' . $this->page_title . '" data-controller="' . $this->controller_name . '"><a href="#contentview' . $this->controller_name . '">' . $this->viewName . '</a><button type="button" class="close tabdetail" onClick="closeViewObject(\'' . $this->controller_name . '\');" data-id="view' . $this->controller_name . '"><i class="fa-duotone fa-regular fa-circle-xmark"></i></button></li>';
+        $this->ajax_li = '<li id="view' . $this->controller_name . '" data-self="' . $this->link_rewrite . '" data-name="' . $this->page_title . '" data-controller="' . $this->controller_name . '"><a href="#contentview' . $this->controller_name . '"><i class="'.$this->backtab->fa_duatone.'"></i>' . $this->viewName . '</a><button type="button" class="close tabdetail" onClick="closeViewObject(\'' . $this->controller_name . '\');" data-id="view' . $this->controller_name . '"><i class="fa-duotone fa-regular fa-circle-xmark"></i></button></li>';
         $this->ajax_content = '<div id="contentview' . $this->controller_name . '" class="panel wpb_text_column  wpb_slideInUp slideInUp wpb_start_animation animated col-lg-12" style="display: content;">' . $this->renderView() . '</div>';
 
         $this->ajaxDisplay();
@@ -2534,7 +2534,7 @@ abstract class PhenyxController {
             $_GET['update' . $this->table] = "";
 
             $html = $this->renderForm();
-            $this->ajax_li = '<li id="uperEdit' . $this->controller_name . '" data-controller="' . $this->controller_name . '"><a href="#contentEdit' . $this->controller_name . '">' . $this->editObject . '</a><button type="button" onClick="closeEditFormObject(\'' . $this->controller_name . '\', ' . $this->composer_editor . ');" class="close tabdetail" data-id="uperEdit' . $this->controller_name . '"><i class="fa-duotone fa-regular fa-circle-xmark"></i></button></li>';
+            $this->ajax_li = '<li id="uperEdit' . $this->controller_name . '" data-controller="' . $this->controller_name . '"><a href="#contentEdit' . $this->controller_name . '"><i class="fa-duotone fa-regular fa-pen-to-square"></i>' . $this->editObject . '</a><button type="button" onClick="closeEditFormObject(\'' . $this->controller_name . '\', ' . $this->composer_editor . ');" class="close tabdetail" data-id="uperEdit' . $this->controller_name . '"><i class="fa-duotone fa-regular fa-circle-xmark"></i></button></li>';
             $this->ajax_content = '<div id="contentEdit' . $this->controller_name . '" class="panel wpb_text_column  wpb_slideInUp slideInUp wpb_start_animation animated col-lg-12" style="display; flow-root;">' . $html . '</div>';
 
             $this->ajaxEditDisplay();
@@ -2560,7 +2560,7 @@ abstract class PhenyxController {
         $scriptFooter = $this->context->_hook->exec('displayBackOfficeFooter', []);
         $html = $this->renderForm();
 
-        $this->ajax_li = '<li id="uperAdd' . $this->controller_name . '" data-controller="' . $this->controller_name . '"><a href="#contentAdd' . $this->controller_name . '">' . $this->editObject . '</a><button type="button" onClick="closeAddFormObject(\'' . $this->controller_name . '\', ' . $this->composer_editor . ')" class="close tabdetail" data-id="uperAdd' . $this->controller_name . '"><i class="fa-duotone fa-regular fa-circle-xmark"></i></button></li>';
+        $this->ajax_li = '<li id="uperAdd' . $this->controller_name . '" data-controller="' . $this->controller_name . '"><a href="#contentAdd' . $this->controller_name . '"><i class="fa-duotone fa-regular fa-square-plus"></i>' . $this->editObject . '</a><button type="button" onClick="closeAddFormObject(\'' . $this->controller_name . '\', ' . $this->composer_editor . ')" class="close tabdetail" data-id="uperAdd' . $this->controller_name . '"></button></li>';
         $this->ajax_content = '<div id="contentAdd' . $this->controller_name . '" class="panel wpb_text_column  wpb_slideInUp slideInUp wpb_start_animation animated col-lg-12" style="display; flow-root;">' . $scripHeader . $html . $scriptFooter . '</div>';
 
         $this->ajaxEditDisplay();
