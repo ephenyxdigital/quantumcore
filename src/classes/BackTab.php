@@ -20,7 +20,7 @@ class BackTab extends PhenyxObjectModel {
     public $function;
 
     public $plugin;
-    
+
     public $fa_duatone;
 
     public $class_name = null;
@@ -36,11 +36,11 @@ class BackTab extends PhenyxObjectModel {
     public $master;
 
     public $is_global;
-    
+
     public $is_specific;
 
     public $accesses;
-    
+
     public $parent_class;
 
     protected static $instance;
@@ -53,21 +53,21 @@ class BackTab extends PhenyxObjectModel {
         'primary'   => 'id_back_tab',
         'multilang' => true,
         'fields'    => [
-            'class_name'      => ['type' => self::TYPE_STRING, 'size' => 64],
-            'id_parent'       => ['type' => self::TYPE_INT, 'validate' => 'isInt'],
-            'position'        => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
-            'function'        => ['type' => self::TYPE_STRING, 'size' => 64],
-            'plugin'          => ['type' => self::TYPE_STRING],
-            'fa_duatone'      => ['type' => self::TYPE_STRING],
-            'has_divider'     => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
-            'is_global'       => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
-            'is_specific'       => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
-            'active'          => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
-            'master'          => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
+            'class_name'  => ['type' => self::TYPE_STRING, 'size' => 64],
+            'id_parent'   => ['type' => self::TYPE_INT, 'validate' => 'isInt'],
+            'position'    => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
+            'function'    => ['type' => self::TYPE_STRING, 'size' => 64],
+            'plugin'      => ['type' => self::TYPE_STRING],
+            'fa_duatone'  => ['type' => self::TYPE_STRING],
+            'has_divider' => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
+            'is_global'   => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
+            'is_specific' => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
+            'active'      => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
+            'master'      => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
 
             /* Lang fields */
-            'generated'       => ['type' => self::TYPE_BOOL, 'lang' => true],
-            'name'            => ['type' => self::TYPE_STRING, 'lang' => true],
+            'generated'   => ['type' => self::TYPE_BOOL, 'lang' => true],
+            'name'        => ['type' => self::TYPE_STRING, 'lang' => true],
         ],
     ];
 
@@ -82,32 +82,33 @@ class BackTab extends PhenyxObjectModel {
         }
 
     }
-    
-    public static function buildObject( $id, $idLang = null, $className = null) {
-        
-        $objectData = parent::buildObject( $id, $idLang, $className);
+
+    public static function buildObject($id, $idLang = null, $className = null) {
+
+        $objectData = parent::buildObject($id, $idLang, $className);
         $objectData['parent_class'] = self::getStaticParentClass($objectData['id_parent']);
-		       
+
         return Tools::jsonDecode(Tools::jsonEncode($objectData));
     }
-    
+
     public static function getGlobalTabs() {
-        
+
         $backTabs = [];
         $tabs = new PhenyxCollection('BackTab');
         $tabs->where('id_back_tab', '>', 1);
         $tabs->where('id_parent', '>', 0);
         $tabs->where('is_specific', '=', 0);
-        foreach($tabs as $tab) {
+
+        foreach ($tabs as $tab) {
             $backTabs[] = BackTab::buildObject($tab->id);
         }
-        
+
         return $backTabs;
-        
+
     }
-    
+
     public function getParentClass() {
-        
+
         return Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue(
             (new DbQuery())
                 ->select('class_name')
@@ -115,9 +116,9 @@ class BackTab extends PhenyxObjectModel {
                 ->where('id_back_tab = ' . $this->id_parent)
         );
     }
-    
+
     public static function getStaticParentClass($id_parent) {
-        
+
         return Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue(
             (new DbQuery())
                 ->select('class_name')
@@ -137,7 +138,6 @@ class BackTab extends PhenyxObjectModel {
 
     public function getAccesses() {
 
-        
         $profiles = Profile::getProfiles($this->context->language->id);
         $accesses = [];
 
@@ -170,7 +170,7 @@ class BackTab extends PhenyxObjectModel {
 
         return $idTab;
     }
-    
+
     public static function getIdBackTabByClass($controller) {
 
         return Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue(
@@ -210,14 +210,18 @@ class BackTab extends PhenyxObjectModel {
         if (!is_null($className)) {
             $className = strtolower($className);
         }
-        $context = Context::getContext();        
+
+        $context = Context::getContext();
         $cache = $context->cache_api;
-        if($context->cache_enable && is_object($context->cache_api)) {
-           $value = $cache->getData('idTabfrom_'.$className, 864000);
-           $temp = empty($value) ? null : Tools::jsonDecode($value, true);
-           if(!empty($temp)) {
-               return $temp;
-           }
+
+        if ($context->cache_enable && is_object($context->cache_api)) {
+            $value = $cache->getData('idTabfrom_' . $className, 864000);
+            $temp = empty($value) ? null : Tools::jsonDecode($value, true);
+
+            if (!empty($temp)) {
+                return $temp;
+            }
+
         }
 
         if (static::$_getIdFromClassName === null) {
@@ -239,11 +243,13 @@ class BackTab extends PhenyxObjectModel {
             }
 
         }
+
         $result = (isset(static::$_getIdFromClassName[$className]) ? (int) static::$_getIdFromClassName[$className] : false);
-        if($context->cache_enable && is_object($context->cache_api)) {
+
+        if ($context->cache_enable && is_object($context->cache_api)) {
             $temp = $result === null ? null : Tools::jsonEncode($result);
-            $cache->putData('idTabfrom_'.$className, $temp);
-        }	
+            $cache->putData('idTabfrom_' . $className, $temp);
+        }
 
         return $result;
     }
@@ -401,15 +407,18 @@ class BackTab extends PhenyxObjectModel {
     }
 
     public static function getBackTabs($idLang, $idParent = null, $cache_enable = true) {
-        
-        $context = Context::getContext();        
+
+        $context = Context::getContext();
         $cache = $context->cache_api;
-        if($cache_enable && $context->cache_enable && is_object($context->cache_api)) {
-           $value = $cache->getData('getBckTab_'.$idLang.'_'.$idParent, 864000);
-           $temp = empty($value) ? null : Tools::jsonDecode($value, true);
-           if(!empty($temp)) {
-               return $temp;
-           }
+
+        if ($cache_enable && $context->cache_enable && is_object($context->cache_api)) {
+            $value = $cache->getData('getBckTab_' . $idLang . '_' . $idParent, 864000);
+            $temp = empty($value) ? null : Tools::jsonDecode($value, true);
+
+            if (!empty($temp)) {
+                return $temp;
+            }
+
         }
 
         if (!isset(static::$_cache_back_tab[$idLang])) {
@@ -445,19 +454,21 @@ class BackTab extends PhenyxObjectModel {
             foreach (static::$_cache_back_tab[$idLang] as $arrayParent) {
                 $arrayAll = array_merge($arrayAll, $arrayParent);
             }
-            if($cache_enable && $context->cache_enable && is_object($context->cache_api)) {
+
+            if ($cache_enable && $context->cache_enable && is_object($context->cache_api)) {
                 $temp = $arrayAll === null ? null : Tools::jsonEncode($arrayAll);
-                $cache->putData('getBckTab_'.$idLang.'_'.$idParent, $temp);
-            }	
+                $cache->putData('getBckTab_' . $idLang . '_' . $idParent, $temp);
+            }
 
             return $arrayAll;
         }
-        
+
         $result = (isset(static::$_cache_back_tab[$idLang][$idParent]) ? static::$_cache_back_tab[$idLang][$idParent] : []);
-        if($context->cache_enable && is_object($context->cache_api)) {
+
+        if ($context->cache_enable && is_object($context->cache_api)) {
             $temp = $result === null ? null : Tools::jsonEncode($result);
-            $cache->putData('getBckTab_'.$idLang.'_'.$idParent, $temp);
-        }	
+            $cache->putData('getBckTab_' . $idLang . '_' . $idParent, $temp);
+        }
 
         return $result;
 
@@ -523,22 +534,26 @@ class BackTab extends PhenyxObjectModel {
     }
 
     public static function checkTabRights($idTab) {
+
         if (Context::getContext()->employee->id_profile == _EPH_ADMIN_PROFILE_) {
             return true;
         }
-		static::$_tabAccesses = [];
-		$idProfil = Context::getContext()->employee->id_profile;
-		
-		if(!isset(static::$_tabAccesses[$idProfil][$idTab])) {
-			if ($tabAccesses === null) {
-            	$tabAccesses = Profile::getProfileAccesses($idProfil);
-       		}
-			if (isset($tabAccesses[(int) $idTab]['view'])) {
-            	static::$_tabAccesses[$idProfil][$idTab] =  $tabAccesses[(int) $idTab]['view'];
-        	}
-			return static::$_tabAccesses[$idProfil][$idTab];
-		}
-		
+
+        static::$_tabAccesses = [];
+        $idProfil = Context::getContext()->employee->id_profile;
+
+        if (!isset(static::$_tabAccesses[$idProfil][$idTab])) {
+
+            if ($tabAccesses === null) {
+                $tabAccesses = Profile::getProfileAccesses($idProfil);
+            }
+
+            if (isset($tabAccesses[(int) $idTab]['view'])) {
+                static::$_tabAccesses[$idProfil][$idTab] = $tabAccesses[(int) $idTab]['view'];
+            }
+
+            return static::$_tabAccesses[$idProfil][$idTab];
+        }
 
         return static::$_tabAccesses[$idProfil][$idTab];
     }
@@ -759,6 +774,42 @@ class BackTab extends PhenyxObjectModel {
         );
     }
 
+    public function builTranslateTabs() {
+        
+        $tab = '_TABS';
+
+        foreach (Language::getLanguages(true) as $lang) {
+            $toInsert = [];
+            $iso = $lang['iso_code'];
+            $filePath = _EPH_TRANSLATIONS_DIR_ . $iso . '/tabs.php';
+
+            if (file_exists($filePath)) {
+                @include $filePath;
+                $toInsert = $_TABS;
+
+                if (isset($this->name[$lang['id_lang']])) {
+
+                    $toInsert[$this->class_name] = $this->name[$lang['id_lang']];
+                    ksort($toInsert);
+                    $file = fopen($filePath, "w");
+                    fwrite($file, "<?php\n\nglobal \$" . $tab . ";\n\n");
+                    fwrite($file, "$" . $tab . " = [];\n");
+
+                    foreach ($toInsert as $key => $value) {
+                        fwrite($file, '$' . $tab . '[\'' . translateSQL($key, true) . '\'] = \'' . translateSQL($value, true) . '\';' . "\n");
+                    }
+
+                    fwrite($file, "\n" . 'return $' . $tab . ';' . "\n");
+                    fwrite($file, "\n?>");
+                    fclose($file);
+                }
+
+            }
+
+        }
+
+    }
+
     public function add($autoDate = true, $nullValues = false, $init = true, $position = null) {
 
         static::$_cache_back_tab = [];
@@ -776,6 +827,8 @@ class BackTab extends PhenyxObjectModel {
             //forces cache to be reloaded
             static::$_getIdFromClassName = null;
             $this->context->_tools->generateTabs(false);
+            $this->builTranslateTabs();
+
             if ($init) {
                 return BackTab::initAccess($this);
             }
@@ -795,7 +848,6 @@ class BackTab extends PhenyxObjectModel {
 
                 $meta->add();
             }
-            
 
             return true;
         }
@@ -827,19 +879,20 @@ class BackTab extends PhenyxObjectModel {
     public function delete() {
 
         Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'employee_access` WHERE `id_back_tab` = ' . (int) $this->id);
-        
+
         $result = parent::delete();
         $this->context->_tools->generateTabs(false);
         return $result;
     }
 
     public function update($nullValues = true, $init = true) {
-        
+
         static::$_cache_back_tab = [];
 
         if (parent::update($nullValues)) {
             $this->context->_tools->generateTabs(false);
-            
+            $this->builTranslateTabs();
+
             if ($init) {
                 return BackTab::initAccess($this);
             }
