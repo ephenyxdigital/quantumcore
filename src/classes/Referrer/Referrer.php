@@ -6,10 +6,16 @@
  * @since 1.9.1.0
  */
 class Referrer extends PhenyxObjectModel {
-
+    
+    protected static $instance;
+    
     public $require_context = false;
+    
+    public $phenyxConfig;
+    
+    public $_tools;
     // @codingStandardsIgnoreStart
-    protected static $_join = '(r.http_referer_like IS NULL OR r.http_referer_like = \'\' OR cs.http_referer LIKE r.http_referer_like)
+   public $_join = '(r.http_referer_like IS NULL OR r.http_referer_like = \'\' OR cs.http_referer LIKE r.http_referer_like)
             AND (r.request_uri_like IS NULL OR r.request_uri_like = \'\' OR cs.request_uri LIKE r.request_uri_like)
             AND (r.http_referer_like_not IS NULL OR r.http_referer_like_not = \'\' OR cs.http_referer NOT LIKE r.http_referer_like_not)
             AND (r.request_uri_like_not IS NULL OR r.request_uri_like_not = \'\' OR cs.request_uri NOT LIKE r.request_uri_like_not)
@@ -60,6 +66,31 @@ class Referrer extends PhenyxObjectModel {
             'date_add'                => ['type' => self::TYPE_DATE, 'validate' => 'isDate'],
         ],
     ];
+    
+    public function __construct($id = null, $id_lang = null) {
+
+        parent::__construct($id, $id_lang);
+        $this->_join = '(r.http_referer_like IS NULL OR r.http_referer_like = \'\' OR cs.http_referer LIKE r.http_referer_like)
+            AND (r.request_uri_like IS NULL OR r.request_uri_like = \'\' OR cs.request_uri LIKE r.request_uri_like)
+            AND (r.http_referer_like_not IS NULL OR r.http_referer_like_not = \'\' OR cs.http_referer NOT LIKE r.http_referer_like_not)
+            AND (r.request_uri_like_not IS NULL OR r.request_uri_like_not = \'\' OR cs.request_uri NOT LIKE r.request_uri_like_not)
+            AND (r.http_referer_regexp IS NULL OR r.http_referer_regexp = \'\' OR cs.http_referer REGEXP r.http_referer_regexp)
+            AND (r.request_uri_regexp IS NULL OR r.request_uri_regexp = \'\' OR cs.request_uri REGEXP r.request_uri_regexp)
+            AND (r.http_referer_regexp_not IS NULL OR r.http_referer_regexp_not = \'\' OR cs.http_referer NOT REGEXP r.http_referer_regexp_not)
+            AND (r.request_uri_regexp_not IS NULL OR r.request_uri_regexp_not = \'\' OR cs.request_uri NOT REGEXP r.request_uri_regexp_not)';
+        $this->phenyxConfig = Configuration::getInstance();
+        $this->_tools = PhenyxTool::getInstance();
+
+    }
+    
+    public static function getInstance($id = null, $idLang = null) {
+
+        if (!isset(static::$instance)) {
+            static::$instance = new Referrer($id, $idLang);
+        }
+
+        return static::$instance;
+    }
 
     /**
      * @param int $idConnectionsSource
@@ -68,7 +99,7 @@ class Referrer extends PhenyxObjectModel {
      * @version 1.8.1.0 Initial version
      * @throws PhenyxException
      */
-    public static function cacheNewSource($idConnectionsSource) {
+    public function cacheNewSource($idConnectionsSource) {
 
         if (!$idConnectionsSource) {
             return;
@@ -77,24 +108,13 @@ class Referrer extends PhenyxObjectModel {
         $sql = 'INSERT IGNORE INTO ' . _DB_PREFIX_ . 'referrer_cache (id_referrer, id_connections_source) (
                     SELECT id_referrer, id_connections_source
                     FROM ' . _DB_PREFIX_ . 'referrer r
-                    LEFT JOIN ' . _DB_PREFIX_ . 'connections_source cs ON (' . static::$_join . ')
+                    LEFT JOIN ' . _DB_PREFIX_ . 'connections_source cs ON (' . $this->_join . ')
                     WHERE id_connections_source = ' . (int) $idConnectionsSource . '
                 )';
         Db::getInstance()->execute($sql);
     }
 
-    /**
-     * Get list of referrers connections of a customer
-     *
-     * @param int $idCustomer
-     *
-     * @return array|false|null|PDOStatement
-     * @throws PhenyxDatabaseExceptionException
-     * @throws PhenyxException
-     * @since 1.9.1.0
-     * @version 1.8.1.0 Initial version
-     */
-    public static function getReferrers($idCustomer) {
+    public function getReferrers($idCustomer) {
 
         return Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS(
             (new DbQuery())
@@ -102,27 +122,17 @@ class Referrer extends PhenyxObjectModel {
                 ->from('guest', 'g')
                 ->leftJoin('connections', 'c', 'c.`id_guest` = g.`id_guest`')
                 ->leftJoin('connections_source', 'cs', 'c.`id_connections` = cs.`id_connections`')
-                ->leftJoin('referrer', 'r', static::$_join)
+                ->leftJoin('referrer', 'r', $this->_join)
                 ->where('g.`id_user` = ' . (int) $idCustomer)
                 ->where('r.`name` IS NOT NULL')
                 ->orderBy('c.`date_add` DESC')
         );
     }
 
-    /**
-     * @param int  $idReferrer
-     * @param int  $idProduct
-     * @param null $employee
-     *
-     * @throws PhenyxDatabaseExceptionException
-     * @throws PhenyxException
-     * @since 1.9.1.0
-     * @version 1.8.1.0 Initial version
-     */
-    public static function getAjaxProduct($idReferrer, $idProduct, $employee = null) {
+    public function getAjaxProduct($idReferrer, $idProduct, $employee = null) {
 
-        $product = new Product($idProduct, false, Context::getContext()->phenyxConfig->get('EPH_LANG_DEFAULT'));
-        $currency = Currency::getCurrencyInstance(Context::getContext()->phenyxConfig->get('EPH_CURRENCY_DEFAULT'));
+        $product = new Product($idProduct, false, $this->phenyxConfig->get('EPH_LANG_DEFAULT'));
+        $currency = Currency::getCurrencyInstance($this->phenyxConfig->get('EPH_CURRENCY_DEFAULT'));
         $referrer = new Referrer($idReferrer);
         $statsVisits = $referrer->getStatsVisits($idProduct, $employee);
         $registrations = $referrer->getRegistrations($idProduct, $employee);
@@ -143,70 +153,46 @@ class Referrer extends PhenyxObjectModel {
             'pages'         => (int) $statsVisits['pages'],
             'registrations' => (int) $registrations,
             'orders'        => (int) $statsSales['orders'],
-            'sales'         => $this->context->_tools->displayPrice($statsSales['sales'], $currency),
-            'cart'          => $this->context->_tools->displayPrice(((int) $statsSales['orders'] ? $statsSales['sales'] / (int) $statsSales['orders'] : 0), $currency),
+            'sales'         => $this->_tools->displayPrice($statsSales['sales'], $currency),
+            'cart'          => $this->_tools->displayPrice(((int) $statsSales['orders'] ? $statsSales['sales'] / (int) $statsSales['orders'] : 0), $currency),
             'reg_rate'      => number_format((int) $statsVisits['uniqs'] ? (int) $registrations / (int) $statsVisits['uniqs'] : 0, 4, '.', ''),
             'order_rate'    => number_format((int) $statsVisits['uniqs'] ? (int) $statsSales['orders'] / (int) $statsVisits['uniqs'] : 0, 4, '.', ''),
-            'click_fee'     => $this->context->_tools->displayPrice((int) $statsVisits['visits'] * $referrer->click_fee, $currency),
-            'base_fee'      => $this->context->_tools->displayPrice($statsSales['orders'] * $referrer->base_fee, $currency),
-            'percent_fee'   => $this->context->_tools->displayPrice($statsSales['sales'] * $referrer->percent_fee / 100, $currency),
+            'click_fee'     => $this->_tools->displayPrice((int) $statsVisits['visits'] * $referrer->click_fee, $currency),
+            'base_fee'      => $this->_tools->displayPrice($statsSales['orders'] * $referrer->base_fee, $currency),
+            'percent_fee'   => $this->_tools->displayPrice($statsSales['sales'] * $referrer->percent_fee / 100, $currency),
         ];
 
         die('[' . json_encode($jsonArray) . ']');
     }
 
-    /**
-     * Get some statistics on visitors connection for current referrer
-     *
-     * @param int $idProduct
-     * @param int $employee
-     *
-     * @return array|bool|null|object
-     *
-     * @throws PhenyxDatabaseExceptionException
-     * @throws PhenyxException
-     * @since 1.9.1.0
-     * @version 1.8.1.0 Initial version
-     */
-    public function getStatsVisits($id_product, $employee)
-    {
+    public function getStatsVisits($id_product, $employee) {
         $join = $where = '';
+
         if ($id_product) {
-            $join = 'LEFT JOIN `'._DB_PREFIX_.'page` p ON cp.`id_page` = p.`id_page`
-					 LEFT JOIN `'._DB_PREFIX_.'page_type` pt ON pt.`id_page_type` = p.`id_page_type`';
+            $join = 'LEFT JOIN `' . _DB_PREFIX_ . 'page` p ON cp.`id_page` = p.`id_page`
+                     LEFT JOIN `' . _DB_PREFIX_ . 'page_type` pt ON pt.`id_page_type` = p.`id_page_type`';
             $where = ' AND pt.`name` = \'product\'
-					  AND p.`id_object` = '.(int)$id_product;
+                      AND p.`id_object` = ' . (int) $id_product;
         }
 
         $sql = 'SELECT COUNT(DISTINCT cs.id_connections_source) AS visits,
-			COUNT(DISTINCT cs.id_connections) as visitors,
-			COUNT(DISTINCT c.id_guest) as uniqs,
-			COUNT(DISTINCT cp.time_start) as pages
-			FROM '._DB_PREFIX_.'referrer_cache rc
-			LEFT JOIN '._DB_PREFIX_.'referrer r ON rc.id_referrer = r.id_referrer
-            LEFT JOIN '._DB_PREFIX_.'referrer_company rs ON r.id_referrer_company = rs.id_referrer
-			LEFT JOIN '._DB_PREFIX_.'connections_source cs ON rc.id_connections_source = cs.id_connections_source
-			LEFT JOIN '._DB_PREFIX_.'connections c ON cs.id_connections = c.id_connections
-			LEFT JOIN '._DB_PREFIX_.'connections_page cp ON cp.id_connections = c.id_connections
-			'.$join.'
-			WHERE 1'.
-            ((isset($employee->stats_date_from) && isset($employee->stats_date_to))? ' AND cs.date_add BETWEEN \''.pSQL($employee->stats_date_from).' 00:00:00\' AND \''.pSQL($employee->stats_date_to).' 23:59:59\'' : '').
-            ' AND rc.id_referrer = '.(int)$this->id.
+            COUNT(DISTINCT cs.id_connections) as visitors,
+            COUNT(DISTINCT c.id_guest) as uniqs,
+            COUNT(DISTINCT cp.time_start) as pages
+            FROM ' . _DB_PREFIX_ . 'referrer_cache rc
+            LEFT JOIN ' . _DB_PREFIX_ . 'referrer r ON rc.id_referrer = r.id_referrer
+            LEFT JOIN ' . _DB_PREFIX_ . 'referrer_company rs ON r.id_referrer_company = rs.id_referrer
+            LEFT JOIN ' . _DB_PREFIX_ . 'connections_source cs ON rc.id_connections_source = cs.id_connections_source
+            LEFT JOIN ' . _DB_PREFIX_ . 'connections c ON cs.id_connections = c.id_connections
+            LEFT JOIN ' . _DB_PREFIX_ . 'connections_page cp ON cp.id_connections = c.id_connections
+            ' . $join . '
+            WHERE 1' .
+        ((isset($employee->stats_date_from) && isset($employee->stats_date_to)) ? ' AND cs.date_add BETWEEN \'' . pSQL($employee->stats_date_from) . ' 00:00:00\' AND \'' . pSQL($employee->stats_date_to) . ' 23:59:59\'' : '') .
+        ' AND rc.id_referrer = ' . (int) $this->id .
             $where;
         return Db::getInstance(_EPH_USE_SQL_SLAVE_)->getRow($sql);
     }
-    /**
-     * Get some statistics on customers registrations for current referrer
-     *
-     * @param int $idProduct
-     * @param int $employee
-     *
-     * @return int
-     * @throws PhenyxDatabaseExceptionException
-     * @throws PhenyxException
-     * @since 1.9.1.0
-     * @version 1.8.1.0 Initial version
-     */
+
     public function getRegistrations($idProduct, $employee) {
 
         $sql = (new DbQuery())
@@ -234,10 +220,8 @@ class Referrer extends PhenyxObjectModel {
         return (int) $result['registrations'];
     }
 
-    
     public function getStatsSales($idProduct = null, $employee = null) {
 
-       
         $sql = (new DbQuery())
             ->select('oo.`id_customer_piece`')
             ->from('referrer_cache', 'rc')
@@ -257,7 +241,6 @@ class Referrer extends PhenyxObjectModel {
             $sql->leftJoin('customer_piece_detail', 'od', 'oo.`id_customer_piece` = od.`id_customer_piece`');
             $sql->where('od.`id_product` = ' . (int) $idProduct);
         }
-        
 
         $result = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($sql);
 
@@ -278,54 +261,39 @@ class Referrer extends PhenyxObjectModel {
                     ->from('customer_pieces')
                     ->where('`id_customer_piece` IN(' . implode(',', $implode) . ')')
             );
-           
+
         } else {
             return ['orders' => 0, 'sales' => 0];
         }
 
     }
 
-    
     public function add($autoDate = true, $nullValues = false) {
 
         if (!($result = parent::add($autoDate, $nullValues))) {
             return false;
         }
 
-        Referrer::refreshCache([['id_referrer' => $this->id]]);
-        Referrer::refreshIndex([['id_referrer' => $this->id]]);
+        $this->refreshCache([['id_referrer' => $this->id]]);
+        $this->refreshIndex([['id_referrer' => $this->id]]);
 
         return $result;
     }
 
-    /**
-     * Refresh cache data of referrer statistics in referrer_shop table
-     *
-     * @param array $referrers
-     * @param int   $employee
-     *
-     * @return true
-     *
-     * @throws PhenyxDatabaseExceptionException
-     * @throws PhenyxException
-     * @since 1.9.1.0
-     * @version 1.8.1.0 Initial version
-     */
-    public static function refreshCache($referrers = null, $employee = null) {
+    public function refreshCache($referrers = null, $employee = null) {
 
-        
         if (!$referrers || !is_array($referrers)) {
             $referrers = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS(
                 (new DbQuery())->select('`id_referrer`')->from('referrer')
             );
         }
-        $id_company = Context::getContext()->company->id;
+
         foreach ($referrers as $row) {
             $referrer = new Referrer($row['id_referrer']);
             $statsVisits = $referrer->getStatsVisits(null, $employee);
             $registrations = $referrer->getRegistrations(null, $employee);
             $statsSales = $referrer->getStatsSales(null, $employee);
-            
+
             $refCompany = new ReferrerCompany((int) $referrer->id);
             $refCompany->cache_visitors = (int) $statsVisits['uniqs'];
             $refCompany->cache_visits = (int) $statsVisits['visits'];
@@ -336,27 +304,16 @@ class Referrer extends PhenyxObjectModel {
             $refCompany->cache_reg_rate = $statsVisits['uniqs'] ? $registrations / $statsVisits['uniqs'] : 0;
             $refCompany->cache_order_rate = $statsVisits['uniqs'] ? $statsSales['orders'] / $statsVisits['uniqs'] : 0;
             $refCompany->update();
-            
 
         }
 
-        Context::getContext()->phenyxConfig->updateValue('EPH_REFERRERS_CACHE_LIKE', PluginGraph::getDateBetween($employee));
-        Context::getContext()->phenyxConfig->updateValue('EPH_REFERRERS_CACHE_DATE', date('Y-m-d H:i:s'));
+        $this->phenyxConfig->updateValue('EPH_REFERRERS_CACHE_LIKE', PluginGraph::getDateBetween($employee));
+        $this->phenyxConfig->updateValue('EPH_REFERRERS_CACHE_DATE', date('Y-m-d H:i:s'));
 
         return true;
     }
 
-    /**
-     * Cache liaison between connections_source data and referrers data
-     *
-     * @param array $referrers
-     *
-     * @since 1.9.1.0
-     * @version 1.8.1.0 Initial version
-     * @throws PhenyxException
-     * @throws PhenyxDatabaseExceptionException
-     */
-    public static function refreshIndex($referrers = null) {
+    public function refreshIndex($referrers = null) {
 
         if (!$referrers || !is_array($referrers)) {
             Db::getInstance()->execute('TRUNCATE ' . _DB_PREFIX_ . 'referrer_cache');
@@ -365,7 +322,7 @@ class Referrer extends PhenyxObjectModel {
             INSERT INTO ' . _DB_PREFIX_ . 'referrer_cache (id_referrer, id_connections_source) (
                 SELECT id_referrer, id_connections_source
                 FROM ' . _DB_PREFIX_ . 'referrer r
-                LEFT JOIN ' . _DB_PREFIX_ . 'connections_source cs ON (' . static::$_join . ')
+                LEFT JOIN ' . _DB_PREFIX_ . 'connections_source cs ON (' . $this->_join . ')
             )'
             );
         } else {
@@ -377,7 +334,7 @@ class Referrer extends PhenyxObjectModel {
                 INSERT INTO ' . _DB_PREFIX_ . 'referrer_cache (id_referrer, id_connections_source) (
                     SELECT id_referrer, id_connections_source
                     FROM ' . _DB_PREFIX_ . 'referrer r
-                    LEFT JOIN ' . _DB_PREFIX_ . 'connections_source cs ON (' . static::$_join . ')
+                    LEFT JOIN ' . _DB_PREFIX_ . 'connections_source cs ON (' . $this->_join . ')
                     WHERE id_referrer = ' . (int) $row['id_referrer'] . '
                     AND id_connections_source IS NOT NULL
                 )'

@@ -7,7 +7,7 @@
  */
 class ReferrerCompany extends PhenyxObjectModel {
 
-    
+    public $require_context = false;
     /** @var int $id_company */
     public $id_company;
     /** @var string $name */
@@ -29,16 +29,16 @@ class ReferrerCompany extends PhenyxObjectModel {
         'table'   => 'referrer_company',
         'primary' => 'id_referrer_company',
         'fields'  => [
-            'id_company'                    => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
-            'cache_visitors'                  => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
-            'cache_visits'     => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
-            'cache_pages'      => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
-            'cache_registrations'       => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
+            'id_company'          => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
+            'cache_visitors'      => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
+            'cache_visits'        => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
+            'cache_pages'         => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
+            'cache_registrations' => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
             'cache_orders'        => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
-            'cache_sales' => ['type' => self::TYPE_FLOAT, 'validate' => 'isFloat'],
-            'cache_reg_rate'  => ['type' => self::TYPE_FLOAT, 'validate' => 'isFloat'],
-            'cache_order_rate'   => ['type' => self::TYPE_FLOAT, 'validate' => 'isFloat'],
-           
+            'cache_sales'         => ['type' => self::TYPE_FLOAT, 'validate' => 'isFloat'],
+            'cache_reg_rate'      => ['type' => self::TYPE_FLOAT, 'validate' => 'isFloat'],
+            'cache_order_rate'    => ['type' => self::TYPE_FLOAT, 'validate' => 'isFloat'],
+
         ],
     ];
 

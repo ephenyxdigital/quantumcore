@@ -88,7 +88,8 @@ class ConnectionsSource extends PhenyxObjectModel {
     public function add($autoDate = true, $nullValues = false) {
 
         if ($result = parent::add($autoDate, $nullValues)) {
-            Referrer::cacheNewSource($this->id);
+            $referrer = Referrer::getInstance();
+            $referrer->cacheNewSource($this->id);
         }
 
         return $result;
