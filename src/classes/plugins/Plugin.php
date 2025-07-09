@@ -739,9 +739,7 @@ abstract class Plugin {
         $pluginsNameToCursor = [];
         $errors = [];
 
-        $pluginsDir = Plugin::getPluginsDirOnDisk();
-
-        $extras = [];
+        $pluginsDir = Plugin::getPluginsDirOnDisk();       
 
         foreach ($pluginsDir as $plugin) {
 
@@ -840,7 +838,7 @@ abstract class Plugin {
             $extra = file_get_contents(_EPH_CONFIG_DIR_ . 'json/plugin_sources.json');
 
             if (is_string($extra)) {
-                $extra = Tools::jsonDecode($extras, true);
+                $extra = Tools::jsonDecode($extra, true);
 
                 foreach ($extra as $ext) {
                     $ioPlugin[$ext["name"]] = $ext;
@@ -857,7 +855,7 @@ abstract class Plugin {
             }
 
         }
-
+        $extras = [];
         foreach ($ioPlugin as $extra) {
             $extras[] = $extra;
         }
