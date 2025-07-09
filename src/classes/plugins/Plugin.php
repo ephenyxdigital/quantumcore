@@ -691,47 +691,11 @@ abstract class Plugin {
     }
 
     public static function getPluginName($plugin) {
+        
+        $plug = Plugin::getInstanceByName($plugin);
 
-        $iso = substr(Context::getContext()->language->iso_code, 0, 2);
+        return $plug->displayName;
 
-        $configFile = _EPH_PLUGIN_DIR_ . $plugin . '/config_' . $iso . '.xml';
-
-        if ($iso == 'en' || !file_exists($configFile)) {
-            $configFile = _EPH_PLUGIN_DIR_ . $plugin . '/config.xml';
-
-            if (!file_exists($configFile)) {
-                return 'Plugin ' . ucfirst($plugin);
-            }
-
-        }
-
-        libxml_use_internal_errors(true);
-        $xmlPlugin = @simplexml_load_file($configFile);
-
-        if (!$xmlPlugin) {
-            return 'Plugin ' . ucfirst($plugin);
-        }
-
-        if (!empty(libxml_get_errors())) {
-            libxml_clear_errors();
-
-            return 'Plugin ' . ucfirst($plugin);
-        }
-
-        libxml_clear_errors();
-
-        global $_PLUGINS;
-        $file = _EPH_PLUGIN_DIR_ . $plugin . '/' . Context::getContext()->language->iso_code . '.php';
-
-        if (file_exists($file) && include_once ($file)) {
-
-            if (isset($_PLUGIN) && is_array($_PLUGIN)) {
-                $_PLUGINS = !empty($_PLUGINS) ? array_merge($_PLUGINS, $_PLUGIN) : $_PLUGIN;
-            }
-
-        }
-
-        return Context::getContext()->translations->getPluginTranslation((string) $xmlPlugin->name, Plugin::configXmlStringFormat($xmlPlugin->displayName), (string) $xmlPlugin->name);
     }
 
     public static function configXmlStringFormat($string) {
@@ -749,7 +713,7 @@ abstract class Plugin {
             $plugins = empty($value) ? null : Tools::jsonDecode($value);
 
             if (!is_null($plugins) && is_array($plugins) && count($plugins)) {
-                return $plugins;
+               // return $plugins;
             }
 
         }
