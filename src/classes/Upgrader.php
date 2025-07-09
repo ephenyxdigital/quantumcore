@@ -5,6 +5,8 @@ class Upgrader {
 	public $context;
     
     public $phenyxTools;
+    
+    public $meta_pages;
 
 	public static $instance;
 
@@ -24,6 +26,8 @@ class Upgrader {
         if (!isset($this->context->_tools)) {
             $this->context->_tools = PhenyxTool::getInstance();
         }
+        
+        $this->meta_pages = Meta::getPages(true);
         
         $this->phenyxTools = new PhenyxTools();
 
@@ -694,8 +698,22 @@ class Upgrader {
     public function installMeta($meta) {
 
         $meta = Tools::jsonDecode(Tools::jsonEncode($meta), true);
-        $exist = Meta::getIdMetaByPage($meta->page);
+        $metaplugin = null;
+        if(array_key_exists($meta['controller'], $this->meta_pages)) {
+            foreach($this->meta_pages[$meta['controller']]['plugin'] as $plugin => $page) {
+                 if($page == $meta['page']) {
+                    if(!Plugin::isInstalled($plugin))  {
+                        return true;
+                    }
+                    $metaplugin = $plugin;
+                }
+                    
+            }
+                
+        }
+        $exist = Meta::getIdMetaByPage($meta['page']);
         if(!$exist) {
+            
             $newObjet = new Meta();
             foreach($meta as $key => $value) {
                 if(is_array($value)) {
@@ -710,6 +728,7 @@ class Upgrader {
 			 }
             
             }
+            $newObjet->plugin = $metaplugin;
             
             $result = $newObjet->add();
         } else {
@@ -727,6 +746,7 @@ class Upgrader {
 			 }
             
             }
+            $newObjet->plugin = $metaplugin;
             
             $result = $newObjet->update();
         }
