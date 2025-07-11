@@ -6344,7 +6344,7 @@ FileETag none
     public function parseEmailContent($content, $tpl) {
 
         $translate = [];
-        $this->context = $this->context;
+        
         preg_match_all("~{l s='([^{]*)' mail='true'}~i", $content, $match);
         preg_match_all("~{l s='([^{]*)' sprintf=([^{]*) mail='true'}~i", $content, $match2);
         $search = array_merge(
