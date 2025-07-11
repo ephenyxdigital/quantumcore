@@ -691,13 +691,15 @@ abstract class Plugin {
     }
 
     public static function getPluginName($plugin) {
-        
-        $plug = Plugin::getInstanceByName($plugin);
+               
+        if(!empty($plugin)) {
+            $plug = Plugin::getInstanceByName($plugin);
 
-        return $plug->displayName;
+            return isset($plug->displayName) ?$plug->displayName : $plugin;
+        }
 
     }
-
+    
     public static function configXmlStringFormat($string) {
 
         return Tools::htmlentitiesDecodeUTF8($string);

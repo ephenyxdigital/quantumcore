@@ -6,6 +6,8 @@ class Upgrader {
     
     public $phenyxTools;
     
+    public $className;
+    
     public $meta_pages;
 
 	public static $instance;

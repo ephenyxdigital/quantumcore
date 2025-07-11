@@ -999,7 +999,7 @@ class License extends PhenyxObjectModel {
 		if ($curl->error) {
 			$return = [
 				'success' => false,
-				'error'   => 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage,
+				'message'   => 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage,
 			];
             die(Tools::jsonEncode($return));
 
@@ -1015,7 +1015,13 @@ class License extends PhenyxObjectModel {
 			$return = [
 				'success' => true,
 			];
-		}
+		} else {
+            
+            $return = [
+				'success' => false,
+                'message'   => 'Error: no array return',
+			];
+        }
 
 		die(Tools::jsonEncode($return));
 
