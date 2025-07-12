@@ -14,17 +14,22 @@ class MailTemplate extends PhenyxObjectModel {
     public static $definition = [
         'table'   => 'mail_template',
         'primary' => 'id_mail_template',
+        'multilang' => true,
         'fields'  => [
-            'template' => ['type' => self::TYPE_STRING, 'required' => true],
-            'target'   => ['type' => self::TYPE_STRING, 'required' => true],
-            'name'     => ['type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'size' => 128],
+            'template' => ['type' => self::TYPE_STRING, 'required' => true],                   
             'plugin'         => ['type' => self::TYPE_STRING, 'validate' => 'isTabName', 'size' => 64],
+            
+            'generated' => ['type' => self::TYPE_BOOL, 'lang' => true],
+            'target'   => ['type' => self::TYPE_STRING, 'lang' => true, 'required' => true],     
+            'name'     => ['type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isString'],
         ],
     ];
     public $template;
     public $target;
-    public $name;
     public $plugin;
+    
+    public $generated;
+    public $name;
     // @codingStandardsIgnoreEnd
     public $content;
     
@@ -40,9 +45,9 @@ class MailTemplate extends PhenyxObjectModel {
      * @since 1.9.1.0
      * @version 1.8.1.0 Initial version
      */
-    public function __construct($id = null, $idLang = null, $idShop = null) {
+    public function __construct($id = null, $idLang = null) {
 
-        parent::__construct($id, $idLang, $idShop);
+        parent::__construct($id, $idLang);
 
         if ($this->id) {
             $this->content = $this->getTemplateContent();
@@ -136,13 +141,22 @@ class MailTemplate extends PhenyxObjectModel {
         );
     }
 
-    public static function getObjectNameByTemplateName($template) {
-
-        return Db::getInstance()->getValue(
+    
+    public static function getMalPlugins() {
+        
+        $plugins = [];
+        $request = Db::getInstance()->executeS(
             (new DbQuery())
-                ->select('`name`')
+                ->select('DISTINCT(`plugin`)')
                 ->from('mail_template')
-                ->where('`template` LIKE  \'' . $template . '\'')
         );
+        foreach($request as $plugin) {
+            if(!empty($plugin['plugin'])) {
+                $plugins[$plugin['plugin']] = $plugin['plugin'];
+            }
+            
+        }
+        
+        return $plugins;
     }
 }
