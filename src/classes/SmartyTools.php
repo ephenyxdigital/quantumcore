@@ -33,6 +33,14 @@ class SmartyTools {
         return $option;
     }
     
+    public static function isNumerice($foo) {
+        
+        if(!empty($foo)) {
+            return is_numeric($foo);
+        }
+        
+    }
+    
     public static function rtrimString($str, $str_search) {
 
         $length_str = strlen($str_search);

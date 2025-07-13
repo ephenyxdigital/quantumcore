@@ -3389,6 +3389,38 @@ FileETag none
 
         return $result;
     }
+    
+    public function getProductsOrder($type, $value = null, $prefix = false)  {
+        
+        switch ($type) {
+            case 'by':
+                $list = array(0 => 'name', 1 => 'price', 2 => 'date_add', 3 => 'date_upd', 4 => 'position', 5 => 'manufacturer_name', 6 => 'quantity', 7 => 'reference');
+                $value = (is_null($value) || $value === false || $value === '') ? (int)$this->context->phenyxConfig->get('EPH_PRODUCTS_ORDER_BY') : $value;
+                $value = (isset($list[$value])) ? $list[$value] : ((in_array($value, $list)) ? $value : 'position');
+                $order_by_prefix = '';
+                if ($prefix) {
+                    if ($value == 'id_product' || $value == 'date_add' || $value == 'date_upd' || $value == 'price') {
+                        $order_by_prefix = 'p.';
+                    } elseif ($value == 'name') {
+                        $order_by_prefix = 'pl.';
+                    } elseif ($value == 'manufacturer_name' && $prefix) {
+                        $order_by_prefix = 'm.';
+                        $value = 'name';
+                    } elseif ($value == 'position' || empty($value)) {
+                        $order_by_prefix = 'cp.';
+                    }
+                }
+
+                return $order_by_prefix.$value;
+            break;
+
+            case 'way':
+                $value = (is_null($value) || $value === false || $value === '') ? (int)$this->context->phenyxConfig->get('eph_PRODUCTS_ORDER_WAY') : $value;
+                $list = array(0 => 'asc', 1 => 'desc');
+                return ((isset($list[$value])) ? $list[$value] : ((in_array($value, $list)) ? $value : 'asc'));
+            break;
+        }
+    }
 
     public function convertBytes($value) {
 

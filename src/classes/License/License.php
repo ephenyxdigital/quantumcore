@@ -1016,8 +1016,7 @@ class License extends PhenyxObjectModel {
 				'success' => true,
 			];
 		} else {
-            $file = fopen("testgetJsonFile.txt","w");
-            fwrite($file,print_r($md5List, true));
+            
             $return = [
 				'success' => false,
                 'message'   => 'Error: no array return',
