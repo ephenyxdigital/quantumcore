@@ -26,6 +26,7 @@ class Translation extends PhenyxObjectModel {
         'primary' => 'id_translation',
         'fields'  => [
             'iso_code'    => ['type' => self::TYPE_STRING, 'validate' => 'isLanguageIsoCode', 'required' => true, 'size' => 2],
+            'file_name'    => ['type' => self::TYPE_STRING],
             'origin'      => ['type' => self::TYPE_HTML, 'required' => true],
             'translation' => ['type' => self::TYPE_HTML, 'required' => true],
             'date_upd'    => ['type' => self::TYPE_HTML, 'required' => true],
@@ -33,6 +34,8 @@ class Translation extends PhenyxObjectModel {
     ];
     /** @var string Name */
     public $iso_code;
+    
+    public $file_name;
 
     public $origin;
     public $translation;
@@ -117,11 +120,13 @@ class Translation extends PhenyxObjectModel {
             
                     if(!is_null($id_translation)) {
                         $translation = new Translation($id_translation);
+                        $translation->file_name = $translation['file_name'];
                         $translation->translation = $translation['translation'];
                         $translation->update();
                     } else {
                         $translation = new Translation();
                         $translation->iso_code = $translation['iso_code'];
+                        $translation->file_name = $translation['file_name'];
                         $translation->origin = $translation['origin'];
                         $translation->translation = $translation['translation'];
                         $translation->add();

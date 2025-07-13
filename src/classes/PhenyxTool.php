@@ -5904,7 +5904,7 @@ FileETag none
         return $topbars;
     }
 
-    public function getGoogleTranslation($google_api_key, $text, $target) {
+    public function getGoogleTranslation($google_api_key, $text, $target, $file_name = null) {
 
         if (empty($text)) {
             return $text;
@@ -5919,6 +5919,7 @@ FileETag none
         ]);
         $translation = new Translation();
         $translation->iso_code = $target;
+        $translation->file_name = $file_name;
         $translation->origin = $text;
         $translation->translation = $result['text'];
         $translation->date_upd = date('Y-m-d H:i:s');
