@@ -73,11 +73,11 @@ class License extends PhenyxObjectModel {
 		if ($this->id) {
 
 			$partner = new Customer($this->id_customer);
-            if (!is_null($this->iso_langs) && is_string($this->iso_langs) && Validate::isJSON($this->iso_langs)) {
+            if (!empty($this->iso_langs)  && Validate::isJSON($this->iso_langs)) {
 				$this->iso_langs = $this->context->_tools->jsonDecode($this->iso_langs, true);
 			}
 			
-            if (!is_null($this->plugins) && is_string($this->plugins) && Validate::isJSON($this->plugins)) {
+            if (!empty($this->plugins) && Validate::isJSON($this->plugins)) {
 				$this->plugins = $this->context->_tools->jsonDecode($this->plugins, true);
 			}
 			
@@ -94,11 +94,11 @@ class License extends PhenyxObjectModel {
 	public static function buildObject( $id, $idLang = null, $className = null) {
         
         $objectData = parent::buildObject( $id, $idLang, $className);
-		if (!is_null($objectData['iso_langs']) && is_string($objectData['iso_langs']) && Validate::isJSON($objectData['iso_langs'])) {
+		if (!empty($objectData['iso_langs'])  && Validate::isJSON($objectData['iso_langs'])) {
 			$objectData['iso_langs'] = Tools::jsonDecode($objectData['iso_langs'], true);
 		}
 			
-        if (!is_null($objectData['plugins']) && is_string($objectData['plugins']) && Validate::isJSON($objectData['plugins'])) {
+        if (!empty($objectData['plugins']) && Validate::isJSON($objectData['plugins'])) {
 			$objectData['plugins'] = Tools::jsonDecode($objectData['plugins'], true);
 		}
 		$string = $objectData['purchase_key'].'/' . $objectData['website'];
@@ -520,15 +520,17 @@ class License extends PhenyxObjectModel {
 
 	}
 
-	public static function generateReferenceFiles(License $licence) {
+	public function generateReferenceFiles() {
 
-		if (is_string($licence->iso_langs)) {
-			$licence->iso_langs = Tools::jsonDecode($licence->iso_langs, true);
+       
+		if (Validate::isJSON($this->iso_langs)) {
+			$this->iso_langs = Tools::jsonDecode($this->iso_langs, true);
 		}
 
-		if (is_string($licence->plugins)) {
-			$licence->plugins = Tools::jsonDecode($licence->plugins, true);
+		if (Validate::isJSON($this->plugins)) {
+			$this->plugins = Tools::jsonDecode($this->plugins, true);
 		}
+        
 
 		$recursive_directory = [
 			'app/xml',
@@ -548,7 +550,7 @@ class License extends PhenyxObjectModel {
             'webephenyx',
 		];
 
-		foreach ($licence->iso_langs as $iso_langs) {
+		foreach ($this->iso_langs as $iso_langs) {
 
 			foreach ($iso_langs as $iso_lang => $name) {
 				$recursive_directory[] = 'content/translations/' . $iso_lang;
@@ -557,7 +559,7 @@ class License extends PhenyxObjectModel {
 		}
 
 		
-		foreach ($licence->plugins as $plugin => $installed) {
+		foreach ($this->plugins as $plugin => $installed) {
 
 			if ($installed) {
 				$recursive_directory[] = 'includes/plugins/' . $plugin;
@@ -614,7 +616,7 @@ class License extends PhenyxObjectModel {
 
 			if (str_contains($filePath, '/plugins/') && str_contains($filePath, '/translations/')) {
 
-				foreach ($licence->plugins as $plugin => $installed) {
+				foreach ($this->plugins as $plugin => $installed) {
 
 					if (str_contains($filePath, '/plugins/' . $plugin . '/translations/')) {
 
@@ -622,7 +624,7 @@ class License extends PhenyxObjectModel {
 
 						$test = str_replace('.php', '', $test);
 
-						if (!array_key_exists($test, $licence->iso_langs)) {
+						if (!array_key_exists($test, $this->iso_langs)) {
 							continue;
 
 						}
@@ -1016,6 +1018,8 @@ class License extends PhenyxObjectModel {
 				'success' => true,
 			];
 		} else {
+            $file = fopen("testgetJsonFile.txt","w");
+            fwrite($file,$md5List);
             
             $return = [
 				'success' => false,

@@ -247,7 +247,7 @@ class SmartyTools {
             
         }
         if (!isset($context->language)) {
-            $context->language = Tools::jsonDecode(Tools::jsonEncode(Language::buildObject($context->phenyxConfig->get('EPH_LANG_DEFAULT')))); 
+            $context->language = self::jsonDecode(self::jsonEncode(Language::buildObject($context->phenyxConfig->get('EPH_LANG_DEFAULT')))); 
         }
         if (!isset($context->translations)) {
 
@@ -255,6 +255,35 @@ class SmartyTools {
         }
         return $context->translations->getAdminTranslation($string, $$className);
         
+    }
+    
+    public static function jsonEncode($data, $encodeFlags = null) {
+
+        if (is_null($encodeFlags)) {
+            return json_encode($data);
+        }
+
+        return json_encode($data, $encodeFlags);
+    }
+    
+    public static function jsonDecode($json, $assoc = false) {
+
+        if (is_array($json)) {
+            return $json;
+        }
+
+        if (is_null($assoc)) {
+
+            if (!is_null($json)) {
+                return json_decode($json);
+            }
+
+        }
+
+        if (!is_null($json)) {
+            return json_decode($json, $assoc);
+        }
+
     }
     
     public static function arrayChunk($array, $length, $preserve_keys = false) {
