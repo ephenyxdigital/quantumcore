@@ -180,6 +180,8 @@ abstract class Plugin {
     private $services;
 
     public $_session;
+    
+    public $_translations;
 
     public $ajax = false;
 
@@ -268,7 +270,7 @@ abstract class Plugin {
         if (is_object($this->context->smarty)) {
             $this->smarty = $this->context->smarty->createData($this->context->smarty);
         }
-
+        $this->getTranslations();
         if ($this->name === null) {
             $this->name = $this->id;
         }
@@ -333,6 +335,34 @@ abstract class Plugin {
 
         $this->ajax = Tools::getValue('ajax') || Tools::isSubmit('ajax');
 
+    }
+    
+    public function getTranslations() {
+        
+        foreach (Language::getLanguages(true) as $lang) {
+           
+            $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $lang['iso_code'] . '.php';
+            if(file_exists($file)) {
+                @include $file;
+                $this->_translations[$lang['iso_code']]['plugin'] = $_PLUGINS;
+            }
+            $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $iso . '/admin.php';
+            if(file_exists($file)) {
+                @include $file;
+                $this->_translations[$lang['iso_code']]['admin'] = $_LANGADM;
+            }
+            $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $iso . '/class.php';
+            if(file_exists($file)) {
+                @include $file;
+                $this->_translations[$lang['iso_code']]['class'] = $_LANGCLASS;
+            }
+            $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $iso . '/front.php';
+            if(file_exists($file)) {
+                @include $file;
+                $this->_translations[$lang['iso_code']]['front'] = $_LANGFRONT;
+            }
+
+        }
     }
 
     public static function getIdPluginByName($plugin) {
@@ -2497,6 +2527,8 @@ abstract class Plugin {
             }
 
         }
+        $key = md5($name);
+        $PhenyxShopKey = trim($class_name . $key); 
 
         $idTab = (int) BackTab::getIdFromClassName($class_name);
 
@@ -2522,6 +2554,12 @@ abstract class Plugin {
             $tab->name = [];
 
             foreach (Language::getLanguages(true) as $lang) {
+                if($lang['id_lang'] != $this->context->language->id) {
+                    if (!empty($this->_translations[$lang['iso_code']]['admin'][$PhenyxShopKey])) {
+                        $name = stripslashes($this->_translations[$lang['iso_code']]['admin'][$PhenyxShopKey]);
+                    } 
+                }
+            
 
                 $tab->name[$lang['id_lang']] = $name;
 
@@ -2553,7 +2591,11 @@ abstract class Plugin {
             $tab->name = [];
 
             foreach (Language::getLanguages(true) as $lang) {
-
+                if($lang['id_lang'] != $this->context->language->id) {
+                    if (!empty($this->_translations[$lang['iso_code']]['admin'][$PhenyxShopKey])) {
+                        $name = stripslashes($this->_translations[$lang['iso_code']]['admin'][$PhenyxShopKey]);
+                    } 
+                }
                 $tab->name[$lang['id_lang']] = $name;
 
             }
