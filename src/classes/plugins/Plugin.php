@@ -346,17 +346,17 @@ abstract class Plugin {
                 @include $file;
                 $this->_translations[$lang['iso_code']]['plugin'] = $_PLUGINS;
             }
-            $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $iso . '/admin.php';
+            $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $lang['iso_code'] . '/admin.php';
             if(file_exists($file)) {
                 @include $file;
                 $this->_translations[$lang['iso_code']]['admin'] = $_LANGADM;
             }
-            $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $iso . '/class.php';
+            $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $lang['iso_code'] . '/class.php';
             if(file_exists($file)) {
                 @include $file;
                 $this->_translations[$lang['iso_code']]['class'] = $_LANGCLASS;
             }
-            $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $iso . '/front.php';
+            $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $lang['iso_code'] . '/front.php';
             if(file_exists($file)) {
                 @include $file;
                 $this->_translations[$lang['iso_code']]['front'] = $_LANGFRONT;
