@@ -1501,7 +1501,7 @@ abstract class Plugin {
         if (!defined('EPH_INSTALLATION_IN_PROGRESS') || !EPH_INSTALLATION_IN_PROGRESS) {
 
             if (Plugin::$update_translations_after_install) {
-                $this->updatePluginTranslations();
+              //  $this->updatePluginTranslations();
             }
 
         }
@@ -3748,8 +3748,7 @@ abstract class Plugin {
                         $ret = stripslashes($_PLUG[$PhenyxShopKey]);
                     }  else {
                         $ret = $string;
-                    }
-                    fwrite($fileTest,$ret.PHP_EOL);
+                    }                  
                     
                 }
 
