@@ -45,6 +45,7 @@ class DbAdminQuery {
         'join'        => [],
         'extraJoin'   => [],
         'where'       => [],
+        'extraWhere'  => [],
         'group'       => [],
         'having'      => [],
         'order'       => [],
@@ -260,6 +261,15 @@ class DbAdminQuery {
 
         return $this;
     }
+    
+    public function extraWhere($restriction) {
+
+        if (!empty($restriction)) {
+            $this->query['extraWhere'][] = $restriction;
+        }
+
+        return $this;
+    }
 
     public function having($restriction) {
 
@@ -344,6 +354,10 @@ class DbAdminQuery {
 
         if ($this->query['where']) {
             $sql .= 'WHERE (' . implode(') AND (', $this->query['where']) . ")\n";
+        }
+        
+        if ($this->query['extraWhere']) {
+            $sql .= 'WHERE (' . implode(') AND (', $this->query['extraWhere']) . ")\n";
         }
 
         if ($this->query['group']) {
