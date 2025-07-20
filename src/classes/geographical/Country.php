@@ -6,8 +6,8 @@
  * @since 2.1.0.0
  */
 class Country extends PhenyxObjectModel {
-    
-    public $require_context = false;
+
+	public $require_context = false;
 
 	// @codingStandardsIgnoreStart
 	protected static $_idZones = [];
@@ -22,7 +22,7 @@ class Country extends PhenyxObjectModel {
 	public $iso_code;
 	/** @var int international call prefix */
 	public $call_prefix;
-    public $generated;
+	public $generated;
 	/** @var string Name */
 	public $name;
 	/** @var bool Contain states */
@@ -61,7 +61,7 @@ class Country extends PhenyxObjectModel {
 			'display_tax_label'          => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'required' => true],
 
 			/* Lang fields */
-            'generated' => ['type' => self::TYPE_BOOL, 'lang' => true],
+			'generated'                  => ['type' => self::TYPE_BOOL, 'lang' => true],
 			'name'                       => ['type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isGenericName', 'required' => true, 'size' => 64],
 		],
 		'associations' => [
@@ -69,8 +69,6 @@ class Country extends PhenyxObjectModel {
 			'currency' => ['type' => self::HAS_ONE],
 		],
 	];
-
-	
 
 	public function __construct($id = null, $idLang = null) {
 
@@ -81,15 +79,14 @@ class Country extends PhenyxObjectModel {
 		}
 
 	}
-    
-    public static function buildObject($id, $id_lang = null, $className = null) {
-        
-        $objectData = parent::buildObject($id, $id_lang, $className);
-        $objectData['currency_name'] = Country::getStaticCurencyName($id);
 
-        
-        return PhenyxTool::getInstance()->jsonDecode(PhenyxTool::getInstance()->jsonEncode($objectData));
-    }    
+	public static function buildObject($id, $id_lang = null, $className = null) {
+
+		$objectData = parent::buildObject($id, $id_lang, $className);
+		$objectData['currency_name'] = Country::getStaticCurencyName($id);
+
+		return PhenyxTool::getInstance()->jsonDecode(PhenyxTool::getInstance()->jsonEncode($objectData));
+	}
 
 	public function getCurencyName() {
 
@@ -100,8 +97,8 @@ class Country extends PhenyxObjectModel {
 				->where('`id_country` = ' . $this->id)
 		);
 	}
-    
-    public static function getStaticCurencyName($id) {
+
+	public static function getStaticCurencyName($id) {
 
 		return Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue(
 			(new DbQuery())
@@ -243,10 +240,10 @@ class Country extends PhenyxObjectModel {
 
 		return CacheApi::retrieve($key);
 	}
-    
-    public static function getIsoCodebyId($idCountry) {
-        
-        $key = 'country_getIsoCodeById_' . $idCountry;
+
+	public static function getIsoCodebyId($idCountry) {
+
+		$key = 'country_getIsoCodeById_' . $idCountry;
 
 		if (!CacheApi::isStored($key)) {
 			$result = Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue(
@@ -261,8 +258,8 @@ class Country extends PhenyxObjectModel {
 		}
 
 		return CacheApi::retrieve($key);
-        
-    }
+
+	}
 
 	public static function getStateNameById($idState) {
 
@@ -569,8 +566,6 @@ class Country extends PhenyxObjectModel {
 	 * @since 2.1.0.0
 	 */
 	public static function addPluginRestrictions(array $companys = [], array $countries = [], array $plugins = []) {
-
-		
 
 		if (!count($countries)) {
 			$countries = Country::getCountries((int) Context::getContext()->cookie->id_lang);

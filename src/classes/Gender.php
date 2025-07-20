@@ -15,11 +15,11 @@ class Gender extends PhenyxObjectModel {
         'primary'   => 'id_gender',
         'multilang' => true,
         'fields'    => [
-            'type' => ['type' => self::TYPE_INT, 'required' => true],
+            'type'      => ['type' => self::TYPE_INT, 'required' => true],
 
             /* Lang fields */
             'generated' => ['type' => self::TYPE_BOOL, 'lang' => true],
-            'name' => ['type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isString', 'required' => true, 'size' => 20],
+            'name'      => ['type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isString', 'required' => true, 'size' => 20],
         ],
     ];
     public $id_gender;

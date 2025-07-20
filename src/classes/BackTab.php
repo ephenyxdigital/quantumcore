@@ -9,6 +9,8 @@ class BackTab extends PhenyxObjectModel {
 
     protected static $_getIdFromClassName = null;
 
+    protected static $_getIdFromFuncAndClassName = null;
+
     protected static $_cache_back_tab = [];
 
     protected static $_tabAccesses = [];
@@ -249,6 +251,54 @@ class BackTab extends PhenyxObjectModel {
         if ($context->cache_enable && is_object($context->cache_api)) {
             $temp = $result === null ? null : Tools::jsonEncode($result);
             $cache->putData('idTabfrom_' . $className, $temp);
+        }
+
+        return $result;
+    }
+
+    public static function getIdFromFuncAndClassName($className, $function) {
+
+        if (!is_null($className)) {
+            $className = strtolower($className);
+        }
+
+        $key = strtolower($className) . md5(strtolower(str_replace(' ', '', $function)));
+
+        $context = Context::getContext();
+        $cache = $context->cache_api;
+
+        if ($context->cache_enable && is_object($context->cache_api)) {
+            $value = $cache->getData('idTabfrom_' . $key, 864000);
+
+            if (!empty($value)) {
+                return $value;
+            }
+
+        }
+
+        if (static::$_getIdFromClassName === null) {
+            static::$_getIdFromClassName = [];
+            $result = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS(
+                (new DbQuery())
+                    ->select('`id_back_tab`, `class_name`, `function`')
+                    ->from('back_tab')
+                    ->where('`function` != \'\'')
+            );
+
+            if (is_array($result)) {
+
+                foreach ($result as $row) {
+                    static::$_getIdFromFuncAndClassName[strtolower($row['class_name']) . md5(strtolower(str_replace(' ', '', $row['function'])))] = $row['id_back_tab'];
+                }
+
+            }
+
+        }
+
+        $result = (isset(static::$_getIdFromFuncAndClassName[$key]) ? (int) static::$_getIdFromFuncAndClassName[$key] : false);
+
+        if ($context->cache_enable && is_object($context->cache_api)) {
+            $cache->putData('idTabfrom_' . $key, $result);
         }
 
         return $result;
@@ -775,7 +825,7 @@ class BackTab extends PhenyxObjectModel {
     }
 
     public function builTranslateTabs() {
-        
+
         $tab = '_TABS';
 
         foreach (Language::getLanguages(true) as $lang) {

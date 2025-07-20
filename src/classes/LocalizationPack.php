@@ -14,7 +14,7 @@ class LocalizationPack {
     protected $iso_code_lang;
     protected $iso_currency;
     protected $_errors = [];
-    
+
     public $context;
     // @codingStandardsIgnoreEnd
 
@@ -35,8 +35,10 @@ class LocalizationPack {
         if (!$xml = @simplexml_load_string($file)) {
             return false;
         }
+
         $this->context = Context::getContext();
-        if(!isset($this->context->phenyxConfig)) {
+
+        if (!isset($this->context->phenyxConfig)) {
             $this->context->phenyxConfig = new Configuration();
         }
 
@@ -89,7 +91,9 @@ class LocalizationPack {
                     $this->context->phenyxConfig->updateValue('EPH_LANG_DEFAULT', $idLang);
                 }
 
-            } else if (!isset($this->iso_code_lang) && $installMode) {
+            } else
+
+            if (!isset($this->iso_code_lang) && $installMode) {
                 $idLang = 1;
             }
 
@@ -98,7 +102,7 @@ class LocalizationPack {
                 $res &= $this->_installUnits($xml);
             }
 
-            if ($installMode && $res && isset($this->iso_currency)) { CacheApi::clean('Currency::getIdByIsoCode_*');
+            if ($installMode && $res && isset($this->iso_currency)) {CacheApi::clean('Currency::getIdByIsoCode_*');
                 $res &= $this->context->phenyxConfig->updateValue('EPH_CURRENCY_DEFAULT', (int) Currency::getIdByIsoCode($this->iso_currency));
                 Currency::refreshCurrencies();
             }
@@ -108,6 +112,7 @@ class LocalizationPack {
             foreach ($selection as $selected) {
                 // No need to specify the install_mode because if the selection mode is used, then it's not the install
                 $res &= Validate::isLocalizationPackSelection($selected) ? $this->{'_install' . $selected}
+
                 ($xml) : false;
             }
 
@@ -460,7 +465,9 @@ class LocalizationPack {
 
                         }
 
-                    } else if (Plugin::isInstalled($name)) {
+                    } else
+
+                    if (Plugin::isInstalled($name)) {
 
                         if (!$plugin->uninstall()) {
                             $this->_errors[] = $this->l('An error occurred while uninstalling the plugin:') . $name;
