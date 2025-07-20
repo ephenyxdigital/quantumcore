@@ -265,7 +265,7 @@ class DbAdminQuery {
     public function extraWhere($restriction) {
 
         if (!empty($restriction)) {
-            $this->query['extraWhere'][] = $restriction;
+            $this->query['where'][] = $restriction;
         }
 
         return $this;
@@ -380,7 +380,7 @@ class DbAdminQuery {
         if ($this->query['args']) {
             $sql .= "\n" . implode(', ', $this->query['args']);
         }
-
+        
         return $sql;
     }
 
