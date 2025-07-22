@@ -790,6 +790,7 @@ class Upgrader {
     public function installBackTab($backtab) {
         
         $backtab = Tools::jsonDecode(Tools::jsonEncode($backtab), true);
+        $exist = BackTab::getIdFromFuncAndClassName($backtab['className'], $backtab['function']);
         
         if(!$exist) {
             if(!empty($backtab['plugin'])) {

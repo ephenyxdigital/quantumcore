@@ -5,7 +5,7 @@
  *
  * @since 1.8.1.0
  */
-class HelperViewCore extends Helper {
+class HelperView extends Helper {
 
     public $id;
     public $toolbar = true;
