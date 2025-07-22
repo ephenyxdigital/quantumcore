@@ -5,7 +5,7 @@
  *
  * @since 1.8.1.0
  */
-class HelperTreeCategoriesCore extends TreeCore {
+class HelperTreeCategories extends Tree {
 
     const DEFAULT_TEMPLATE = 'tree_categories.tpl';
     const DEFAULT_NODE_FOLDER_TEMPLATE = 'tree_node_folder_radio.tpl';
