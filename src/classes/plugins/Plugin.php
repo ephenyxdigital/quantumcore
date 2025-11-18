@@ -2525,7 +2525,7 @@ abstract class Plugin {
         return $result;
     }
 
-    public function instalPluginTab($class_name, $name, $function = true, $idParent = null, $parentName = null, $position = null, $openFunction = null, $divider = 0, $fa_duatone = null) {
+    public function instalPluginTab($class_name, $name, $function = true, $idParent = null, $parentName = null, $position = null, $openFunction = null, $divider = 0, $fa_duatone = null, $common_function = null) {
 
         if (is_null($parentName) && is_null($idParent)) {
             return false;
@@ -2568,6 +2568,7 @@ abstract class Plugin {
             $tab->has_divider = $divider;
             $tab->fa_duatone = $fa_duatone;
             $tab->active = 1;
+            $tab->common_function = $common_function;
             $tab->name = [];
 
             foreach (Language::getLanguages(true) as $lang) {
@@ -2607,6 +2608,7 @@ abstract class Plugin {
             $tab->has_divider = $divider;
             $tab->fa_duatone = $fa_duatone;
             $tab->active = 1;
+            $tab->common_function = $common_function;
             $tab->name = [];
 
             foreach (Language::getLanguages(true) as $lang) {

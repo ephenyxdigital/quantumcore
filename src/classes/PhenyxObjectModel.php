@@ -494,7 +494,7 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
             foreach (Language::getLanguages(true) as $lang) {
                 foreach($fieldLangs as $fieldLang) {
                     $sql = new DbQuery();
-                    $sql->select($fieldLang);
+                    $sql->select('`'.$fieldLang.'`');
                     $sql->from($def['table'] . '_lang');
                     $sql->where(bqSQL($def['primary']) .'='. $id);
                     $sql->where('id_lang = '.$lang['id_lang']);

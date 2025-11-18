@@ -23,7 +23,7 @@ class BackTab extends PhenyxObjectModel {
 
     public $plugin;
 
-    public $fa_duatone;
+    public $fa_duatone = null;
 
     public $class_name = null;
 
@@ -44,6 +44,8 @@ class BackTab extends PhenyxObjectModel {
     public $accesses;
 
     public $parent_class;
+    
+    public $common_function = null;
 
     protected static $instance;
 
@@ -55,21 +57,22 @@ class BackTab extends PhenyxObjectModel {
         'primary'   => 'id_back_tab',
         'multilang' => true,
         'fields'    => [
-            'class_name'  => ['type' => self::TYPE_STRING, 'size' => 64],
-            'id_parent'   => ['type' => self::TYPE_INT, 'validate' => 'isInt'],
-            'position'    => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
-            'function'    => ['type' => self::TYPE_STRING, 'size' => 64],
-            'plugin'      => ['type' => self::TYPE_STRING],
-            'fa_duatone'  => ['type' => self::TYPE_STRING],
-            'has_divider' => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
-            'is_global'   => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
-            'is_specific' => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
-            'active'      => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
-            'master'      => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
+            'class_name'        => ['type' => self::TYPE_STRING, 'size' => 64],
+            'id_parent'         => ['type' => self::TYPE_INT, 'validate' => 'isInt'],
+            'position'          => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
+            'function'          => ['type' => self::TYPE_STRING, 'size' => 64],
+            'plugin'            => ['type' => self::TYPE_STRING],
+            'fa_duatone'        => ['type' => self::TYPE_STRING],
+            'has_divider'       => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
+            'is_global'         => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
+            'is_specific'       => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
+            'common_function'   => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
+            'active'            => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
+            'master'            => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
 
             /* Lang fields */
-            'generated'   => ['type' => self::TYPE_BOOL, 'lang' => true],
-            'name'        => ['type' => self::TYPE_STRING, 'lang' => true],
+            'generated'         => ['type' => self::TYPE_BOOL, 'lang' => true],
+            'name'              => ['type' => self::TYPE_STRING, 'lang' => true],
         ],
     ];
 
@@ -80,7 +83,10 @@ class BackTab extends PhenyxObjectModel {
         if ($this->id) {
 
             $this->accesses = $this->getAccesses();
-            $this->parent_class = $this->getParentClass();
+            if($this->id_parent > 0) {
+                $this->parent_class = $this->getParentClass();
+            }
+            
         }
 
     }
@@ -88,7 +94,10 @@ class BackTab extends PhenyxObjectModel {
     public static function buildObject($id, $idLang = null, $className = null) {
 
         $objectData = parent::buildObject($id, $idLang, $className);
-        $objectData['parent_class'] = self::getStaticParentClass($objectData['id_parent']);
+        if(isset($objectData['id_parent']) && $objectData['id_parent'] > 0) {
+            $objectData['parent_class'] = self::getStaticParentClass($objectData['id_parent']);
+        }
+        
 
         return Tools::jsonDecode(Tools::jsonEncode($objectData));
     }
