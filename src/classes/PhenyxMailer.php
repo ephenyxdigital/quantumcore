@@ -1,6 +1,7 @@
 <?php
 
 use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
 
 class PhenyxMailer {
 
@@ -145,7 +146,7 @@ class PhenyxMailer {
             $footer = $tpl->fetch();
             $this->htmlContent = $header . $this->htmlContent . $footer;
             $mail_method = $this->context->phenyxConfig->get('EPH_MAIL_METHOD');
-
+           
             if ($mail_method == 1) {
                 $encrypt = $this->context->phenyxConfig->get('EPH_MAIL_SMTP_ENCRYPTION');
                 $mail = new PHPMailer();
@@ -165,7 +166,7 @@ class PhenyxMailer {
 
                 if ($encrypt != 'off') {
 
-                    if ($encrypt == 'ENCRYPTION_STARTTLS') {
+                    if ($encrypt == 'ENCRYPTION_STARTTLS') {                        
                         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     } else {
                         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
@@ -181,6 +182,7 @@ class PhenyxMailer {
                 }
 
                 if (!$mail->send()) {
+                    PhenyxLogger::addLog($mail->ErrorInfo, 4, null, null, null, true, null);
                     return false;
                 } else {
                     return true;
