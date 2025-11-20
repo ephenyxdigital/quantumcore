@@ -17,7 +17,7 @@
         "phpseclib/phpseclib":"~3.0",
         "smarty/smarty": "^5",
         "php-curl-class/php-curl-class": "^12",
-        "phpmailer/phpmailer": "^6",
+        "phpmailer/phpmailer": "^7",
         "pear/archive_tar": "^1",
         "ephenyxdigital/digitalspreadsheet": "^4",
         "rosell-dk/webp-convert": "^2",			

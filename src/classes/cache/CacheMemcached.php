@@ -14,30 +14,21 @@ class CacheMemcached extends CacheApi implements CacheApiInterface {
 
 	/** @var string[] */
 	private $servers;
+    
+    protected $is_connected = false;
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public function __construct() {
-
-		global $cache_memcached;
-
-		$this->servers = array_map(
-			function ($server) {
-
-				if (strpos($server, '/') !== false) {
-					return [$server, 0];
-				} else {
-					$server = explode(':', $server);
-					return [$server[0], isset($server[1]) ? (int) $server[1] : 11211];
-				}
-
-			},
-			explode(',', $cache_memcached)
-		);
-
-		parent::__construct();
-	}
+        $this->connect();
+        if ($this->is_connected) {
+            $this->memcached->setOption(Memcached::OPT_PREFIX_KEY, _DB_PREFIX_);
+            if ($this->memcached->getOption(Memcached::HAVE_IGBINARY)) {
+                $this->memcached->setOption(Memcached::OPT_SERIALIZER, Memcached::SERIALIZER_IGBINARY);
+            }
+        }
+    }
 
 	/**
 	 * {@inheritDoc}
@@ -58,12 +49,33 @@ class CacheMemcached extends CacheApi implements CacheApiInterface {
 	/**
 	 * {@inheritDoc}
 	 */
-	public function connect() {
+	public function connect()
+    {
+        if (class_exists('Memcached') && extension_loaded('memcached')) {
+            $this->memcached = new Memcached();
+        } else {
+            return;
+        }
 
-		$this->memcached = new Memcached;
-
-		return $this->addServers();
-	}
+        $servers = static::getMemcachedServers();
+        if (!$servers) {
+            return;
+        }
+        foreach ($servers as $server) {
+            $this->memcached->addServer($server['ip'], $server['port'], (int) $server['weight']);
+        }
+        
+        if (!is_object($this->memcached)) {
+			$this->is_connected = false;
+		} else {
+            
+            $this->is_connected = true;
+        }
+    }
+    
+    public static function getMemcachedServers() {
+        return Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS('SELECT * FROM '._DB_PREFIX_.'memcached_servers', true, false);
+    }
 
 	/**
 	 * Add memcached servers.
@@ -72,34 +84,14 @@ class CacheMemcached extends CacheApi implements CacheApiInterface {
 	 *
 	 * @return bool True if there are servers in the daemon, false if not.
 	 */
-	protected function addServers() {
-
-		$currentServers = $this->memcached->getServerList();
-		$retVal = !empty($currentServers);
-
-		foreach ($this->servers as $server) {
-			// Figure out if we have this server or not
-			$foundServer = false;
-
-			foreach ($currentServers as $currentServer) {
-
-				if ($server[0] == $currentServer['host'] && $server[1] == $currentServer['port']) {
-					$foundServer = true;
-					break;
-				}
-
-			}
-
-			// Found it?
-
-			if (empty($foundServer)) {
-				$retVal |= $this->memcached->addServer($server[0], $server[1]);
-			}
-
-		}
-
-		return $retVal;
-	}
+	public static function addServer($ip, $port, $weight)
+    {
+        return Db::getInstance()->execute('INSERT INTO '._DB_PREFIX_.'memcached_servers (ip, port, weight) VALUES(\''.pSQL($ip).'\', '.(int) $port.', '.(int) $weight.')', false);
+    }
+    
+    public static function deleteServer($id_server) {
+        return Db::getInstance()->execute('DELETE FROM '._DB_PREFIX_.'memcached_servers WHERE id_memcached_server='.(int) $id_server);
+    }
 
 	/**
 	 * {@inheritDoc}
