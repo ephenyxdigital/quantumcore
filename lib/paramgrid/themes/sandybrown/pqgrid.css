@@ -1,15 +1,11 @@
 /*!
- * ParamQuery Pro v10.1.0
+ * ParamQuery Pro v11.1.0
  * 
- * Copyright (c) 2012-2024 Paramvir Dhindsa (http://paramquery.com)
+ * Copyright (c) 2012-2026 Paramvir Dhindsa (http://paramquery.com)
  * Released under Commercial license
  * http://paramquery.com/pro/license
  * 
  */
-.pq-theme .ui-button .ui-button-text {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
 .pq-theme .ui-widget-header {
   border-color: #f8c294;
 }
@@ -69,7 +65,7 @@ div.pq-theme {
 .pq-group-remove:hover,
 .pq-group-icon:hover,
 .pq-icon-hover:hover {
-  border-color: #F4A460;
+  outline: 1px solid #F4A460;
 }
 .pq-theme > .pq-grid-top {
   background: transparent;
@@ -118,8 +114,10 @@ div.pq-grid-summary {
   border-bottom-color: #fad4b4;
 }
 .pq-grid-row > .pq-grid-cell.pq-focus,
-.pq-grid-row > .pq-grid-col.pq-focus {
-  border: 1px solid #F4A460;
+.pq-grid-row > .pq-grid-col.pq-focus,
+.pq-focus {
+  border-color: #F4A460;
+  outline-color: #F4A460;
 }
 .pq-grid-row > .pq-grid-number-cell,
 .pq-grid-number-col {
@@ -151,9 +149,6 @@ div.pq-grid-summary {
   background: #fff;
   color: #333;
 }
-.pq-state-select.ui-state-highlight {
-  background: #d3e1ee;
-}
 .pq-grid-cell-hover.ui-state-hover,
 .pq-grid-row-hover.ui-state-hover {
   background: #d3e1ee;
@@ -161,7 +156,6 @@ div.pq-grid-summary {
 .pq-grid-row.pq-striped {
   background: #fff8f3;
 }
-.pq-state-select.pq-striped,
 .pq-striped > .pq-grid-cell-hover,
 .pq-grid-row-hover.pq-striped {
   background: #d3dce2;
@@ -170,13 +164,10 @@ div.pq-grid-summary {
   background: #fdf1e7;
 }
 .pq-loading > .pq-loading-mask {
-  background: #fdf1e7;
   border-color: #F4A460;
-  color: #333;
 }
-div.pq-loading-mask > div {
-  border-color: #f8c294;
-  background-color: #fff;
+.pq-spinner {
+  border-color: #ffffff;
 }
 .pqg-vert-frozen-line,
 .pqg-horiz-frozen-line {
@@ -184,6 +175,15 @@ div.pq-loading-mask > div {
 }
 .pq-pivot-pane .pq-sortable {
   background: #fff;
+}
+.pq-bp-button:not(input,.pq-bp-style):hover {
+  outline-color: #F4A460;
+}
+.pq-theme .ui-state-highlight {
+  background-color: #60b0f4;
+  border-color: #F4A460;
+  color: #ffffff;
+  background-image: none !important;
 }
 .pq-border-0 {
   border-color: #F4A460 !important;
@@ -205,9 +205,4 @@ div.pq-loading-mask > div {
 }
 .pq-bg-3 {
   background-color: #fdf1e7;
-}
-.pq-theme .pq-state-highlight {
-  background-color: #fad4b4;
-  border-color: #F4A460;
-  background-image: none !important;
 }

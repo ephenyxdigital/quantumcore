@@ -733,7 +733,6 @@ class License extends PhenyxObjectModel {
 		];
 		$curl = new Curl();
 		$curl->setDefaultJsonDecoder($assoc = true);
-		$curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
 		$curl->setHeader('Content-Type', 'application/json');
 		$curl->post($url, json_encode($data_array));
         
@@ -750,7 +749,6 @@ class License extends PhenyxObjectModel {
 		];
 		$curl = new Curl();
 		$curl->setDefaultJsonDecoder($assoc = true);
-		$curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
 		$curl->setHeader('Content-Type', 'application/json');
 		$curl->post($url, json_encode($data_array));
         
@@ -914,7 +912,6 @@ class License extends PhenyxObjectModel {
 		];
 		$curl = new Curl();
 		$curl->setDefaultJsonDecoder($assoc = true);
-		$curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
 		$curl->setHeader('Content-Type', 'application/json');
 		$curl->post($url, json_encode($data_array));
 		return $curl->response;
@@ -974,7 +971,6 @@ class License extends PhenyxObjectModel {
 		];
 		$curl = new Curl();
 		$curl->setDefaultJsonDecoder($assoc = true);
-		$curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
 		$curl->setHeader('Content-Type', 'application/json');
 		$curl->setTimeout(6000);
 		$curl->post($url, json_encode($data_array));
@@ -982,7 +978,7 @@ class License extends PhenyxObjectModel {
 	}
 
 	public function getJsonFile() {
-
+       
 		$url = 'https://' . $this->website . '/api';
 
 		$data_array = [
@@ -994,11 +990,11 @@ class License extends PhenyxObjectModel {
 		$curl = new Curl();
 		$curl->setDefaultJsonDecoder($assoc = true);
 		$curl->setHeader('Content-Type', 'application/json');
-		$curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
 		$curl->setTimeout(6000);
+       
 		$curl->post($url, json_encode($data_array));
 
-		if ($curl->error) {
+		if ($curl->error) {            
 			$return = [
 				'success' => false,
 				'message'   => 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage,
@@ -1083,7 +1079,6 @@ class License extends PhenyxObjectModel {
 		$curl = new Curl();
 		$curl->setDefaultJsonDecoder($assoc = true);
 		$curl->setHeader('Content-Type', 'application/json');
-		$curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
 		$curl->setTimeout(6000);
 		$curl->post($url, json_encode($data_array));
 		$langs = $curl->response;
@@ -1112,7 +1107,6 @@ class License extends PhenyxObjectModel {
 		];
 		$curl = new Curl();
 		$curl->setDefaultJsonDecoder($assoc = true);
-		$curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
 		$curl->setHeader('Content-Type', 'application/json');
 		$curl->post($url, json_encode($data_array));
 	}
@@ -1129,7 +1123,6 @@ class License extends PhenyxObjectModel {
 		$curl = new Curl();
 		$curl->setDefaultJsonDecoder($assoc = true);
 		$curl->setHeader('Content-Type', 'application/json');
-		$curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
 		$curl->setTimeout(6000);
 		$curl->post($url, json_encode($data_array));
 		$plugins = $curl->response;
@@ -1162,7 +1155,6 @@ class License extends PhenyxObjectModel {
 		$curl = new Curl();
 		$curl->setDefaultJsonDecoder($assoc = true);
 		$curl->setHeader('Content-Type', 'application/json');
-		$curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
 		$curl->post($url, json_encode($data_array));
 		$formattedXML = $curl->response;
 		$fp = fopen(_EPH_CONFIG_DIR_ . 'json/' . $this->id . '.xml', 'w+');
@@ -1599,7 +1591,6 @@ class License extends PhenyxObjectModel {
         $curl = new Curl();
         $curl->setDefaultJsonDecoder($assoc = true);
         $curl->setHeader('Content-Type', 'application/json');
-        //$curl->setTimeout(6000);
         $curl->post($url, json_encode($data_array));
         return $curl->response;
         

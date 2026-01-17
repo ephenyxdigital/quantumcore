@@ -451,6 +451,7 @@ declare module pq {
             bubble?: boolean
             collapsible?:{
                 css?: any
+                cssCollapse?: any //11.1.0
                 collapsed?: boolean
                 on?: boolean                
                 toggle?: boolean
@@ -549,7 +550,10 @@ declare module pq {
             fmtNumber?: string //10.0.0
             fmtNumberEdit?: string //10.0.0
             fmtNumberFilter?: string //10.0.0
-
+            focusModel?: { //11.1.0
+                focusable?: boolean
+                onTab?: string
+            }
             format?: (rd:object, col:object, cellprop: object, rowprop: object) => string
             formulas?: Array<[ number | string, (rowData: any, column: column) => any ]>,
             formulasModel?: {
@@ -593,7 +597,8 @@ declare module pq {
             minWidth?: numberorstring
             noStickyHeader?: boolean //9.1.0
             numberCell?: {
-                width?: number
+                format?: string //11.0.0
+                width?: number | 'auto'
                 title?: string
                 resizable?: boolean
                 minWidth?: number
@@ -638,12 +643,9 @@ declare module pq {
 
             rowTemplate?: object //8.0.0
             scrollModel?: {
-                horizontal?: boolean
-                pace?: string
                 autoFit?: boolean
-                lastColumn?: string
-                theme?: boolean
-                flexContent?: boolean
+                timeout?: number
+                bigSB?: boolean //11.0.0
             }
 
             selectionModel?: {
@@ -938,9 +940,10 @@ declare module pq {
             hideCols() //8.0.0
             hideRows() //8.0.0
             indexOf(obj?: objRange): number    
-            link(url?: string): string | void //9.0.0        
+            link(url?: string, label?: string): object | void //11.0.0
             merge()
             pic(file: any, x?: number, y?: number) //7.2.0
+            picCell(file: File|String, width?: number, name?: string): Promise<void> //11.0.0
             select()
             showCols() //8.0.0
             showRows() //8.0.0
@@ -1017,16 +1020,27 @@ declare module pq {
             columns?: worksheetColumn[]
             frozenRows?: number
             frozenCols?: number
-            hidden?: boolean
-            mergeCells?: string[]
             /**number of header rows in rows. */
             headerRows?: number
+            hidden?: boolean
+            mergeCells?: string[]
+            /**pictures in a worksheet*/
+            pics?: Pic[] 
             rows: worksheetRow[]
         }
         interface workbook{
             activeId?: number
             sheets?: worksheet[]
         }
+        interface Pic{
+            name?: string
+            src: string  //base64 string
+            from: [ci: number, ciOffset: number, ri: number, riOffset: number]
+            to?: [ci: number, ciOffset: number, ri: number, riOffset: number]
+            cx?: number //width
+            cy?: number //height
+        }        
+        
         interface Checkbox{
             checkAll()
             checkNodes(nodes: any[])
@@ -1210,7 +1224,17 @@ declare module pq {
                 showMenu(evt, ui: object)
             }
 
-            copy(obj?: any)
+            copy(obj?: {
+                dest?: objRange 
+                render?: boolean
+                header?: boolean //7.3.0
+            })   
+
+            cut(obj?: {
+                dest?: objRange 
+                render?: boolean
+                header?: boolean //7.3.0
+            })
 
             createTable(obj: {
                 $cont: JQuery,
@@ -1298,7 +1322,7 @@ declare module pq {
                 workbook?: boolean
                 /**Applicable to non-xlsx format. Set it true to reduce the size of download file by compressing it. */
                 //zip?: boolean
-            }): string|Blob;
+            }): Promise< string|Blob>; //11.0.0
 
             exportExcel(option?: any)
 
@@ -1501,6 +1525,8 @@ declare module pq {
 
             instance(): instance
 
+            isCollapsed(): boolean //11.1.0
+
             isDirty(obj?: {
                 rowIndx?: number,
                 rowData?: any
@@ -1512,6 +1538,8 @@ declare module pq {
             }): boolean
 
             isEditableRow(obj: { rowIndx: number } ): boolean
+
+            isFullscreen(): boolean //11.1.0
 
             isValid(obj: {
                 rowData?: any
@@ -1582,23 +1610,17 @@ declare module pq {
 
             /** refresh the grid. */
             refresh(options?: any)
-
             refreshCell(obj: cellObject)
-
             refreshCM( colModel?: colModel )
+            
+            refreshCollapse() //11.1.0
 
-            refreshColumn(obj: cellObject )
-
+            refreshColumn(obj: cellObject )            
             refreshDataAndView()
-
             refreshHeader()
-
             refreshHeaderFilter(obj: { colIndx?: number, dataIndx?: numberorstring} )
-
             refreshRow(obj: rowObject)
-
             refreshSummary() //8.4.0
-
             refreshToolbar()
 
             /** superset of grid refresh.*/

@@ -8,33 +8,41 @@
         }
     </style>
     <script>
-        function fn(){
-            
-            const ruleList = document.styleSheets[0].cssRules;
-            var tbl = "<table >";
-            for (let i = 5; i < ruleList.length; i++) {
-            
-                var rule = ruleList[i], text = rule.selectorText, subsrules = text.split(",");
-                tbl += "<tr>"
-                subsrules.forEach(function(sr){
-                    
-                    sr = sr.trim();
-                    var match = sr.match(/^\.(\S+)::before$/);
-                    var cls = match[1];
-                    cls = cls.split(".").join(" ");
-                    if( cls.indexOf("ui-icon") >= 0 ){
-                        cls = "ui-icon " + cls;
-                    }
-                    tbl += "<td><span class='" + cls + "' style='font-size:20px;'></span><p>"+ cls +"</p></td>";
-                })
-                tbl += "</tr>";                
+        function fn() {
+            // Find the 'pq.css' stylesheet regardless of its order.
+            const styleSheet = [...document.styleSheets].find(sheet => sheet.href && sheet.href.endsWith('pq.css'));
+            if (!styleSheet) {
+                console.error("pq.css stylesheet not found!");
+                return;
             }
+
+            const ruleList = styleSheet.cssRules;
+            let tbl = "<table>";
+
+            for (const rule of ruleList) {
+                if (rule.selectorText) {
+                    const selectors = rule.selectorText.split(",");
+                    // Open a new row for each rule
+                    tbl += "<tr>";
+                    selectors.forEach(sr => {
+                        const trimmedSr = sr.trim();
+                        const match = trimmedSr.match(/^\.pq-icon-([^:]+)::before$/);
+                        
+                        if (match) {
+                            let cls = "pq-icon-" + match[1];
+                            // The class is simply the matched selector part
+                            tbl += `<td><span class='${cls}' style='font-size:20px;'></span><p>${cls}</p></td>`;
+                        }
+                    });
+                     tbl += "</tr>";
+                }
+            }
+
             tbl += "</table>";
             document.getElementById("myTable").innerHTML = tbl;
         }
 
         document.addEventListener('DOMContentLoaded', fn, false);
-
     </script>        
 </head>
 <body>
