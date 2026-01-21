@@ -45,7 +45,7 @@ class DbPDO extends Db {
             $dsn .= 'host=' . $host;
         }
 
-        return new PDO($dsn, $user, $password, [PDO::ATTR_TIMEOUT => $timeout, PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true]);
+        return new PDO($dsn, $user, $password, [PDO::ATTR_TIMEOUT => $timeout, Pdo\Mysql::ATTR_USE_BUFFERED_QUERY => true]);
     }
 
     /**
