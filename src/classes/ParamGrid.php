@@ -101,10 +101,6 @@ class ParamGrid {
 
 	public $paragridScript;
 
-	public $contextMenuoption;
-
-	public $functionContextMenu = false;
-
 	public $dragOn = 0;
 
 	public $dragdiHelper;
@@ -159,8 +155,6 @@ class ParamGrid {
 	public $detailModel;
 
 	public $subDetailModel;
-
-	public $detailContextMenu;
 
 	public $treeModel;
 
@@ -590,9 +584,6 @@ class ParamGrid {
 				$values['subDetailModel'] = $this->subDetailModel;
 			}
 
-			if (!empty($this->detailContextMenu)) {
-				$values['detailContextMenu'] = $this->detailContextMenu;
-			}
 
 			if (!empty($this->refresh)) {
 				$values['builder']['refresh'] = $this->refresh;
@@ -629,7 +620,6 @@ class ParamGrid {
 	public function generateParagridScript() {
 
 		$is_function = false;
-		$context = Context::getContext();
 
 		$paramGridVar = '';
 		$jsScript = '';
@@ -719,7 +709,7 @@ class ParamGrid {
 								$jsScript .= $this->gridAfterLoadFunction . PHP_EOL;
 							}
 
-							if (isset($values['contextMenu']) && !$this->functionContextMenu) {
+							if (isset($values['contextMenu'])) {
 
 								foreach ($values['contextMenu'] as $contextMenu => $value) {
 									$jsScript .= '  $("' . $contextMenu . '").contextMenu({' . PHP_EOL;
@@ -756,25 +746,7 @@ class ParamGrid {
 
 							}
 
-							if (isset($values['detailContextMenu'])) {
-
-								foreach ($values['detailContextMenu'] as $contextMenu => $value) {
-									$jsScript .= '  $("' . $contextMenu . '").contextMenu({' . PHP_EOL;
-
-									foreach ($value as $option => $value) {
-
-										if (is_array($value)) {
-											$jsScript .= '      ' . $this->deployArrayScript($option, $value) . PHP_EOL;
-										} else {
-											$jsScript .= '      ' . $option . ': ' . $value . ',' . PHP_EOL;
-										}
-
-									}
-
-									$jsScript .= '  });' . PHP_EOL;
-								}
-
-							}
+							
 
 						}
 
@@ -821,29 +793,7 @@ class ParamGrid {
 
 		}
 
-		if (isset($values['contextMenu']) && $this->functionContextMenu) {
-			$jsScript .= 'function launch' . $this->paramClass . 'ContextMenu() {' . PHP_EOL;
-
-			foreach ($values['contextMenu'] as $contextMenu => $value) {
-				$jsScript .= '  $("' . $contextMenu . '").contextMenu({' . PHP_EOL;
-
-				foreach ($value as $option => $value) {
-
-					if (is_array($value)) {
-						$jsScript .= '      ' . $this->deployArrayScript($option, $value) . PHP_EOL;
-					} else {
-						$jsScript .= '      ' . $option . ': ' . $value . ',' . PHP_EOL;
-					}
-
-				}
-
-				$jsScript .= '  });' . PHP_EOL;
-			}
-
-			$jsScript .= '}' . PHP_EOL;
-
-		}
-
+		
 		if ($key == 'extraFunction') {
 
 			foreach ($this->paragrid_option[$key] as $function) {
