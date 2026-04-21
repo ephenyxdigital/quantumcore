@@ -883,6 +883,9 @@ abstract class Plugin {
                 $extra = Tools::jsonDecode($extra, true);
 
                 foreach ($extra as $ext) {
+                    if($ext["is_ondisk"]) {
+                        
+                    }
                     $ioPlugin[$ext["name"]] = $ext;
                 }
 

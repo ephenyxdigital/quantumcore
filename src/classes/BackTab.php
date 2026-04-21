@@ -506,6 +506,8 @@ class BackTab extends PhenyxObjectModel {
             }
 
         }
+        
+         
 
         if ($idParent === null) {
             $arrayAll = [];
@@ -518,12 +520,16 @@ class BackTab extends PhenyxObjectModel {
                 $temp = $arrayAll === null ? null : Tools::jsonEncode($arrayAll);
                 $cache->putData('getBckTab_' . $idLang . '_' . $idParent, $temp);
             }
+            $hookResult = Hook::getInstance()->exec('actiongetBackTabs', ['tabs' => $result], null, true);
+            
 
             return $arrayAll;
         }
 
         $result = (isset(static::$_cache_back_tab[$idLang][$idParent]) ? static::$_cache_back_tab[$idLang][$idParent] : []);
-
+        
+       
+        
         if ($context->cache_enable && is_object($context->cache_api)) {
             $temp = $result === null ? null : Tools::jsonEncode($result);
             $cache->putData('getBckTab_' . $idLang . '_' . $idParent, $temp);
