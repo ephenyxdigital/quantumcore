@@ -296,7 +296,7 @@ class ComposerMap extends PhenyxObjectModel {
 
 	public static function exists($tag) {
 
-		return (boolean) isset(self::$sc[$tag]);
+		return (bool) isset(self::$sc[$tag]);
 	}
 
 	public static function map($tag, $attributes) {

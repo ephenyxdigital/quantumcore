@@ -58,7 +58,7 @@ class ComposerShortCodeParams {
 
 	public static function setEnqueue($value) {
 
-		self::$is_enqueue = (boolean) $value;
+		self::$is_enqueue = (bool) $value;
 	}
 
 	public static function isEnqueue() {
