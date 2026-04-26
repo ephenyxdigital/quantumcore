@@ -454,13 +454,10 @@ class Configuration extends PhenyxObjectModel {
         $idLang = (int) $idLang;
 
         $results = [];
-        if(count($keys)) {
-            foreach ($keys as $key) {
-                $results[$key] = $this->get($key, $idLang);
-            }
-        }
 
-        
+        foreach ($keys as $key) {
+            $results[$key] = $this->get($key, $idLang);
+        }
 
         return $results;
     }
