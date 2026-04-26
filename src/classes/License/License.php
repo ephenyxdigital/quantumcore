@@ -583,7 +583,7 @@ class License extends PhenyxObjectModel {
 		$iterator->append(new DirectoryIterator(_EPH_ROOT_DIR_ . '/phenyxDigital/'));
 		
         foreach ($iterator as $file) {
-			if (in_array($file->getFilename(), ['.', '..', '.htaccess', 'composer.lock', 'settings.inc.php', '.gitattributes', '.user.ini', '.php-ini', '.php-version'])) {
+			if (in_array($file->getFilename(), ['.', '..', '.htaccess', '.env', 'composer.lock', '.gitattributes', '.user.ini', '.php-ini', '.php-version'])) {
 				continue;
 			}
 			$filePath = $file->getPathname();
