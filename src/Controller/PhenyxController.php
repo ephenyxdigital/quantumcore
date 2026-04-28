@@ -343,6 +343,26 @@ abstract class PhenyxController {
         }
 
     }
+    
+     /**
+     * Initialise les services partagés dans le contexte de l'application.
+     * 
+     * Chaque service est initialisé de manière paresseuse (lazy loading) :
+     * il n'est créé que s'il n'existe pas déjà dans le contexte.
+     * Cela évite les doubles instanciations lors d'appels multiples.
+     * 
+     * Services initialisés :
+     * - hook_args    : Arguments passés aux hooks
+     * - media        : Gestionnaire de médias (CSS/JS)
+     * - _session     : Gestionnaire de session PHP
+     * - _link        : Générateur de liens/URLs
+     * - _tools       : Boîte à outils (utilitaires)
+     * - img_manager  : Gestionnaire d'images
+     * - language     : Objet langue actif
+     * - translations : Système de traductions
+     * - cache_enable : État du cache page
+     * - phenyxgrid   : Gestionnaire de grilles de données
+     */
 
     public function buildContext() {
 
@@ -400,6 +420,25 @@ abstract class PhenyxController {
         }
 
     }
+    
+    /**
+     * Fusionne tous les fichiers de traduction en un seul fichier par langue.
+     * 
+     * Cette méthode consolide les traductions provenant de :
+     * - L'application principale
+     * - Les overrides
+     * - Les plugins installés
+     * 
+     * Pour chaque catégorie (admin, class, pdf...), les traductions sont
+     * triées par clé et écrites dans un fichier PHP compilé dans le dossier
+     * _EPH_TRANSLATIONS_DIR_.
+     * 
+     * Une fois la fusion effectuée, le flag CURENT_MERGE_LANG_{iso} est
+     * mis à 1 en configuration pour éviter une refusion inutile.
+     * 
+     * @param string $iso Code ISO de la langue à fusionner (ex: 'fr', 'en')
+     * @return bool True si la fusion s'est bien passée
+     */
 
     public function mergeLanguages($iso) {
 
@@ -698,6 +737,19 @@ abstract class PhenyxController {
         return true;
 
     }
+    
+    /**
+     * Retourne la liste des plugins installés qui ont des fichiers de traduction
+     * disponibles pour la langue courante.
+     * 
+     * Recherche les traductions dans deux emplacements :
+     * 1. _EPH_PLUGIN_DIR_ : Répertoire standard des plugins
+     * 2. _EPH_SPECIFIC_PLUGIN_DIR_ : Répertoire des plugins spécifiques au projet
+     * 
+     * Seuls les plugins réellement installés (Plugin::isInstalled) sont retenus.
+     * 
+     * @return array Liste des noms de plugins ayant des traductions disponibles
+     */
 
     public function getPlugins() {
 
@@ -722,11 +774,32 @@ abstract class PhenyxController {
 
         return $plugs;
     }
+    
+    /**
+     * Factory method pour instancier dynamiquement un contrôleur par son nom de classe.
+     * 
+     * Permet de créer n'importe quel contrôleur sans connaître sa classe à l'avance.
+     * Utilisé notamment pour le routing et les redirections inter-contrôleurs.
+     * 
+     * @param string $className Nom de la classe contrôleur à instancier
+     * @param bool   $auth      Vérification de l'authentification requise
+     * @param bool   $ssl       Connexion SSL requise
+     * @return PhenyxController Instance du contrôleur demandé
+     */
 
     public static function getController($className, $auth = false, $ssl = false) {
 
         return new $className($auth, $ssl);
     }
+    
+    /**
+     * Change la langue d'interface du back-office via une requête AJAX.
+     * 
+     * Recharge la langue sélectionnée, reconstruit les traductions et met
+     * à jour le contexte et le cookie de l'employé.
+     * 
+     * @return void Retourne un JSON {success: bool, message: string}
+     */
 
     public function ajaxProcessSwitchAdminLanguage() {
 
@@ -893,6 +966,20 @@ abstract class PhenyxController {
 
         return $contextMenu->buildContextMenu();
     }
+    
+    /**
+     * Génère le script JavaScript de configuration de la grille ParamGrid.
+     * 
+     * ParamGrid est une librairie de grille de données utilisée dans le back-office.
+     * Ce script configure les colonnes, les actions, les sources de données, etc.
+     * 
+     * Si le cache est activé, retourne directement la version en cache
+     * pour éviter de recalculer la configuration à chaque requête.
+     * 
+     * @param mixed $idObjet   Identifiant optionnel pour les grilles liées à un objet
+     * @param bool  $use_cache Utilise le cache si disponible (défaut: true)
+     * @return string Script JavaScript de configuration de la grille
+     */
 
     public function generateParaGridScript($idObjet = null, $use_cache = true) {
 
@@ -968,20 +1055,49 @@ abstract class PhenyxController {
 
         return true;
     }
+    
+    /**
+     * Getter magique pour la compatibilité avec les anciens noms de propriétés.
+     * 
+     * Permet d'accéder aux propriétés en snake_case en les convertissant
+     * automatiquement en camelCase.
+     * Exemple : $this->ajax_layout retourne $this->ajaxLayout
+     * 
+     * @param string $property Nom de la propriété demandée (snake_case ou camelCase)
+     * @return mixed Référence vers la valeur de la propriété
+     */
 
     public function &__get($property) {
 
+        // Convertit snake_case → camelCase pour la compatibilité ascendante
         $camelCaseProperty = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $property))));
 
         if (property_exists($this, $camelCaseProperty)) {
             return $this->$camelCaseProperty;
         }
-
+        // Fallback : retourne la propriété telle quelle si elle existe en snake_case
         return $this->$property;
     }
 
+    /**
+     * Setter magique pour la compatibilité avec les anciens noms de propriétés.
+     * 
+     * Convertit les propriétés snake_case en camelCase lors de l'assignation.
+     * Une liste noire (blacklist) empêche la conversion de certaines propriétés
+     * internes sensibles qui doivent conserver leur nom exact.
+     * 
+     * @param string $property Nom de la propriété à définir
+     * @param mixed  $value    Valeur à assigner
+     * @return void
+     */
     public function __set($property, $value) {
 
+        /*
+         * Propriétés protégées contre la conversion camelCase.
+         * Ces propriétés sont utilisées en interne avec leur nom exact
+         * et ne doivent pas être renommées.
+         */ 
+        
         $blacklist = [
             '_select',
             '_join',
@@ -992,16 +1108,36 @@ abstract class PhenyxController {
             '_lang',
         ];
 
-        // Property to camelCase for backwards compatibility
+        // Tentative de conversion snake_case → camelCase
         $snakeCaseProperty = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $property))));
 
         if (!in_array($property, $blacklist) && property_exists($this, $snakeCaseProperty)) {
+            // Propriété convertie existante : on utilise le camelCase
             $this->$snakeCaseProperty = $value;
         } else {
+            // Propriété blacklistée ou inconnue : assignation directe
             $this->$property = $value;
         }
 
     }
+    
+    /**
+     * Point d'entrée principal du contrôleur. Orchestre tout le cycle de vie
+     * d'une requête HTTP de A à Z.
+     * 
+     * Séquence d'exécution :
+     * 1. init()        - Initialisation des données métier
+     * 2. checkAccess() - Vérification des droits d'accès
+     * 3. setMedia()    - Chargement des ressources CSS/JS
+     * 4. postProcess() - Traitement des formulaires POST
+     * 5. redirect()    - Redirection si demandée après un POST
+     * 6. initHeader()  - Construction de l'en-tête de page
+     * 7. initContent() - Construction du contenu principal
+     * 8. initFooter()  - Construction du pied de page
+     * 9. display()     - Rendu final ou réponse AJAX
+     * 
+     * @return void
+     */
 
     public function run() {
 
@@ -1714,11 +1850,37 @@ abstract class PhenyxController {
         }
 
     }
+    
+    /**
+     * Détecte si la requête courante est une requête XMLHttpRequest (AJAX).
+     * 
+     * Se base sur le header HTTP X-Requested-With envoyé par les librairies
+     * JavaScript (jQuery, Axios, etc.) lors des appels AJAX.
+     * 
+     * Note : Ce header peut être falsifié, ne pas l'utiliser pour la sécurité.
+     * 
+     * @return bool True si la requête est une requête AJAX
+     */
 
     public function isXmlHttpRequest() {
 
         return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
     }
+    
+    /**
+     * Prépare les champs d'une grille en gérant leur visibilité et leur masquage.
+     * 
+     * Pour chaque champ de la grille, détermine :
+     * - Son titre d'affichage (title ou dataIndx si non masquable)
+     * - S'il est masqué par défaut (hidden)
+     * - S'il peut être masqué par l'utilisateur (hiddenable)
+     * 
+     * Cette configuration est utilisée par ParamGrid pour le menu
+     * de gestion de la visibilité des colonnes.
+     * 
+     * @param array $fields Liste des définitions de champs de la grille
+     * @return array Tableau associatif [titre => config_champ] avec hidden et hiddenable
+     */
 
     public function manageFieldsVisibility($fields) {
 
@@ -2560,7 +2722,7 @@ abstract class PhenyxController {
         $scriptFooter = $this->context->_hook->exec('displayBackOfficeFooter', []);
         $html = $this->renderForm();
 
-        $this->ajax_li = '<li id="uperAdd' . $this->controller_name . '" data-controller="' . $this->controller_name . '"><a href="#contentAdd' . $this->controller_name . '"><i class="fa-duotone fa-regular fa-square-plus"></i>' . $this->editObject . '</a><button type="button" onClick="closeAddFormObject(\'' . $this->controller_name . '\', ' . $this->composer_editor . ')" class="close tabdetail" data-id="uperAdd' . $this->controller_name . '"></button></li>';
+        $this->ajax_li = '<li id="uperAdd' . $this->controller_name . '" data-controller="' . $this->controller_name . '"><a href="#contentAdd' . $this->controller_name . '"><i class="fa-duotone fa-regular fa-square-plus"></i>' . $this->editObject . '</a><button type="button" onClick="closeAddFormObject(\'' . $this->controller_name . '\', ' . $this->composer_editor . ')" class="close tabdetail" data-id="uperAdd' . $this->controller_name . '"><i class="fa-duotone fa-regular fa-circle-xmark"></i></button></li>';
         $this->ajax_content = '<div id="contentAdd' . $this->controller_name . '" class="panel wpb_text_column  wpb_slideInUp slideInUp wpb_start_animation animated col-lg-12" style="display; flow-root;">' . $scripHeader . $html . $scriptFooter . '</div>';
 
         $this->ajaxEditDisplay();
@@ -2901,6 +3063,15 @@ abstract class PhenyxController {
 
         return $modal_render;
     }
+    
+    /**
+     * Duplique un objet métier depuis le back-office via AJAX.
+     * 
+     * Vérifie que l'employé a les droits d'édition avant de procéder.
+     * Après duplication, redirige vers le formulaire d'édition du nouvel objet.
+     * 
+     * @return void
+     */
 
     public function ajaxProcessDuplicateObject() {
 
@@ -3018,6 +3189,18 @@ abstract class PhenyxController {
 
     }
 
+    /**
+     * Retourne la traduction d'une chaîne pour le back-office.
+     * 
+     * Wrapper autour du système de traductions qui détermine automatiquement
+     * la classe source si non précisée (retire le suffixe 'Controller').
+     * 
+     * @param string      $string       Chaîne à traduire
+     * @param string|null $class        Classe source (null = classe courante)
+     * @param bool        $addslashes   Échapper les guillemets dans la traduction
+     * @param bool        $htmlentities Encoder les entités HTML dans la traduction
+     * @return string Chaîne traduite
+     */
     protected function la($string, $class = null, $addslashes = false, $htmlentities = true) {
 
         if ($class === null) {
@@ -3253,6 +3436,16 @@ abstract class PhenyxController {
 
         return $this->tpl_view_vars;
     }
+    
+    /**
+     * Construit et retourne le formulaire de saisie principal du contrôleur.
+     * 
+     * Configure un Helper de formulaire avec les métadonnées du contrôleur
+     * (langue par défaut, lien, classe, table, identifiant) et génère
+     * le HTML du formulaire à partir de $this->fields_form.
+     * 
+     * @return string|null HTML du formulaire ou null si fields_form non défini
+     */
 
     public function renderForm() {
 
@@ -3377,6 +3570,17 @@ abstract class PhenyxController {
 
     }
 
+    /**
+     * Récupère les langues disponibles pour les formulaires multi-langues.
+     * 
+     * Gère la langue de formulaire préférée de l'employé (stockée en cookie).
+     * Si la préférence de l'employé n'existe plus (langue supprimée), revient
+     * à la langue par défaut du système.
+     * 
+     * Marque la langue active avec is_default = 1 pour les templates.
+     * 
+     * @return array Liste des langues avec leurs propriétés + flag is_default
+     */
     public function getLanguages() {
 
         $cookie = $this->context->cookie;
@@ -3738,6 +3942,13 @@ abstract class PhenyxController {
 
     }
 
+    /**
+     * Nettoie une chaîne de mots-clés meta en supprimant les espaces
+     * superflus et les entrées vides.
+     * 
+     * @param string $keywords Chaîne de mots-clés séparés par des virgules
+     * @return string Mots-clés nettoyés et réassemblés, ou chaîne vide
+     */
     protected function _cleanMetaKeywords($keywords) {
 
         if (!empty($keywords) && $keywords != '') {
@@ -4307,6 +4518,19 @@ abstract class PhenyxController {
         </div></div>';
     }
 
+     /**
+     * Génère le tableau HTML du chronomètre SQL.
+     * 
+     * Affiche pour chaque requête SQL exécutée :
+     * - Le texte de la requête
+     * - Son temps d'exécution en millisecondes
+     * - Le nombre de lignes retournées
+     * - L'utilisation d'un filesort (tri sans index, coûteux)
+     * - L'utilisation d'un GROUP BY
+     * - La pile d'appel (callstack) pour localiser la requête dans le code
+     * 
+     * @return void Écrit directement dans $this->content_ajax
+     */
     protected function displayProfilingStopwatch() {
 
         $this->content_ajax .= '
@@ -4431,7 +4655,25 @@ abstract class PhenyxController {
         $this->content_ajax .= '</table>
         </div>';
     }
-
+    
+    /**
+     * Génère un rapport HTML de profilage complet des performances de la page.
+     * 
+     * Ce rapport inclut :
+     * - Résumé des temps d'exécution (profiling summary)
+     * - Configuration du serveur (configuration)
+     * - Détail des étapes d'exécution (run steps)
+     * - Liens de navigation du rapport (links)
+     * - Chronomètre SQL avec toutes les requêtes (stopwatch)
+     * - Requêtes en double (doubles)
+     * - Tables les plus sollicitées (table stress)
+     * - Objets modèles instanciés (object model)
+     * - Hooks exécutés (hooks)
+     * - Plugins appelés (plugins)
+     * - Fichiers inclus (files)
+     * 
+     * @return string HTML complet du rapport de profilage
+     */
     public function displayProfiling() {
 
         $this->profiler[] = $this->stamp('display');

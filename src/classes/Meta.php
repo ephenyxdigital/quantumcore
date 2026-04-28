@@ -98,18 +98,6 @@ class Meta extends PhenyxObjectModel {
 
         $context = Context::getContext();
 
-        if ($context->cache_enable && is_object($context->cache_api)) {
-            $addPg = isset($addPage) ? 1 : 0;
-            $pageExs = isset($pageExludes) ? 1 : 0;
-            $value = $context->cache_api->getData('metaGetPages_' . $excludeFilled . '_' . $addPg . '_' . $pageExs, 864000);
-            $temp = empty($value) ? null : Tools::jsonDecode($value, true);
-
-            if (!empty($temp)) {
-               // return $temp;
-            }
-
-        }
-
         $plugins = Plugin::getPluginsInstalled();
 
         $selectedPages = [];
@@ -355,12 +343,7 @@ class Meta extends PhenyxObjectModel {
         }
 
         ksort($selectedPages);
-
-        if ($context->cache_enable && is_object($context->cache_api)) {
-            $temp = $selectedPages === null ? null : Tools::jsonEncode($selectedPages);
-            $context->cache_api->putData('metaGetPages_' . $excludeFilled . '_' . $addPg . '_' . $pageExs, $temp);
-        }
-
+        
         return $selectedPages;
     }
 
