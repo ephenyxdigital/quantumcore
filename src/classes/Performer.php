@@ -135,7 +135,7 @@ class Performer {
 
         $this->use_routes = (bool) $this->context->phenyxConfig->get('EPH_REWRITING_SETTINGS');
 
-        if (defined('_BACK_MODE_') && _BACK_MODE_) {
+        if (defined('_BACK_MODE_') && _BACK_MODE_ == 1) {
             $this->front_controller = static::FC_ADMIN;
             $this->controller_not_found = 'adminlogin';
         } else {
