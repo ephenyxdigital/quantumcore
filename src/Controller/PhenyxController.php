@@ -230,6 +230,8 @@ abstract class PhenyxController {
 
     public $configurationField;
     
+    public $has_composer = false;
+    
     
     public $backtab;
 
@@ -2141,7 +2143,7 @@ abstract class PhenyxController {
             'bo_imgdir'       => __EPH_BASE_URI__ . 'content/backoffice/' . $this->bo_theme . '/img/',
         ]);
 
-        $this->ajax_li = '<li id="uper' . $this->controller_name . '" data-self="' . $this->link_rewrite . '" data-name="' . $this->page_title . '" data-controller="' . $this->controller_name . '"><a href="#content' . $this->controller_name . '"><i class="'.$this->backtab->fa_duatone.'"></i>' . $this->publicName . '</a><button type="button" class="close tabdetail" onClick="closeTabObject(\'' . $this->controller_name . '\');" data-id="uper' . $this->controller_name . '"><i class="fa-duotone fa-regular fa-circle-xmark"></i></button></li>';
+        $this->ajax_li = '<li id="uper' . $this->controller_name . '" data-self="' . $this->link_rewrite . '" data-name="' . $this->page_title . '" data-controller="' . $this->controller_name . '"><a href="#content' . $this->controller_name . '"><i class="'.$this->backtab->fa_duatone.'"></i>' . $this->publicName . '</a><button type="button" class="close tabdetail" onClick="closeTabObject(\'' . $this->controller_name . '\''.$this->has_composer.');" data-id="uper' . $this->controller_name . '"><i class="fa-duotone fa-regular fa-circle-xmark"></i></button></li>';
         $this->ajax_content = '<div id="content' . $this->controller_name . '" class="panel wpb_text_column  wpb_slideInUp slideInUp wpb_start_animation animated col-lg-12" style="display: content;">' . $data->fetch() . '</div>';
 
         $this->ajaxDisplay();
