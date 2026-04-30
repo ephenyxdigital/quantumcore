@@ -109,18 +109,19 @@ class Media {
 
     public function minifyHTML($htmlContent) {
 
-        if (strlen($htmlContent) > 0) {
-
-            $htmlContent = str_replace(chr(194) . chr(160), '&nbsp;', $htmlContent);
-
-            if (trim($minifiedContent = Minify_HTML::minify($htmlContent, ['cssMinifier', 'jsMinifier'])) != '') {
-                $htmlContent = $minifiedContent;
-            }
-
-            return $htmlContent;
+        // Fix #3: original returned false for empty content and string otherwise,
+        // creating an inconsistent return type. Always returning a string now.
+        if (strlen($htmlContent) === 0) {
+            return '';
         }
 
-        return false;
+        $htmlContent = str_replace(chr(194) . chr(160), '&nbsp;', $htmlContent);
+
+        if (trim($minifiedContent = Minify_HTML::minify($htmlContent, ['cssMinifier', 'jsMinifier'])) !== '') {
+            $htmlContent = $minifiedContent;
+        }
+
+        return $htmlContent;
     }
 
     public function minifyHTMLpregCallback($pregMatches) {
@@ -212,13 +213,25 @@ class Media {
         if (!empty($jsContent)) {
             try {
                 $jsContent = JSMin::minify($jsContent);
-            } catch (PhenyxException $e) {
+            } catch (\Exception $e) {
+                // Fix #1: JSMin is a third-party library that throws \Exception,
+                // not PhenyxException. The original catch block never triggered,
+                // letting JS minification errors crash the whole application.
 
                 if (_EPH_MODE_DEV_) {
+                    // Fix #2: original used fopen() without fclose() (file descriptor
+                    // leak) and wrote to a relative path in the cwd.
+                    // Now using a structured log path and always closing the handle.
                     echo $e->getMessage();
-                    $file = fopen("testpackJS.txt", "a");
-                    fwrite($file, $e->getMessage() . PHP_EOL);
-                    fwrite($file, $jsContent . PHP_EOL);
+                    $logFile = _EPH_ROOT_DIR_ . '/app/var/logs/packJS_errors.log';
+                    $handle  = fopen($logFile, 'a');
+
+                    if ($handle) {
+                        fwrite($handle, '[' . date('Y-m-d H:i:s') . '] ' . $e->getMessage() . PHP_EOL);
+                        fwrite($handle, $jsContent . PHP_EOL);
+                        fclose($handle);
+                    }
+
                 }
 
                 return ';' . trim($jsContent, ';') . ';';
@@ -316,28 +329,33 @@ class Media {
         switch ($type) {
         case static::FAVICON_57:
             $path = "favicon_57";
-            $ext = "png";
+            $ext  = "png";
             break;
         case static::FAVICON_72:
             $path = "favicon_72";
-            $ext = "png";
+            $ext  = "png";
             break;
         case static::FAVICON_114:
             $path = "favicon_114";
-            $ext = "png";
+            $ext  = "png";
             break;
         case static::FAVICON_144:
             $path = "favicon_144";
-            $ext = "png";
+            $ext  = "png";
             break;
         case static::FAVICON_192:
             $path = "favicon_192";
-            $ext = "png";
+            $ext  = "png";
+            break;
+        // Fix #12: FAVICON_STORE_ICON (= 6) had no case — it fell through to default
+        // and returned the standard favicon instead of the store icon.
+        case static::FAVICON_STORE_ICON:
+            $path = "favicon_store_icon";
+            $ext  = "png";
             break;
         default:
-            // Default favicon
             $path = "favicon";
-            $ext = "ico";
+            $ext  = "ico";
             break;
         }
 
@@ -386,30 +404,33 @@ class Media {
         // @codingStandardsIgnoreStart
 
         if (isset(Media::$jquery_ui_dependencies[$component]) && Media::$jquery_ui_dependencies[$component]['theme'] && $checkDependencies) {
-            // @codingStandardsIgnoreEnd
 
             $compCss = $this->getCSSPath($folder . _EPH_THEMES_DIR_ . $theme . '/jquery.' . $component . '.css');
 
-            if (!empty($compCss) || $compCss) {
+            // Fix #10: !empty($compCss) || $compCss is redundant. Simplified.
+            if (!empty($compCss)) {
                 $uiPath['css'] = array_merge($uiPath['css'], $compCss);
             }
 
         }
-
-        // @codingStandardsIgnoreStart
 
         if ($checkDependencies && array_key_exists($component, static::$jquery_ui_dependencies)) {
 
             foreach (static::$jquery_ui_dependencies[$component]['dependencies'] as $dependency) {
                 $uiTmp[] = $this->getJqueryUIPath($dependency, $theme, false);
 
+                // Fix #9: $depCss was only set when 'theme' == true but could be
+                // read from a previous iteration when 'theme' was false. Reset to
+                // null at the start of each iteration to prevent stale reads.
+                $depCss = null;
+
                 if (static::$jquery_ui_dependencies[$dependency]['theme']) {
                     $depCss = $this->getCSSPath($folder . _EPH_THEMES_DIR_ . $theme . '/jquery.' . $dependency . '.css');
                 }
 
-                // @codingStandardsIgnoreEnd
-
-                if (isset($depCss) && (!empty($depCss) || $depCss)) {
+                // Fix #10: !empty($depCss) || $depCss is redundant — if !empty() is
+                // false then $depCss itself is also falsy. Simplified to !empty().
+                if (!empty($depCss)) {
                     $uiPath['css'] = array_merge($uiPath['css'], $depCss);
                 }
 
@@ -526,148 +547,56 @@ class Media {
 
     public function cccCss($cssFiles, $cachePath = null) {
 
-        //inits
-        $cssFilesByMedia = [];
-        $externalCssFiles = [];
-        $compressedCssFiles = [];
-        $compressedCssFilesNotFound = [];
-        $compressedCssFilesInfos = [];
-        $protocolLink = Tools::getCurrentUrlProtocolPrefix();
-        //if cache_path not specified, set curent theme cache folder
-        $cachePath = $cachePath ? $cachePath : $this->context->theme->path . 'cache/';
-        $cssSplitNeedRefresh = false;
+        if (empty($cssFiles) || !is_array($cssFiles)) {
+            return [];
+        }
 
-        // group css files by media
-
-        foreach ($cssFiles as $filename => $media) {
-
-            if (!array_key_exists($media, $cssFilesByMedia)) {
-                $cssFilesByMedia[$media] = [];
-            }
-
-            $infos = [];
-            $infos['uri'] = $filename;
-            $urlData = parse_url($filename);
-
-            if (array_key_exists('host', $urlData)) {
-                $externalCssFiles[$filename] = $media;
-                continue;
-            }
-
-            $infos['path'] = _EPH_ROOT_DIR_ . Tools::str_replace_once(__EPH_BASE_URI__, '/', $urlData['path']);
-
-            if (!@filemtime($infos['path'])) {
-                $infos['path'] = _EPH_CORE_DIR_ . Tools::str_replace_once(__EPH_BASE_URI__, '/', $urlData['path']);
-            }
-
-            $cssFilesByMedia[$media]['files'][] = $infos;
-
-            if (!array_key_exists('date', $cssFilesByMedia[$media])) {
-                $cssFilesByMedia[$media]['date'] = 0;
-            }
-
-            $cssFilesByMedia[$media]['date'] = max(
-                (int) @filemtime($infos['path']),
-                $cssFilesByMedia[$media]['date']
+        $cachePath   = $cachePath ?: $this->context->theme->path . 'cache/';
+        $versionKey  = 'EPH_CCCCSS_VERSION';
+        $urlCallback = function (string $filename) : string {
+            return str_replace(
+                $this->context->theme->path,
+                $this->context->theme->localpath . '/',
+                $filename
             );
+        };
 
-            if (!array_key_exists($media, $compressedCssFilesInfos)) {
-                $compressedCssFilesInfos[$media] = ['key' => ''];
-            }
-
-            $compressedCssFilesInfos[$media]['key'] .= $filename;
-        }
-
-        // get compressed css file infos
-        $version = (int) $this->context->phenyxConfig->get('EPH_CCCCSS_VERSION');
-
-        foreach ($compressedCssFilesInfos as $media => &$info) {
-            $key = md5($info['key'] . $protocolLink);
-            $filename = $cachePath . 'v_' . $version . '_' . $key . '_' . $media . '.css';
-
-            $info = [
-                'key'  => $key,
-                'date' => (int) @filemtime($filename),
-            ];
-        }
-
-        foreach ($cssFilesByMedia as $media => $mediaInfos) {
-
-            if ($mediaInfos['date'] > $compressedCssFilesInfos[$media]['date']) {
-
-                if ($compressedCssFilesInfos[$media]['date']) {
-                    $this->context->phenyxConfig->updateValue('EPH_CCCCSS_VERSION', ++$version);
-                    break;
-                }
-
-            }
-
-        }
-
-        // aggregate and compress css files content, write new caches files
-        $importUrl = [];
-
-        foreach ($cssFilesByMedia as $media => $mediaInfos) {
-            $cacheFilename = $cachePath . 'v_' . $version . '_' . $compressedCssFilesInfos[$media]['key'] . '_' . $media . '.css';
-
-            if ($mediaInfos['date'] > $compressedCssFilesInfos[$media]['date']) {
-                $cssSplitNeedRefresh = true;
-                $cacheFilename = $cachePath . 'v_' . $version . '_' . $compressedCssFilesInfos[$media]['key'] . '_' . $media . '.css';
-                $compressedCssFiles[$media] = '';
-
-                foreach ($mediaInfos['files'] as $fileInfos) {
-
-                    if (file_exists($fileInfos['path'])) {
-                        $compressedCssFiles[$media] .= $this->minifyCSS(file_get_contents($fileInfos['path']), $fileInfos['uri'], $importUrl);
-                    } else {
-                        $compressedCssFilesNotFound[] = $fileInfos['path'];
-                    }
-
-                }
-
-                if (!empty($compressedCssFilesNotFound)) {
-                    $content = '/* WARNING ! file(s) not found : "' . implode(',', $compressedCssFilesNotFound) . '" */' . "\n" . $compressedCssFiles[$media];
-                } else {
-                    $content = $compressedCssFiles[$media];
-                }
-
-                $content = '@charset "UTF-8";' . "\n" . $content;
-                $content = implode('', $importUrl) . $content;
-                file_put_contents($cacheFilename, $content);
-                chmod($cacheFilename, 0777);
-            }
-
-            $compressedCssFiles[$media] = $cacheFilename;
-        }
-
-        // rebuild the original css_files array
-        $cssFiles = [];
-
-        foreach ($compressedCssFiles as $media => $filename) {
-            $url = str_replace($this->context->theme->path, $this->context->theme->localpath . '/', $filename);
-            $cssFiles[$protocolLink . Tools::getMediaServer($url) . $url] = $media;
-        }
-
-        $compiledCss = array_merge($externalCssFiles, $cssFiles);
-
-        return $compiledCss;
+        return $this->doCccCss($cssFiles, $cachePath, $versionKey, $urlCallback);
     }
 
     public function admincccCss($cssFiles, $cachePath = null) {
 
-        //inits
-        $cssFilesByMedia = [];
-        $externalCssFiles = [];
-        $compressedCssFiles = [];
+        if (empty($cssFiles) || !is_array($cssFiles)) {
+            return [];
+        }
+
+        $cachePath   = $cachePath ?: _EPH_BO_ALL_THEMES_DIR_ . 'backend/cache/';
+        $versionKey  = 'EPH_ADCCCCSS_VERSION';
+        $urlCallback = function (string $filename) : string {
+            return str_replace(_EPH_ROOT_DIR_, '', $filename);
+        };
+
+        return $this->doCccCss($cssFiles, $cachePath, $versionKey, $urlCallback);
+    }
+
+    /**
+     * Shared CSS concatenation / compression / cache logic.
+     *
+     * Fix #4: removed the duplicate $cacheFilename assignment that appeared twice
+     *         in the same if-block with identical values.
+     * Fix #5: removed $cssSplitNeedRefresh which was set but never read.
+     * Fix #8: extracted from cccCss() / admincccCss() to avoid ~95% duplication.
+     */
+    protected function doCccCss(array $cssFiles, string $cachePath, string $versionKey, callable $urlCallback): array {
+
+        $cssFilesByMedia          = [];
+        $externalCssFiles         = [];
+        $compressedCssFiles       = [];
         $compressedCssFilesNotFound = [];
-        $compressedCssFilesInfos = [];
-        $protocolLink = Tools::getCurrentUrlProtocolPrefix();
-        //if cache_path not specified, set curent theme cache folder
-        $cachePath = $cachePath ? $cachePath : _EPH_BO_ALL_THEMES_DIR_ . 'backend/cache/';
-        $cssSplitNeedRefresh = false;
+        $compressedCssFilesInfos  = [];
+        $protocolLink             = Tools::getCurrentUrlProtocolPrefix();
 
-        // group css files by media
-
+        // Group CSS files by media type
         if (is_array($cssFiles)) {
 
             foreach ($cssFiles as $filename => $media) {
@@ -676,9 +605,9 @@ class Media {
                     $cssFilesByMedia[$media] = [];
                 }
 
-                $infos = [];
+                $infos        = [];
                 $infos['uri'] = $filename;
-                $urlData = parse_url($filename);
+                $urlData      = parse_url($filename);
 
                 if (array_key_exists('host', $urlData)) {
                     $externalCssFiles[$filename] = $media;
@@ -711,25 +640,25 @@ class Media {
 
         }
 
-        // get compressed css file infos
-        $version = (int) $this->context->phenyxConfig->get('EPH_ADCCCCSS_VERSION');
+        // Compute cache file info
+        $version = (int) $this->context->phenyxConfig->get($versionKey);
 
         foreach ($compressedCssFilesInfos as $media => &$info) {
-            $key = md5($info['key'] . $protocolLink);
+            $key      = md5($info['key'] . $protocolLink);
             $filename = $cachePath . 'v_' . $version . '_' . $key . '_' . $media . '.css';
-
-            $info = [
+            $info     = [
                 'key'  => $key,
                 'date' => (int) @filemtime($filename),
             ];
         }
 
+        // Increment version if any source file is newer than its cache
         foreach ($cssFilesByMedia as $media => $mediaInfos) {
 
             if ($mediaInfos['date'] > $compressedCssFilesInfos[$media]['date']) {
 
                 if ($compressedCssFilesInfos[$media]['date']) {
-                    Context::getContext()->phenyxConfig->updateValue('EPH_ADCCCCSS_VERSION', ++$version);
+                    $this->context->phenyxConfig->updateValue($versionKey, ++$version);
                     break;
                 }
 
@@ -737,15 +666,14 @@ class Media {
 
         }
 
-        // aggregate and compress css files content, write new caches files
+        // Aggregate, minify and write cache files
         $importUrl = [];
 
         foreach ($cssFilesByMedia as $media => $mediaInfos) {
+            // Fix #4: $cacheFilename was computed twice identically inside the if-block.
             $cacheFilename = $cachePath . 'v_' . $version . '_' . $compressedCssFilesInfos[$media]['key'] . '_' . $media . '.css';
 
             if ($mediaInfos['date'] > $compressedCssFilesInfos[$media]['date']) {
-                $cssSplitNeedRefresh = true;
-                $cacheFilename = $cachePath . 'v_' . $version . '_' . $compressedCssFilesInfos[$media]['key'] . '_' . $media . '.css';
                 $compressedCssFiles[$media] = '';
 
                 foreach ($mediaInfos['files'] as $fileInfos) {
@@ -758,14 +686,15 @@ class Media {
 
                 }
 
+                $content = '';
+
                 if (!empty($compressedCssFilesNotFound)) {
-                    $content = '/* WARNING ! file(s) not found : "' . implode(',', $compressedCssFilesNotFound) . '" */' . "\n" . $compressedCssFiles[$media];
-                } else {
-                    $content = $compressedCssFiles[$media];
+                    $content .= '/* WARNING ! file(s) not found : "' . implode(',', $compressedCssFilesNotFound) . '" */' . "\n";
                 }
 
-                $content = '@charset "UTF-8";' . "\n" . $content;
-                $content = implode('', $importUrl) . $content;
+                $content .= $compressedCssFiles[$media];
+                $content  = '@charset "UTF-8";' . "\n" . $content;
+                $content  = implode('', $importUrl) . $content;
                 file_put_contents($cacheFilename, $content);
                 chmod($cacheFilename, 0777);
             }
@@ -773,166 +702,92 @@ class Media {
             $compressedCssFiles[$media] = $cacheFilename;
         }
 
-        // rebuild the original css_files array
+        // Rebuild URL-keyed array
         $cssFiles = [];
 
         foreach ($compressedCssFiles as $media => $filename) {
-            $url = str_replace(_EPH_ROOT_DIR_, '', $filename);
+            $url = $urlCallback($filename);
             $cssFiles[$protocolLink . Tools::getMediaServer($url) . $url] = $media;
         }
 
-        $compiledCss = array_merge($externalCssFiles, $cssFiles);
-
-        return $compiledCss;
+        return array_merge($externalCssFiles, $cssFiles);
     }
 
     public function minifyCSS($cssContent, $fileuri = false, &$importUrl = []) {
 
-        // @codingStandardsIgnoreStart
         Media::$current_css_file = $fileuri;
-        $obj = new Minifier;
-        //return $obj->run($cssContent);
-        // @codingStandardsIgnoreEnd
 
-        if (strlen($cssContent) > 0) {
-            $limit = $this->getBackTrackLimit();
-            $cssContent = preg_replace('#/\*.*?\*/#s', '', $cssContent, $limit);
-
-            if (!is_null($cssContent)) {
-                $cssContent = preg_replace_callback(Media::$pattern_callback, [$this, 'replaceByAbsoluteURL'], $cssContent, $limit);
-                $cssContent = preg_replace_callback('#(AlphaImageLoader\(src=\')([^\']*\',)#s', [$this, 'replaceByAbsoluteURL'], $cssContent);
-                preg_match_all('#@(import|charset) .*?;#i', $cssContent, $m);
-
-                for ($i = 0, $total = count($m[0]); $i < $total; $i++) {
-
-                    if (isset($m[1][$i]) && $m[1][$i] == 'import') {
-                        $importUrl[] = $m[0][$i];
-                    }
-
-                    $cssContent = str_replace($m[0][$i], '', $cssContent);
-                }
-
-                return trim($obj->run($cssContent));
-
-            }
-
-            return $cssContent;
+        // Fix #6: Minifier was instantiated unconditionally on every call, even
+        // when $cssContent was empty and the method would return false immediately.
+        // Moved inside the content-check block. Also removed the commented-out
+        // `return $obj->run($cssContent)` line that was dead code left by a
+        // previous refactoring.
+        if (strlen($cssContent) === 0) {
+            return false;
         }
 
-        return false;
+        $obj   = new Minifier();
+        $limit = $this->getBackTrackLimit();
+        $cssContent = preg_replace('#/\*.*?\*/#s', '', $cssContent, $limit);
+
+        if (!is_null($cssContent)) {
+            $cssContent = preg_replace_callback(Media::$pattern_callback, [$this, 'replaceByAbsoluteURL'], $cssContent, $limit);
+            $cssContent = preg_replace_callback('#(AlphaImageLoader\(src=\')([^\']*\',)#s', [$this, 'replaceByAbsoluteURL'], $cssContent);
+            preg_match_all('#@(import|charset) .*?;#i', $cssContent, $m);
+
+            for ($i = 0, $total = count($m[0]); $i < $total; $i++) {
+
+                if (isset($m[1][$i]) && $m[1][$i] == 'import') {
+                    $importUrl[] = $m[0][$i];
+                }
+
+                $cssContent = str_replace($m[0][$i], '', $cssContent);
+            }
+
+            return trim($obj->run($cssContent));
+        }
+
+        return $cssContent;
     }
 
     public function cccJS($jsFiles) {
 
-        //inits
-        $compressedJsFilesNotFound = [];
-        $jsFilesInfos = [];
-        $jsFilesDate = 0;
-        $compressedJsFilename = '';
-        $jsExternalFiles = [];
-        $protocolLink = Tools::getCurrentUrlProtocolPrefix();
-        $theme = Context::getContext()->theme;
-        $cachePath = $this->context->theme->path . 'cache/';
-
-        // get js files infos
-
-        if (is_array($jsFiles)) {
-
-            foreach ($jsFiles as $filename) {
-
-                if (Validate::isAbsoluteUrl($filename)) {
-                    $jsExternalFiles[] = $filename;
-                } else {
-                    $infos = [];
-                    $infos['uri'] = $filename;
-                    $urlData = parse_url($filename);
-                    $infos['path'] = _EPH_ROOT_DIR_ . Tools::str_replace_once(__EPH_BASE_URI__, '/', $urlData['path']);
-
-                    if (!@filemtime($infos['path'])) {
-                        $infos['path'] = _EPH_CORE_DIR_ . Tools::str_replace_once(__EPH_BASE_URI__, '/', $urlData['path']);
-                    }
-
-                    $jsFilesInfos[] = $infos;
-
-                    $jsFilesDate = max(
-                        (int) @filemtime($infos['path']),
-                        $jsFilesDate
-                    );
-                    $compressedJsFilename .= $filename;
-                }
-
-            }
-
+        if (empty($jsFiles) || !is_array($jsFiles)) {
+            return [];
         }
 
-        // get compressed js file infos
-        $compressedJsFilename = md5($compressedJsFilename);
-        $version = (int) $this->context->phenyxConfig->get('EPH_CCCJS_VERSION');
-        $compressedJsPath = $cachePath . 'v_' . $version . '_' . $compressedJsFilename . '.js';
-        $compressedJsFileDate = (int) @filemtime($compressedJsPath);
+        $cachePath  = $this->context->theme->path . 'cache/';
+        $versionKey = 'EPH_CCCJS_VERSION';
 
-        // aggregate and compress js files content, write new caches files
-
-        if ($jsFilesDate > $compressedJsFileDate) {
-
-            if ($compressedJsFileDate) {
-                $this->context->phenyxConfig->updateValue('EPH_CCCJS_VERSION', ++$version);
-            }
-
-            $compressedJsPath = $cachePath . 'v_' . $version . '_' . $compressedJsFilename . '.js';
-            $content = '';
-
-            foreach ($jsFilesInfos as $fileInfos) {
-
-                if (file_exists($fileInfos['path'])) {
-                    $tmpContent = file_get_contents($fileInfos['path']);
-
-                    if (preg_match('@\.(min|pack)\.[^/]+$@', $fileInfos['path'], $matches)) {
-                        $content .= preg_replace('/\/\/@\ssourceMappingURL\=[_a-zA-Z0-9-.]+\.' . $matches[1] . '\.map\s+/', '', $tmpContent);
-                    } else {
-                        $content .= $this->packJS($tmpContent);
-                    }
-
-                } else {
-                    $compressedJsFilesNotFound[] = $fileInfos['path'];
-                }
-
-            }
-
-            if (!empty($compressedJsFilesNotFound)) {
-                $content = '/* WARNING ! file(s) not found : "' . implode(',', $compressedJsFilesNotFound) . '" */' . "\n" . $content;
-            }
-
-            file_put_contents($compressedJsPath, $content);
-            chmod($compressedJsPath, 0777);
-        }
-
-        // rebuild the original js_files array
-        $url = '';
-
-        if (strpos($compressedJsPath, _EPH_ROOT_DIR_) !== false) {
-            $url = str_replace(_EPH_ROOT_DIR_ . '/', __EPH_BASE_URI__, $compressedJsPath);
-        }
-
-        if (strpos($compressedJsPath, _EPH_CORE_DIR_) !== false) {
-            $url = str_replace(_EPH_CORE_DIR_ . '/', __EPH_BASE_URI__, $compressedJsPath);
-        }
-
-        return array_merge($jsExternalFiles, [$protocolLink . Tools::getMediaServer($url) . $url]);
+        return $this->doCccJS($jsFiles, $cachePath, $versionKey);
     }
 
     public function admincccJS($jsFiles) {
 
-        //inits
-        $compressedJsFilesNotFound = [];
-        $jsFilesInfos = [];
-        $jsFilesDate = 0;
-        $compressedJsFilename = '';
-        $jsExternalFiles = [];
-        $protocolLink = Tools::getCurrentUrlProtocolPrefix();
-        $cachePath = _EPH_BO_ALL_THEMES_DIR_ . 'backend/cache/';
+        if (empty($jsFiles) || !is_array($jsFiles)) {
+            return [];
+        }
 
-        // get js files infos
+        $cachePath  = _EPH_BO_ALL_THEMES_DIR_ . 'backend/cache/';
+        $versionKey = 'EPH_ADCCCJS_VERSION';
+
+        return $this->doCccJS($jsFiles, $cachePath, $versionKey);
+    }
+
+    /**
+     * Shared JS concatenation / compression / cache logic.
+     *
+     * Fix #5: removed $cssSplitNeedRefresh (set but never read).
+     * Fix #8: extracted from cccJS() / admincccJS() to avoid ~95% duplication.
+     */
+    protected function doCccJS(array $jsFiles, string $cachePath, string $versionKey): array {
+
+        $compressedJsFilesNotFound = [];
+        $jsFilesInfos              = [];
+        $jsFilesDate               = 0;
+        $compressedJsFilename      = '';
+        $jsExternalFiles           = [];
+        $protocolLink              = Tools::getCurrentUrlProtocolPrefix();
 
         if (is_array($jsFiles)) {
 
@@ -941,21 +796,17 @@ class Media {
                 if (Validate::isAbsoluteUrl($filename)) {
                     $jsExternalFiles[] = $filename;
                 } else {
-                    $infos = [];
+                    $infos        = [];
                     $infos['uri'] = $filename;
-                    $urlData = parse_url($filename);
+                    $urlData      = parse_url($filename);
                     $infos['path'] = _EPH_ROOT_DIR_ . Tools::str_replace_once(__EPH_BASE_URI__, '/', $urlData['path']);
 
                     if (!@filemtime($infos['path'])) {
                         $infos['path'] = _EPH_CORE_DIR_ . Tools::str_replace_once(__EPH_BASE_URI__, '/', $urlData['path']);
                     }
 
-                    $jsFilesInfos[] = $infos;
-
-                    $jsFilesDate = max(
-                        (int) @filemtime($infos['path']),
-                        $jsFilesDate
-                    );
+                    $jsFilesInfos[]        = $infos;
+                    $jsFilesDate           = max((int) @filemtime($infos['path']), $jsFilesDate);
                     $compressedJsFilename .= $filename;
                 }
 
@@ -963,33 +814,28 @@ class Media {
 
         }
 
-        // get compressed js file infos
         $compressedJsFilename = md5($compressedJsFilename);
-        $version = (int) $this->context->phenyxConfig->get('EPH_ADCCCJS_VERSION');
-        $compressedJsPath = $cachePath . 'v_' . $version . '_' . $compressedJsFilename . '.js';
+        $version              = (int) $this->context->phenyxConfig->get($versionKey);
+        $compressedJsPath     = $cachePath . 'v_' . $version . '_' . $compressedJsFilename . '.js';
         $compressedJsFileDate = (int) @filemtime($compressedJsPath);
-
-        // aggregate and compress js files content, write new caches files
 
         if ($jsFilesDate > $compressedJsFileDate) {
 
             if ($compressedJsFileDate) {
-                $this->context->phenyxConfig->updateValue('EPH_ADCCCJS_VERSION', ++$version);
+                $this->context->phenyxConfig->updateValue($versionKey, ++$version);
             }
 
             $compressedJsPath = $cachePath . 'v_' . $version . '_' . $compressedJsFilename . '.js';
-            $content = '';
+            $content          = '';
 
             foreach ($jsFilesInfos as $fileInfos) {
 
                 if (file_exists($fileInfos['path'])) {
-
                     $tmpContent = file_get_contents($fileInfos['path']);
 
                     if (preg_match('@\.(min|pack)\.[^/]+$@', $fileInfos['path'], $matches)) {
                         $content .= preg_replace('/\/\/@\ssourceMappingURL\=[_a-zA-Z0-9-.]+\.' . $matches[1] . '\.map\s+/', '', $tmpContent);
                     } else {
-
                         $content .= $this->packJS($tmpContent);
                     }
 
@@ -1007,7 +853,6 @@ class Media {
             chmod($compressedJsPath, 0777);
         }
 
-        // rebuild the original js_files array
         $url = '';
 
         if (strpos($compressedJsPath, _EPH_ROOT_DIR_) !== false) {
@@ -1072,10 +917,15 @@ class Media {
 
         }
 
-        $version = (int) $this->context->phenyxConfig->get('EPH_CCCJS_VERSION');
-        $this->context->phenyxConfig->updateValue('EPH_CCCJS_VERSION', ++$version);
-        $version = (int) $this->context->phenyxConfig->get('EPH_CCCCSS_VERSION');
-        $this->context->phenyxConfig->updateValue('EPH_CCCCSS_VERSION', ++$version);
+        // Fix #11: original incremented EPH_CCCJS_VERSION and EPH_CCCCSS_VERSION
+        // (the FRONT cache keys), so clearing the admin cache also invalidated the
+        // front cache and the admin-specific files generated by admincccJS() /
+        // admincccCss() were never actually invalidated.
+        // Now correctly incrementing the ADMIN-specific version keys.
+        $version = (int) $this->context->phenyxConfig->get('EPH_ADCCCJS_VERSION');
+        $this->context->phenyxConfig->updateValue('EPH_ADCCCJS_VERSION', ++$version);
+        $version = (int) $this->context->phenyxConfig->get('EPH_ADCCCCSS_VERSION');
+        $this->context->phenyxConfig->updateValue('EPH_ADCCCCSS_VERSION', ++$version);
     }
 
     public function getJsDef() {
@@ -1142,9 +992,13 @@ class Media {
 
         if ($tag && 0 < $tag->length) {
             $tag = $tag->item(0);
+
             return $dom->savehtml($tag);
         }
 
+        // Fix #7: original returned null implicitly when the tag was not found,
+        // causing PHP 8 errors on callers that pass the result to strlen() etc.
+        return '';
     }
 
     public function deferIdOutput($tag, $output) {

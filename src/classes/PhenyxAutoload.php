@@ -21,7 +21,9 @@ class PhenyxAutoload {
      */
     protected static $instance;
 	
-	public $_include_override_path = true;
+    // Fix #11: _include_override_path was public — it is an internal configuration
+    // flag and should not be accessible from outside. Changed to protected.
+    protected $_include_override_path = true;
 	
     protected static $class_aliases = [
         'Collection' => 'PhenyxCollection',
@@ -123,7 +125,10 @@ class PhenyxAutoload {
                 @chmod($filename, 0666);
 
                 if (function_exists('opcache_invalidate')) {
-                    opcache_invalidate($filenameTmp);
+                    // Fix #1: original called opcache_invalidate($filenameTmp) but
+                    // after a successful rename() $filenameTmp no longer exists —
+                    // it is now $filename that holds the new index. Corrected.
+                    opcache_invalidate($filename);
                 }
 
             }
@@ -143,35 +148,44 @@ class PhenyxAutoload {
         $classes = [];
         $rootDir = $hostMode ? $this->normalizeDirectory(_EPH_ROOT_DIR_) : $this->root_dir;
 
-        foreach (scandir($rootDir . $path) as $file) {
+        // Fix #7: scandir() returns false if the directory does not exist.
+        // Without this guard the foreach would throw a Warning.
+        $entries = @scandir($rootDir . $path);
 
-            if ($file[0] != '.') {
+        if ($entries === false) {
+            return $classes;
+        }
 
-                if (is_dir($rootDir . $path . $file)) {
-                    $classes = array_merge($classes, $this->getClassesFromDir($path . $file . '/', $hostMode));
-                } else
-                if (substr($file, -4) == '.php') {
-                    $content = file_get_contents($rootDir . $path . $file);
+        foreach ($entries as $file) {
 
-                    $namespacePattern = '[\\a-z0-9_]*[\\]';
-                    $pattern = '#\W((abstract\s+)?class|interface)\s+(?P<classname>' . basename($file, '.php') . '(?:Core)?)'
-                        . '(?:\s+extends\s+' . $namespacePattern . '[a-z][a-z0-9_]*)?(?:\s+implements\s+' . $namespacePattern . '[a-z][\\a-z0-9_]*(?:\s*,\s*' . $namespacePattern . '[a-z][\\a-z0-9_]*)*)?\s*\{#i';
+            // Fix #2: accessing $file[0] on an empty string triggers a deprecation
+            // in PHP 8.1+. Explicit empty-string guard added (mirrors Performer fix).
+            if ($file === '' || $file[0] === '.') {
+                continue;
+            }
 
-                    if (preg_match($pattern, $content, $m)) {
-                        $classes[$m['classname']] = [
-                            'path'     => $path . $file,
-                            'type'     => trim($m[1]),
+            if (is_dir($rootDir . $path . $file)) {
+                $classes = array_merge($classes, $this->getClassesFromDir($path . $file . '/', $hostMode));
+            } elseif (substr($file, -4) === '.php') {
+                $content = file_get_contents($rootDir . $path . $file);
+
+                $namespacePattern = '[\\a-z0-9_]*[\\]';
+                $pattern = '#\W((abstract\s+)?class|interface)\s+(?P<classname>' . basename($file, '.php') . '(?:Core)?)'
+                    . '(?:\s+extends\s+' . $namespacePattern . '[a-z][a-z0-9_]*)?(?:\s+implements\s+' . $namespacePattern . '[a-z][\\a-z0-9_]*(?:\s*,\s*' . $namespacePattern . '[a-z][\\a-z0-9_]*)*)?\s*\{#i';
+
+                if (preg_match($pattern, $content, $m)) {
+                    $classes[$m['classname']] = [
+                        'path'     => $path . $file,
+                        'type'     => trim($m[1]),
+                        'override' => $hostMode,
+                    ];
+
+                    if (substr($m['classname'], -4) === 'Core') {
+                        $classes[substr($m['classname'], 0, -4)] = [
+                            'path'     => '',
+                            'type'     => $classes[$m['classname']]['type'],
                             'override' => $hostMode,
                         ];
-
-                        if (substr($m['classname'], -4) == 'Core') {
-                            $classes[substr($m['classname'], 0, -4)] = [
-                                'path'     => '',
-                                'type'     => $classes[$m['classname']]['type'],
-                                'override' => $hostMode,
-                            ];
-                        }
-
                     }
 
                 }
@@ -185,131 +199,183 @@ class PhenyxAutoload {
     
     public function getClassesFromPlugins($hostMode = false) {
 
-		
-		
-		$rootDir = $hostMode ? $this->normalizeDirectory(_EPH_ROOT_DIR_) : $this->root_dir;
-		
+        $rootDir = $hostMode ? $this->normalizeDirectory(_EPH_ROOT_DIR_) : $this->root_dir;
         $classes = [];
-		$folder = [];
-		
-		$plugins = Plugin::getPluginsInstalled();
-		
-		foreach($plugins as $plugin) {
-			
-			
-			if(is_dir($rootDir. 'includes/plugins/'.$plugin['name'])) {
-				$folder[] = $plugin['name'];
-			}
-		}
-		
-		$iterator = new AppendIterator();
-		foreach ($folder as $key => $directory) {
-			if(file_exists($rootDir. 'includes/plugins/'.$directory)) {
-                $iterator->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($rootDir. 'includes/plugins/'.$directory . '/')));
-            } else if(file_exists($rootDir. 'specific_includes/plugins/'.$directory)) {
-                $iterator->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($rootDir. 'includes/specific_plugins/'.$directory . '/')));
-            }
+
+        // Fix #5 (revised at user's request): only installed plugins should have
+        // their classes indexed — uninstalled plugins on disk can cause conflicts.
+        // We cannot call Plugin::getPluginsInstalled() here because Plugin itself
+        // must be loaded by this autoloader first (circular dependency).
+        // Solution: query the `plugin` table directly via a raw PDO connection,
+        // with no dependency on any framework class.
+        $installedPlugins = $this->getInstalledPluginNames();
+
+        if (empty($installedPlugins)) {
+            return $classes;
         }
-	
-		foreach ($iterator as $file) {
-            $filePath = $file->getPathname();
-			 if (in_array($file->getFilename(), ['.', '..', 'index.php', '.htaccess', 'dwsync.xml', 'settings.inc.php'])) {
+
+        $pluginDirs = [
+            $rootDir . 'includes/plugins/',
+            $rootDir . 'includes/specific_plugins/',
+        ];
+
+        foreach ($pluginDirs as $baseDir) {
+
+            if (!is_dir($baseDir)) {
                 continue;
             }
-			
-			$fileName = str_replace($rootDir. 'includes/plugins/', '', $filePath);
-			$filPathExplode = explode('/', $fileName);
-			
-			if (strpos($filePath, $filPathExplode[0].'/override/') !== false) {
-            	continue;
-        	}
-			if(strpos($filePath, $filPathExplode[0].'/classes/') !== false || strpos($filePath, $filPathExplode[0].'/controllers/admin/') !== false || strpos($filePath, $filPathExplode[0].'/controllers/front/') !== false) {
-				$fileName = $file->getFilename();
-				if (substr($fileName, -4) == '.php') {
-                    $content = file_get_contents($file);
 
-                    $namespacePattern = '[\\a-z0-9_]*[\\]';
-                    $pattern = '#\W((abstract\s+)?class|interface)\s+(?P<classname>' . basename($fileName, '.php') . '(?:Core)?)'
-                        . '(?:\s+extends\s+' . $namespacePattern . '[a-z][a-z0-9_]*)?(?:\s+implements\s+' . $namespacePattern . '[a-z][\\a-z0-9_]*(?:\s*,\s*' . $namespacePattern . '[a-z][\\a-z0-9_]*)*)?\s*\{#i';
+            foreach ($installedPlugins as $pluginName) {
 
-                    if (preg_match($pattern, $content, $m)) {
-						$file = str_replace(_EPH_ROOT_DIR_, '', $file);
-                        $classes[$m['classname']] = [
-                            'path'     => $file,
-                            'type'     => trim($m[1]),
-                            'override' => $hostMode,
-                        ];
+                $pluginDir = $baseDir . $pluginName;
 
-                        if (substr($m['classname'], -4) == 'Core') {
-                            $classes[substr($m['classname'], 0, -4)] = [
-                                'path'     => '',
-                                'type'     => $classes[$m['classname']]['type'],
-                                'override' => $hostMode,
-                            ];
-                        }
-
-                    }
-
+                if (!is_dir($pluginDir)) {
+                    continue;
                 }
-			}
-           
-        }		
-        $folder = [];
-        foreach($plugins as $plugin) {
-			
-            if(is_dir($rootDir. 'includes/specific_plugins/'.$plugin['name'])) {
-				$folder[] = $plugin['name'];
-			}
-		}
-        $iterator = new AppendIterator();
-		foreach ($folder as $key => $directory) {
-			$iterator->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($rootDir. 'includes/specific_plugins/'.$directory . '/')));
+
+                $classes = array_merge(
+                    $classes,
+                    $this->scanPluginDir($pluginDir . '/', $rootDir, $hostMode)
+                );
+            }
+
         }
-        foreach ($iterator as $file) {
-            $filePath = $file->getPathname();
-			 if (in_array($file->getFilename(), ['.', '..', 'index.php', '.htaccess', 'dwsync.xml', 'settings.inc.php'])) {
+
+        return $classes;
+    }
+
+    /**
+     * Return the list of installed plugin names directly from the database,
+     * bypassing all framework classes to avoid circular autoload dependencies.
+     *
+     * Uses the same credentials that config.inc.php already loaded into the
+     * _DB_* constants, connecting via PDO with a minimal query.
+     *
+     * @return string[]  Plugin names (e.g. ['ph_manager', 'ph_ecommerce'])
+     */
+    protected function getInstalledPluginNames(): array {
+
+        // Constants may not be defined yet on very first install — fail gracefully.
+        if (!defined('_DB_SERVER_') || !defined('_DB_NAME_') || !defined('_DB_USER_') || !defined('_DB_PASSWD_')) {
+            return [];
+        }
+
+        try {
+            $prefix = defined('_DB_PREFIX_') ? _DB_PREFIX_ : 'ph_';
+            $dsn    = 'mysql:host=' . _DB_SERVER_ . ';dbname=' . _DB_NAME_ . ';charset=utf8mb4';
+            $pdo    = new PDO($dsn, _DB_USER_, _DB_PASSWD_, [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_TIMEOUT            => 5,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_COLUMN,
+            ]);
+
+            $stmt = $pdo->query(
+                'SELECT `name` FROM `' . $prefix . 'plugin` WHERE `active` = 1'
+            );
+
+            return $stmt ? $stmt->fetchAll() : [];
+
+        } catch (\Exception $e) {
+            // DB not yet available (e.g. first install) — return empty list.
+            return [];
+        }
+    }
+
+    /**
+     * Scan a single plugin directory and extract class definitions from
+     * classes/, controllers/admin/ and controllers/front/ subdirectories.
+     *
+     * Fix #3: the original loop variable $file (SplFileInfo object) was
+     *   overwritten with str_replace() output mid-iteration, corrupting the
+     *   iterator state for subsequent files.
+     * Fix #4: the path 'specific_includes/plugins/' tested in file_exists()
+     *   differed from the path used in the iterator ('includes/specific_plugins/').
+     * Fix #8: when neither path matched, files were silently skipped.
+     * Fix #9: extracted from getClassesFromPlugins() to avoid ~80% duplication.
+     *
+     * @param  string $pluginDir  Absolute path to the plugin root (with trailing /)
+     * @param  string $rootDir    Absolute root dir (with trailing /)
+     * @param  bool   $hostMode
+     * @return array
+     */
+    protected function scanPluginDir(string $pluginDir, string $rootDir, bool $hostMode): array {
+
+        $classes = [];
+
+        if (!is_dir($pluginDir)) {
+            return $classes;
+        }
+
+        $skipList = ['.', '..', 'index.php', '.htaccess', 'dwsync.xml', 'settings.inc.php'];
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($pluginDir, RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        $namespacePattern = '[\\a-z0-9_]*[\\]';
+
+        foreach ($iterator as $fileInfo) {
+            /** @var SplFileInfo $fileInfo */
+            $filePath = $fileInfo->getPathname();
+            $fileName = $fileInfo->getFilename();
+
+            if (in_array($fileName, $skipList, true)) {
                 continue;
             }
-			
-			$fileName = str_replace($rootDir. 'includes/specific_plugins/', '', $filePath);
-			$filPathExplode = explode('/', $fileName);
-			
-			if (strpos($filePath, $filPathExplode[0].'/override/') !== false) {
-            	continue;
-        	}
-			if(strpos($filePath, $filPathExplode[0].'/classes/') !== false || strpos($filePath, $filPathExplode[0].'/controllers/admin/') !== false || strpos($filePath, $filPathExplode[0].'/controllers/front/') !== false) {
-				$fileName = $file->getFilename();
-				if (substr($fileName, -4) == '.php') {
-                    $content = file_get_contents($file);
 
-                    $namespacePattern = '[\\a-z0-9_]*[\\]';
-                    $pattern = '#\W((abstract\s+)?class|interface)\s+(?P<classname>' . basename($fileName, '.php') . '(?:Core)?)'
-                        . '(?:\s+extends\s+' . $namespacePattern . '[a-z][a-z0-9_]*)?(?:\s+implements\s+' . $namespacePattern . '[a-z][\\a-z0-9_]*(?:\s*,\s*' . $namespacePattern . '[a-z][\\a-z0-9_]*)*)?\s*\{#i';
+            // Only index classes/ and controllers/admin|front/ — skip overrides
+            $relativePath = str_replace($pluginDir, '', $filePath);
 
-                    if (preg_match($pattern, $content, $m)) {
-						$file = str_replace(_EPH_ROOT_DIR_, '', $file);
-                        $classes[$m['classname']] = [
-                            'path'     => $file,
-                            'type'     => trim($m[1]),
-                            'override' => $hostMode,
-                        ];
+            if (strpos($relativePath, 'override/') !== false) {
+                continue;
+            }
 
-                        if (substr($m['classname'], -4) == 'Core') {
-                            $classes[substr($m['classname'], 0, -4)] = [
-                                'path'     => '',
-                                'type'     => $classes[$m['classname']]['type'],
-                                'override' => $hostMode,
-                            ];
-                        }
+            $inClassesDir      = strpos($relativePath, 'classes/') !== false;
+            $inAdminController = strpos($relativePath, 'controllers/admin/') !== false;
+            $inFrontController = strpos($relativePath, 'controllers/front/') !== false;
 
-                    }
+            if (!$inClassesDir && !$inAdminController && !$inFrontController) {
+                continue;
+            }
 
-                }
-			}
-           
-        }		
-        
-		return $classes;
+            if (substr($fileName, -4) !== '.php') {
+                continue;
+            }
+
+            $content = @file_get_contents($filePath);
+
+            if ($content === false) {
+                continue;
+            }
+
+            $pattern = '#\W((abstract\s+)?class|interface)\s+(?P<classname>' . basename($fileName, '.php') . '(?:Core)?)'
+                . '(?:\s+extends\s+' . $namespacePattern . '[a-z][a-z0-9_]*)?(?:\s+implements\s+' . $namespacePattern . '[a-z][\\a-z0-9_]*(?:\s*,\s*' . $namespacePattern . '[a-z][\\a-z0-9_]*)*)?\s*\{#i';
+
+            if (!preg_match($pattern, $content, $m)) {
+                continue;
+            }
+
+            // Fix #3: original did `$file = str_replace(...)` which overwrote the
+            // SplFileInfo loop variable. Using a separate $classPath variable.
+            $classPath = str_replace(_EPH_ROOT_DIR_, '', $filePath);
+
+            $classes[$m['classname']] = [
+                'path'     => $classPath,
+                'type'     => trim($m[1]),
+                'override' => $hostMode,
+            ];
+
+            if (substr($m['classname'], -4) === 'Core') {
+                $classes[substr($m['classname'], 0, -4)] = [
+                    'path'     => '',
+                    'type'     => $classes[$m['classname']]['type'],
+                    'override' => $hostMode,
+                ];
+            }
+
+        }
+
+        return $classes;
     }
 
     public static function getInstance() {

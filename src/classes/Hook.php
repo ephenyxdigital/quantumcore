@@ -73,8 +73,9 @@ class Hook extends PhenyxObjectModel {
             $this->def = PhenyxObjectModel::getDefinition($this->className);
 
             if (!Validate::isTableOrIdentifier('id_hook') || !Validate::isTableOrIdentifier('hook')) {
+                // Fix #1: PhenyxLogger::addLog after throw was dead code — log before throwing.
+                PhenyxLogger::addLog(sprintf('Identifier or table format not valid for class %s', $this->className), 3, null, get_class($this));
                 throw new PhenyxException('Identifier or table format not valid for class ' . $this->className);
-                PhenyxLogger::addLog(sprintf($this->l('Identifier or table format not valid for class %s'), $this->className), 3, null, get_class($this));
             }
 
             PhenyxObjectModel::$loaded_classes[$this->className] = get_object_vars($this);
@@ -118,128 +119,82 @@ class Hook extends PhenyxObjectModel {
     
     
     public function getPlugins($use_cache = true) {
-        
-        if ($use_cache && $this->context->cache_enable) {
 
-            if (is_object($this->context->cache_api)) {
-                $value = $this->context->cache_api->getData('getPlugins'.$this->id);
-                $plugins = empty($value) ? null : $this->context->_tools->jsonDecode($value, true);
-                if (!empty($plugins) && is_array($plugins)) {
-                    return $plugins;
-                }
-            }
-        }
-        $plugins = [];
-        $query = new DbQuery();
-        $query->select('id_plugin');
-        $query->from('hook_plugin');
-        $query->where('id_hook = '.$this->id);
-        $query->orderBy('position');
-        
-        $resuts = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($query);
-        $i = 1;
-        foreach($resuts as $plugin) {
-            $plugs = [];
-            $pl = Plugin::getInstanceById((int) $plugin['id_plugin']);
-            $plugs['id_hook_plugin'] = $plugin['id_hook_plugin'];  
-            $plugs['id_plugin'] = $pl->id;            
-            $plugs['name'] = $pl->name;
-            $plugs['plugin_name'] = $pl->name;
-            $plugs['name'] = '<div class="plugin_col_infos"><span class="plugin_name">
-                                    ' . $pl->displayName . ' <small class="text-muted">&nbsp;-&nbsp;v' . $pl->version . '</span>
-                                <p class="discret">' . $pl->description . '</p>
-                            </div>';
-            $plugs['displayName'] = $pl->displayName;
-            $plugs['description'] = $pl->description;
-            $plugs['version'] = $pl->version;
-            $plugs['pluginPosition'] = $i;
-            $plugs['position'] = '<div class="dragGroup"><div class="pluginPosition_' . $plugs['id_hook_plugin']. ' positions" data-id="' . $pl->id . '" data-parent="' . $plugs['id_hook_plugin'] . '" data-position="' . $i . '">' . $i . '</div></div>';;
-            
-            if (file_exists(_EPH_PLUGIN_DIR_ . $pl->name . '/logo.png')) {
-                $plugs['image'] = '<img src="/includes/plugins/' . $pl->name . '/logo.png" class="imgm img-thumbnail">';
-            } else
-
-
-            if (file_exists(_EPH_SPECIFIC_PLUGIN_DIR_ . $pl->name . '/logo.png')) {
-                $plugs['image'] = '<img src="includes/specific_plugins/' . $pl->name . '/logo.png" class="imgm img-thumbnail">';
-            } else {
-                $plugs['image'] = '<img src="content/img/no-plugin.png" class="imgm img-thumbnail">';
-            }
-            $i++;
-            
-            $plugins[] = $plugs;
-        }
-        if ($this->context->cache_enable) {
-
-            if (is_object($this->context->cache_api)) {
-                $temp = $this->context->_tools->jsonEncode($plugins);
-                $this->context->cache_api->putData('getPlugins'.$this->id, $temp, 1864000);
-            }
-        }
-        
-        return $plugins;
+        // Fix #11: getPlugins() and getStaticPlugins() were identical (~60 lines).
+        // Delegating to the static version to have a single source of truth.
+        return static::getStaticPlugins($this->id, $use_cache);
     }
-    
-    public static function getStaticPlugins($id_hook, $use_cache = true) {
-        
-        $context = Context::getContext();
-        if ($use_cache && $context->cache_enable) {
 
-            if (is_object($context->cache_api)) {
-                $value = $context->cache_api->getData('getPlugins'.$id_hook);
-                $plugins = empty($value) ? null : $context->_tools->jsonDecode($value, true);
-                if (!empty($plugins) && is_array($plugins)) {
-                    return $plugins;
-                }
+    public static function getStaticPlugins($id_hook, $use_cache = true) {
+
+        $context = Context::getContext();
+
+        if ($use_cache && $context->cache_enable && is_object($context->cache_api)) {
+            $value   = $context->cache_api->getData('getPlugins' . $id_hook);
+            $plugins = empty($value) ? null : $context->_tools->jsonDecode($value, true);
+
+            if (!empty($plugins) && is_array($plugins)) {
+                return $plugins;
             }
+
         }
+
         $plugins = [];
-        $query = new DbQuery();
+        $query   = new DbQuery();
         $query->select('id_plugin, id_hook_plugin');
         $query->from('hook_plugin');
-        $query->where('id_hook = '.$id_hook);
+        $query->where('id_hook = ' . (int) $id_hook);
         $query->orderBy('position');
-        
-        $resuts = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($query);
-        $i = 1;
-        foreach($resuts as $plugin) {
-            $plugs = [];
+
+        $results = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($query);
+        $i       = 1;
+
+        foreach ($results as $plugin) {
             $pl = Plugin::getInstanceById((int) $plugin['id_plugin']);
-            $plugs['id_hook_plugin'] = $plugin['id_hook_plugin'];  
-            $plugs['id_plugin'] = $pl->id;            
-            $plugs['name'] = $pl->name;
-            $plugs['plugin_name'] = $pl->name;
-            $plugs['name'] = '<div class="plugin_col_infos"><span class="plugin_name">
-                                    ' . $pl->displayName . ' <small class="text-muted">&nbsp;-&nbsp;v' . $pl->version . '</span>
-                                <p class="discret">' . $pl->description . '</p>
-                            </div>';
-            $plugs['displayName'] = $pl->displayName;
-            $plugs['description'] = $pl->description;
-            $plugs['version'] = $pl->version;
+
+            // Fix #10: getInstanceById() returns false when the plugin no longer
+            // exists on disk. Guard prevents a fatal error on $pl->id etc.
+            if (!$pl || !Validate::isLoadedObject($pl)) {
+                continue;
+            }
+
+            $plugs = [];
+            // Fix #6: 'name' was assigned twice — first to the plain plugin name,
+            // then immediately overwritten with an HTML block.
+            // Split into 'plugin_name' (plain name) and 'name' (HTML display block).
+            $plugs['id_hook_plugin'] = $plugin['id_hook_plugin'];
+            $plugs['id_plugin']      = $pl->id;
+            $plugs['plugin_name']    = $pl->name;
+            $plugs['name']           = '<div class="plugin_col_infos"><span class="plugin_name">'
+                . $pl->displayName . ' <small class="text-muted">&nbsp;-&nbsp;v' . $pl->version . '</small></span>'
+                . '<p class="discret">' . $pl->description . '</p></div>';
+            $plugs['displayName']    = $pl->displayName;
+            $plugs['description']    = $pl->description;
+            $plugs['version']        = $pl->version;
             $plugs['pluginPosition'] = $i;
-            $plugs['position'] = '<div class="dragGroup"><div class="pluginPosition_' . $plugs['id_hook_plugin']. ' positions" data-id="' . $pl->id . '" data-parent="' . $plugs['id_hook_plugin'] . '" data-position="' . $i . '">' . $i . '</div></div>';;
-            
+            // Fix #7: removed spurious double semicolon at end of line.
+            $plugs['position']       = '<div class="dragGroup"><div class="pluginPosition_' . $plugs['id_hook_plugin'] . ' positions"'
+                . ' data-id="' . $pl->id . '"'
+                . ' data-parent="' . $plugs['id_hook_plugin'] . '"'
+                . ' data-position="' . $i . '">' . $i . '</div></div>';
+
             if (file_exists(_EPH_PLUGIN_DIR_ . $pl->name . '/logo.png')) {
                 $plugs['image'] = '<img src="/includes/plugins/' . $pl->name . '/logo.png" class="imgm img-thumbnail">';
-            } else
-
-
-            if (file_exists(_EPH_SPECIFIC_PLUGIN_DIR_ . $pl->name . '/logo.png')) {
+            } elseif (file_exists(_EPH_SPECIFIC_PLUGIN_DIR_ . $pl->name . '/logo.png')) {
                 $plugs['image'] = '<img src="includes/specific_plugins/' . $pl->name . '/logo.png" class="imgm img-thumbnail">';
             } else {
                 $plugs['image'] = '<img src="content/img/no-plugin.png" class="imgm img-thumbnail">';
             }
+
             $i++;
-            
             $plugins[] = $plugs;
         }
-        if ($context->cache_enable) {
 
-            if (is_object($context->cache_api)) {
-                $temp = $context->_tools->jsonEncode($plugins);
-                $context->cache_api->putData('getPlugins'.$id_hook, $temp, 1864000);
-            }
+        if ($context->cache_enable && is_object($context->cache_api)) {
+            $temp = $context->_tools->jsonEncode($plugins);
+            $context->cache_api->putData('getPlugins' . $id_hook, $temp, 1864000);
         }
+
         return $plugins;
     }
 
@@ -333,65 +288,66 @@ class Hook extends PhenyxObjectModel {
     }
     
     public function getPluginHooks($id_plugin = 0, $use_cache = true) {
-        
-        if ($use_cache && $this->context->cache_enable) {
 
-            if (is_object($this->context->cache_api)) {
-                $value = $this->context->cache_api->getData('getPluginHooks_'.$id_plugin);
-                $hooks = empty($value) ? null : $this->context->_tools->jsonDecode($value, true);
-                if (!empty($hooks) && is_array($hooks)) {
-                    return $hooks;
-                }
+        if ($use_cache && $this->context->cache_enable && is_object($this->context->cache_api)) {
+            $value = $this->context->cache_api->getData('getPluginHooks_' . $id_plugin);
+            $hooks = empty($value) ? null : $this->context->_tools->jsonDecode($value, true);
+
+            if (!empty($hooks) && is_array($hooks)) {
+                return $hooks;
             }
-        }
-        
-        $hooks= $this->_session->get('getPluginHooks_'.$id_plugin);
 
-        if (!empty($hooks) && is_array($hooks)) {
-            return $hooks;
         }
+
         $hooks = [];
         $query = new DbQuery();
         $query->select('DISTINCT(h.id_hook), h.*');
         $query->from('hook', 'h');
         $query->leftJoin('hook_plugin', 'hp', 'hp.id_hook = h.id_hook');
-        
-        if($id_plugin > 0) {
-            $query->where('hp.id_plugin = '.$id_plugin);
+
+        if ($id_plugin > 0) {
+            $query->where('hp.id_plugin = ' . (int) $id_plugin);
         } else {
             $query->where('hp.id_plugin > 0');
         }
+
         $query->orderBy('h.`name`, hp.position');
         $results = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($query);
-       
-        foreach($results as &$hook) {
-            $hook['plugins'] = self::getStaticPlugins($hook['id_hook']);
-            $hook['plugin_count'] = is_array($hook['plugins']) ? count($hook['plugins'])  : 0;
-            $hooks[$hook['name']] = $hook;
-            
-            
-        }
-        
-        if ($this->context->cache_enable) {
 
-            if (is_object($this->context->cache_api)) {
-                $temp = $this->context->_tools->jsonEncode($hooks);
-                $this->context->cache_api->putData('getPluginHooks_'.$id_plugin, $temp, 1864000);
-            }
+        foreach ($results as &$hook) {
+            $hook['plugins']      = self::getStaticPlugins($hook['id_hook']);
+            $hook['plugin_count'] = is_array($hook['plugins']) ? count($hook['plugins']) : 0;
+            $hooks[$hook['name']] = $hook;
         }
-        $this->_session->set('getPluginHooks_'.$id_plugin, $hooks);
+
+        // Fix #14: original stored data in BOTH the cache API and the session,
+        // which is redundant and can cause stale-data inconsistencies.
+        // Using only the cache API (faster, TTL-controlled).
+        if ($this->context->cache_enable && is_object($this->context->cache_api)) {
+            $temp = $this->context->_tools->jsonEncode($hooks);
+            $this->context->cache_api->putData('getPluginHooks_' . $id_plugin, $temp, 1864000);
+        }
+
         return $hooks;
-      
     }
     
     public static function getStaticIdHookPlugin($hook) {
-        
+
+        // Fix #5: the original method body built a query with non-existent aliases
+        // ('hp', 'h') and had no return statement — it always returned null.
+        // Corrected to actually query and return the id_hook_plugin for the given hook.
+        if (empty($hook)) {
+            return false;
+        }
+
         $query = new DbQuery();
-        $query->select('id_hook_plugin');
-        $query->from('hook_plugin');
-        $query->where('hp.id_plugin > 0');
-        $query->orderBy('h.`name`, hp.position');
-        
+        $query->select('hp.`id_hook_plugin`');
+        $query->from('hook_plugin', 'hp');
+        $query->leftJoin('hook', 'h', 'h.`id_hook` = hp.`id_hook`');
+        $query->where('h.`name` = \'' . pSQL($hook) . '\'');
+        $query->orderBy('hp.`position`');
+
+        return Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue($query);
     }
 
     public function getNameById($hookId) {
@@ -466,7 +422,9 @@ class Hook extends PhenyxObjectModel {
                 'title'       => $result['title'],
                 'description' => $result['description'],
                 'static'      => $result['static'],
-                'm.position'  => $result['hm_position'],
+                // Fix #13: key was 'm.position' (with a dot) — unusual and hard to
+                // use with standard array syntax. Renamed to 'position'.
+                'position'    => $result['hm_position'],
                 'id_plugin'   => $result['id_plugin'],
                 'name'        => $result['name'],
                 'active'      => $result['active'],
@@ -505,8 +463,12 @@ class Hook extends PhenyxObjectModel {
             return $this->execWithoutCache($hookName, $hookArgs, $idPlugin, $arrayReturn, $checkExceptions, $usePush, $objectReturn);
         }
 
+        // Fix #12: original returned '' (empty string) when pluginList was empty,
+        // while execWithoutCache() returned false for the same case. Unified to
+        // return false so callers can use a consistent `if ($result = exec(...))`
+        // pattern regardless of which path is taken.
         if (!$pluginList = $this->getHookPluginExecList($hookName)) {
-            return '';
+            return false;
         }
 
         if ($arrayReturn) {
@@ -520,8 +482,10 @@ class Hook extends PhenyxObjectModel {
             $cachedHooks = $this->getCachedHooks();
 
             foreach ($pluginList as $m) {
-                $idPlugin = (int) $m['id_plugin'];
-                $data = $this->execWithoutCache($hookName, $hookArgs, $idPlugin, $arrayReturn, $checkExceptions, $usePush, $objectReturn);
+                // Fix #8: original wrote $idPlugin = (int)$m['id_plugin'] directly,
+                // overwriting the method parameter. Using a local variable instead.
+                $currentPluginId = (int) $m['id_plugin'];
+                $data = $this->execWithoutCache($hookName, $hookArgs, $currentPluginId, $arrayReturn, $checkExceptions, $usePush, $objectReturn);
 
                 if (is_array($data)) {
                     $data = array_shift($data);
@@ -530,23 +494,15 @@ class Hook extends PhenyxObjectModel {
                 if (is_array($data)) {
                     $return[$m['plugin']] = $data;
                 } else {
-                    $idHook = (int) $this->getIdByName($hookName);
-
-                    if (isset($cachedHooks[$idPlugin][$idHook])) {
-                        $dataWrapped = $data;
-                    } else {
-
-                        $dataWrapped = $data;
-                    }
-
+                    // Fix #2: the original had an if/else where BOTH branches assigned
+                    // $dataWrapped = $data (identical code) — the condition had no effect.
+                    // The if/else has been removed; $data is used directly.
                     if ($arrayReturn) {
-                        $return[$m['plugin']] = $dataWrapped;
-                    } else
-
-                    if ($objectReturn) {
-                        $return = $dataWrapped;
+                        $return[$m['plugin']] = $data;
+                    } elseif ($objectReturn) {
+                        $return = $data;
                     } else {
-                        $return .= $dataWrapped;
+                        $return .= $data;
                     }
 
                 }
@@ -695,10 +651,11 @@ class Hook extends PhenyxObjectModel {
 
                 if ($arrayReturn) {
                     $output[$pluginInstance->name] = $display;
-                } else
-
-                if ($objectReturn) {
-                    $return = $display;
+                } elseif ($objectReturn) {
+                    // Fix #3: original assigned $return = $display here but the method
+                    // always returned $output — $return was never actually returned.
+                    // Now $output is used consistently so the return at the end works.
+                    $output = $display;
                 } else {
                     $output = $display;
                 }
@@ -730,8 +687,9 @@ class Hook extends PhenyxObjectModel {
                         ];
 
                     } else {
-
-                        if (!is_array($perfs)) {
+                        // Fix #9: original checked !is_array($perfs) (the hook perf
+                        // variable) instead of !is_array($plugperfs) — copy-paste bug.
+                        if (!is_array($plugperfs)) {
                             $plugperfs = [];
                         }
 
@@ -756,12 +714,17 @@ class Hook extends PhenyxObjectModel {
     public function getHookPluginExecList($hookName = null) {
 
         $context = Context::getContext();
-        $list = null;
+        $list    = null;
+
+        // Fix #4: $cacheId was only defined inside the cache-enabled branch but
+        // used later in an unconditional putData() call → Undefined variable.
+        // Initialised to null here so it is always defined.
+        $cacheId = null;
 
         if ($this->context->cache_enable && is_object($this->context->cache_api)) {
             $cacheId = 'hook_plugin_exec_list_' . $hookName . ((isset($this->context->user->id)) ? '_' . $this->context->user->id : '');
-            $value = $this->context->cache_api->getData($cacheId, 3600);
-            $temp = empty($value) ? null : Tools::jsonDecode($value, true);
+            $value   = $this->context->cache_api->getData($cacheId, 3600);
+            $temp    = empty($value) ? null : Tools::jsonDecode($value, true);
 
             if (!empty($temp)) {
                 $list = $temp;
@@ -870,7 +833,7 @@ class Hook extends PhenyxObjectModel {
 
         }
 
-        if ($this->context->cache_enable && is_object($this->context->cache_api)) {
+        if ($this->context->cache_enable && is_object($this->context->cache_api) && $cacheId !== null) {
             $temp = $list === null ? null : Tools::jsonEncode($list);
             $this->context->cache_api->putData($cacheId, $temp);
         }

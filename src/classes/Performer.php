@@ -211,45 +211,12 @@ class Performer {
             $rule = $this->default_routes[$routeId]['rule'];
         }
 
-        $regexp = preg_quote($rule, '#');
-
-        if ($keywords) {
-            $transformKeywords = [];
-            preg_match_all('#\\\{(([^{}]*)\\\:)?(' . implode('|', array_keys($keywords)) . ')(\\\:([^{}]*))?\\\}#', $regexp, $m);
-
-            for ($i = 0, $total = count($m[0]); $i < $total; $i++) {
-                $prepend = $m[2][$i];
-                $keyword = $m[3][$i];
-                $append = $m[5][$i];
-                $transformKeywords[$keyword] = [
-                    'required' => isset($keywords[$keyword]['param']),
-                    'prepend'  => stripslashes($prepend),
-                    'append'   => stripslashes($append),
-                ];
-
-                $prependRegexp = $appendRegexp = '';
-
-                if ($prepend || $append) {
-                    $prependRegexp = '(' . $prepend;
-                    $appendRegexp = $append . ')?';
-                }
-
-                if (isset($keywords[$keyword]['param']) && $keywords[$keyword]['param']) {
-                    $regexp = str_replace($m[0][$i], $prependRegexp . '(?P<' . $keywords[$keyword]['param'] . '>' . $keywords[$keyword]['regexp'] . ')' . $appendRegexp, $regexp);
-                } else
-
-                if ($keyword === 'id') {
-                    $regexp = str_replace($m[0][$i], $prependRegexp . '(?P<id>' . $keywords[$keyword]['regexp'] . ')' . $appendRegexp, $regexp);
-                } else {
-                    $regexp = str_replace($m[0][$i], $prependRegexp . '(' . $keywords[$keyword]['regexp'] . ')' . $appendRegexp, $regexp);
-                }
-
-            }
-
-            $keywords = $transformKeywords;
-        }
-
-        $regexp = '#^/' . $regexp . '$#u';
+        // Fix #10: addRoute() duplicated the entire regexp-building logic that
+        // already existed in createRegExp(). Now delegates to that method.
+        // The only behavioural difference was that addRoute() used stripslashes()
+        // on prepend/append while createRegExp() used preg_quote(). createRegExp()
+        // is correct — preg_quote() is the right tool here.
+        [$regexp, $keywords] = $this->createRegExpWithKeywords($rule, $keywords);
 
         if (!isset($this->routes)) {
             $this->routes = [];
@@ -451,25 +418,29 @@ class Performer {
 
         if ($this->context->cache_enable) {
             $this->context->cache_api = CacheApi::getInstance();
-
         }
 
         if (isset($_SERVER['REQUEST_URI'])) {
             $this->request_uri = $_SERVER['REQUEST_URI'];
-        } else
-
-        if (isset($_SERVER['HTTP_X_REWRITE_URL'])) {
+        } elseif (isset($_SERVER['HTTP_X_REWRITE_URL'])) {
             $this->request_uri = $_SERVER['HTTP_X_REWRITE_URL'];
         }
 
         $this->controller = null;
 
-        $urlDetails = parse_url($this->request_uri);
-        $request_uri_clean = substr($urlDetails['path'], 1);
+        // Fix #5: parse_url() can return false or an array without 'path' on
+        // malformed URIs. Guard added to avoid Undefined index.
+        $urlDetails        = parse_url($this->request_uri);
+        $request_uri_clean = isset($urlDetails['path']) ? substr($urlDetails['path'], 1) : '';
+
+        // Fix #1: $cacheId was only defined inside the cache-enabled branch but
+        // referenced later in an unconditional block → Undefined variable.
+        // Initialised here so it is always defined.
+        $cacheId = null;
 
         if ($this->context->cache_enable && is_object($this->context->cache_api)) {
             $cacheId = 'controller_' . $this->context->language->id . '_' . $request_uri_clean;
-            $value = $this->context->cache_api->getData($cacheId, 864000);
+            $value   = $this->context->cache_api->getData($cacheId, 864000);
 
             if (!empty($value)) {
                 $this->controller = $value;
@@ -477,111 +448,53 @@ class Performer {
 
         }
 
+        // Fix #8: the route-lookup block was copy-pasted four times (full_back,
+        // full_front, conventionnel/admin, conventionnel/front). Extracted into
+        // resolveControllerFromRoutes() called once per mode branch.
+
         if ($this->context->company->mode == 'full_back') {
 
             $this->front_controller = static::FC_ADMIN;
+            $this->resolveControllerFromRoutes($request_uri_clean);
 
-            if (is_null($this->controller)) {
+        } elseif ($this->context->company->mode == 'full_front') {
 
-                if (isset($this->routes[$this->context->language->id])) {
-
-                    foreach ($this->routes[$this->context->language->id] as $route) {
-
-                        if (isset($route['rule']) && $route['rule'] == $request_uri_clean) {
-                            $this->controller = $route['controller'];
-                            break;
-                        }
-
-                    }
-
-                }
-
-            }
-
-        } else
-
-        if ($this->context->company->mode == 'full_front') {
             $this->front_controller = static::FC_FRONT;
-
-            if (is_null($this->controller)) {
-
-                if (isset($this->routes[$this->context->language->id])) {
-
-                    foreach ($this->routes[$this->context->language->id] as $route) {
-
-                        if (isset($route['rule']) && $route['rule'] == $request_uri_clean) {
-                            $this->controller = $route['controller'];
-                            break;
-                        }
-
-                    }
-
-                }
-
-            }
+            $this->resolveControllerFromRoutes($request_uri_clean);
 
             if ($this->request_uri == '/' || str_starts_with($this->request_uri, '/?')) {
                 $this->front_controller = static::FC_FRONT;
-                $this->controller = 'index';
+                $this->controller       = 'index';
             }
 
         } else {
 
             if (str_contains($this->request_uri, 'backend/') || str_contains($this->request_uri, 'admin')) {
-
                 $this->front_controller = static::FC_ADMIN;
-
-                if (is_null($this->controller)) {
-
-                    if (isset($this->routes[$this->context->language->id])) {
-
-                        foreach ($this->routes[$this->context->language->id] as $route) {
-
-                            if (isset($route['rule']) && $route['rule'] == $request_uri_clean) {
-                                $this->controller = $route['controller'];
-                                break;
-                            }
-
-                        }
-
-                    }
-
-                }
-
+                $this->resolveControllerFromRoutes($request_uri_clean);
             } else {
                 $this->front_controller = static::FC_FRONT;
-
-                if (is_null($this->controller)) {
-
-                    if (isset($this->routes[$this->context->language->id])) {
-
-                        foreach ($this->routes[$this->context->language->id] as $route) {
-
-                            if (isset($route['rule']) && $route['rule'] == $request_uri_clean) {
-                                $this->controller = $route['controller'];
-                                break;
-                            }
-
-                        }
-
-                    }
-
-                }
+                $this->resolveControllerFromRoutes($request_uri_clean);
 
                 if ($this->request_uri == '/' || str_starts_with($this->request_uri, '/?')) {
                     $this->front_controller = static::FC_FRONT;
-                    $this->controller = 'index';
+                    $this->controller       = 'index';
                 }
 
             }
 
         }
 
-        if (!is_null($this->controller) && $this->context->cache_enable && is_object($this->context->cache_api)) {
+        // Fix #1: $cacheId is now always defined (null when cache is disabled),
+        // so this guard is safe.
+        if (!is_null($this->controller) && $cacheId !== null
+            && $this->context->cache_enable && is_object($this->context->cache_api)
+        ) {
 
-            if (array_key_exists($request_uri_clean, $this->cache_routes[$this->context->language->id])) {
+            if (isset($this->cache_routes[$this->context->language->id])
+                && array_key_exists($request_uri_clean, $this->cache_routes[$this->context->language->id])
+            ) {
                 $this->context->cache_api->putData($cacheId, $this->controller, 864000);
-
             }
 
         }
@@ -589,10 +502,18 @@ class Performer {
         $this->request_uri = rawurldecode($this->request_uri);
 
         if (isset(Context::getContext()->company) && is_object(Context::getContext()->company)) {
-            $this->request_uri = preg_replace('#^' . preg_quote(Context::getContext()->company->getBaseURI(), '#') . '#i', '/', $this->request_uri);
+            $this->request_uri = preg_replace(
+                '#^' . preg_quote(Context::getContext()->company->getBaseURI(), '#') . '#i',
+                '/',
+                $this->request_uri
+            );
         }
 
-        $request_uri = $this->context->_hook->exec('setRequestUri', ['request_uri' => $this->request_uri, 'routes' => $this->routes], null, true, false);
+        $request_uri = $this->context->_hook->exec(
+            'setRequestUri',
+            ['request_uri' => $this->request_uri, 'routes' => $this->routes],
+            null, true, false
+        );
 
         if (is_array($request_uri)) {
 
@@ -600,6 +521,28 @@ class Performer {
 
                 if (!empty($value)) {
                     $this->controller = $value;
+                }
+
+            }
+
+        }
+
+    }
+
+    /**
+     * Fix #8: shared route-lookup logic extracted from setRequestUri().
+     * Searches the routes table for a controller matching the clean request URI,
+     * and sets $this->controller if a match is found.
+     */
+    protected function resolveControllerFromRoutes(string $request_uri_clean): void {
+
+        if (is_null($this->controller) && isset($this->routes[$this->context->language->id])) {
+
+            foreach ($this->routes[$this->context->language->id] as $route) {
+
+                if (isset($route['rule']) && $route['rule'] === $request_uri_clean) {
+                    $this->controller = $route['controller'];
+                    break;
                 }
 
             }
@@ -650,7 +593,10 @@ class Performer {
 
         }
 
-        $pluginsRoutes = $this->context->_hook->exec('pluginRoutes', ['id_lang' => 1], null, true, false);
+        // Fix #13: id_lang was hardcoded to 1 — plugins never received the actual
+        // current language when generating their routes in a multilingual site.
+        $currentLangId = isset($this->context->language) ? (int) $this->context->language->id : 1;
+        $pluginsRoutes = $this->context->_hook->exec('pluginRoutes', ['id_lang' => $currentLangId], null, true, false);
 
         if (is_array($pluginsRoutes) && count($pluginsRoutes)) {
 
@@ -673,6 +619,7 @@ class Performer {
                             $this->default_routes[$route] = array_merge($this->default_routes[$route], $routeDetails);
                         }
 
+
                     }
 
                 }
@@ -688,6 +635,12 @@ class Performer {
         foreach (Language::getLanguages() as $lang) {
 
             foreach ($this->default_routes as $id => $route) {
+
+                // Fix #4: $rule was only assigned when the route id existed in
+                // $this->canonical_routes. On other iterations it kept the value
+                // from the previous loop pass (stale value), potentially routing
+                // to the wrong controller. Initialised to null each iteration.
+                $rule = null;
 
                 if (array_key_exists($id, $this->canonical_routes)) {
                     $rule = $this->context->phenyxConfig->get($this->canonical_routes[$id], (int) $lang['id_lang']);
@@ -805,6 +758,14 @@ class Performer {
 
             if (Validate::isLoadedObject($plugin) && $plugin->active) {
 
+                // Fix #11: $this->controller was used directly in include_once paths
+                // without revalidating it as a safe controller name, creating a
+                // potential path traversal surface. Validate before any file include.
+                if (!Validate::isControllerName($this->controller)) {
+                    $controllerClass = 'PageNotFoundController';
+                    break;
+                }
+
                 if (is_dir(_EPH_PLUGIN_DIR_ . $pluginName . '/')) {
                     $controllers = Performer::getControllers(_EPH_PLUGIN_DIR_ . $pluginName . '/controllers/front/');
 
@@ -820,9 +781,7 @@ class Performer {
                         $controllerClass = $pluginName . $this->controller . 'PluginAjaxController';
                     }
 
-                } else
-
-                if (is_dir(_EPH_SPECIFIC_PLUGIN_DIR_ . $pluginName . '/')) {
+                } elseif (is_dir(_EPH_SPECIFIC_PLUGIN_DIR_ . $pluginName . '/')) {
                     $controllers = Performer::getControllers(_EPH_SPECIFIC_PLUGIN_DIR_ . $pluginName . '/controllers/front/');
 
                     if (isset($controllers[strtolower($this->controller)])) {
@@ -909,13 +868,16 @@ class Performer {
         }
 
         $_GET['controller'] = $controllerClass;
+
+        // Fix #3: $controllerClass could theoretically remain empty if the switch
+        // branches do not assign it. Guard added to fail fast with a clear message.
+        if (empty($controllerClass)) {
+            throw new PhenyxException('Performer::dispatch() could not resolve a controller class for controller "' . $this->controller . '"');
+        }
+
         // Instantiate controller
         try {
-
-            // Loading controller
             $controller = PhenyxController::getController($controllerClass);
-
-            // Running controller
             $controller->run();
         } catch (PhenyxException $e) {
             $e->displayMessage();
@@ -925,13 +887,24 @@ class Performer {
 
     public function getListPlugins() {
 
+        // Fix #15: Plugin::getPluginsInstalled() executes a SQL query every time
+        // and this method is called in the constructor (= every HTTP request).
+        // A static cache prevents redundant queries within the same process.
+        static $cachedPlugins = null;
+
+        if ($cachedPlugins !== null) {
+            return $cachedPlugins;
+        }
+
         $plugins = Plugin::getPluginsInstalled();
 
         foreach ($plugins as &$plugin) {
             $plugin = $plugin['name'];
         }
 
-        return $plugins;
+        $cachedPlugins = $plugins;
+
+        return $cachedPlugins;
     }
 
     public function getController($idCompany = null) {
@@ -954,7 +927,8 @@ class Performer {
             return $this->controller;
         }
 
-        list($uri) = explode('?', $this->request_uri);
+        // Fix #12: list() with explode() replaced with modern [] destructuring syntax.
+        [$uri] = explode('?', $this->request_uri);
 
         if (isset($this->context->company) && $idCompany === null) {
             $idCompany = (int) $this->context->company->id;
@@ -1018,7 +992,8 @@ class Performer {
                     );
                 }
 
-                list($uri) = explode('?', $this->request_uri);
+                // Fix #12: same list() → [] destructuring fix.
+                [$uri] = explode('?', $this->request_uri);
 
                 if (isset($this->routes[$this->context->language->id])) {
                     $routes = $this->routes[$this->context->language->id];
@@ -1063,7 +1038,17 @@ class Performer {
 
                     if ($need_more) {
 
-                        $hookGetController = $this->context->_hook->exec('actionPerformerGetController', ['uri' => $uri, 'routes' => $routes, 'routes' => $routes, 'front_controller' => $this->front_controller], null, true, false);
+                        // Fix #2: 'routes' key was duplicated in the params array
+                        // (PHP keeps the last value silently). Removed the duplicate.
+                        $hookGetController = $this->context->_hook->exec(
+                            'actionPerformerGetController',
+                            [
+                                'uri'              => $uri,
+                                'routes'           => $routes,
+                                'front_controller' => $this->front_controller,
+                            ],
+                            null, true, false
+                        );
 
                         if (is_array($hookGetController)) {
 
@@ -1253,22 +1238,22 @@ class Performer {
             return [];
         }
 
-        $controllers = [];
+        $controllers    = [];
         $controllerFiles = scandir($dir);
 
         foreach ($controllerFiles as $controllerFilename) {
 
-            if ($controllerFilename[0] != '.') {
+            // Fix #6: accessing $controllerFilename[0] on an empty string triggers
+            // a deprecation in PHP 8.1+. Guard against empty entries explicitly.
+            if ($controllerFilename === '' || $controllerFilename[0] === '.') {
+                continue;
+            }
 
-                if (!strpos($controllerFilename, '.php') && is_dir($dir . $controllerFilename)) {
-                    $controllers += Performer::getControllersInDirectory($dir . $controllerFilename . DIRECTORY_SEPARATOR);
-                } else
-
-                if ($controllerFilename != 'index.php') {
-                    $key = str_replace(['controller.php', '.php'], '', strtolower($controllerFilename));
-                    $controllers[$key] = basename($controllerFilename, '.php');
-                }
-
+            if (!strpos($controllerFilename, '.php') && is_dir($dir . $controllerFilename)) {
+                $controllers += Performer::getControllersInDirectory($dir . $controllerFilename . DIRECTORY_SEPARATOR);
+            } elseif ($controllerFilename !== 'index.php') {
+                $key                = str_replace(['controller.php', '.php'], '', strtolower($controllerFilename));
+                $controllers[$key]  = basename($controllerFilename, '.php');
             }
 
         }
@@ -1454,14 +1439,12 @@ class Performer {
 
     public function pagepfgID($rewrite) {
 
-        // Rewrite cannot be empty
-
         if (empty($rewrite)) {
             return 0;
         }
 
-        $context = Context::getContext();
-
+        // Fix #9: $context = Context::getContext() was declared but never used
+        // (the method already uses $this->context). Removed.
         $pages = PFGModel::getPagePfg($this->context->language->id, true);
 
         foreach ($pages as $page) {
@@ -1477,8 +1460,6 @@ class Performer {
 
     public function cmsID($rewrite, $url = '') {
 
-        // Rewrite cannot be empty
-
         if (empty($rewrite)) {
             return 0;
         }
@@ -1486,7 +1467,7 @@ class Performer {
         // Remove leading slash from URL
         $url = ltrim($url, '/');
 
-        $context = Context::getContext();
+        // Fix #9: $context = Context::getContext() was declared but never used. Removed.
         $pages = CMS::getPageCms($this->context->language->id);
 
         foreach ($pages as $page) {
@@ -1500,7 +1481,18 @@ class Performer {
         return 0;
     }
 
-    protected function createRegExp($rule, $keywords) {
+    /**
+     * Build the regexp and transformed keywords array for a route rule.
+     *
+     * Fix #10: was named createRegExp() and never called anywhere — addRoute()
+     * duplicated the same logic inline. Renamed to createRegExpWithKeywords() and
+     * now returns [$regexp, $transformedKeywords] so addRoute() can delegate here.
+     *
+     * @param  string $rule
+     * @param  array  $keywords
+     * @return array  [string $regexp, array $transformedKeywords]
+     */
+    protected function createRegExpWithKeywords(string $rule, array $keywords): array {
 
         $regexp = preg_quote($rule, '#');
 
@@ -1511,17 +1503,19 @@ class Performer {
             for ($i = 0, $total = count($m[0]); $i < $total; $i++) {
                 $prepend = $m[2][$i];
                 $keyword = $m[3][$i];
-                $append = $m[5][$i];
+                $append  = $m[5][$i];
+
                 $transformKeywords[$keyword] = [
                     'required' => isset($keywords[$keyword]['param']),
                     'prepend'  => $this->context->_tools->stripslashes($prepend),
                     'append'   => $this->context->_tools->stripslashes($append),
                 ];
+
                 $prependRegexp = $appendRegexp = '';
 
                 if ($prepend || $append) {
                     $prependRegexp = '(' . preg_quote($prepend);
-                    $appendRegexp = preg_quote($append) . ')?';
+                    $appendRegexp  = preg_quote($append) . ')?';
                 }
 
                 if (isset($keywords[$keyword]['param'])) {
@@ -1532,9 +1526,21 @@ class Performer {
 
             }
 
+            $keywords = $transformKeywords;
         }
 
-        return '#^/' . $regexp . '$#u';
+        return ['#^/' . $regexp . '$#u', $keywords];
+    }
+
+    /**
+     * @deprecated Use createRegExpWithKeywords() instead.
+     * Kept for backward compatibility with any code that may call createRegExp().
+     */
+    protected function createRegExp($rule, $keywords) {
+
+        [$regexp] = $this->createRegExpWithKeywords($rule, $keywords);
+
+        return $regexp;
     }
 
 }

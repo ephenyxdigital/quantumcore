@@ -74,6 +74,11 @@ class Company extends PhenyxObjectModel {
     
     public $exercices;
     
+    // Fix #9: typo corrected — 'previous_ecercices' → 'previous_exercices'.
+    // The old name is kept as an alias property to avoid breaking existing callers.
+    public $previous_exercices;
+
+    /** @deprecated Use $previous_exercices */
     public $previous_ecercices;
 
     
@@ -120,7 +125,13 @@ class Company extends PhenyxObjectModel {
     public $delivery_area;
     public $delivery_address;
 	
-	public $working_plan = '{"monday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"tuesday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"wednesday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"thursday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"friday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"saturday":null,"sunday":null}';
+    /**
+     * Fix #14: the default working plan was a single hard-to-maintain JSON string.
+     * Defined as a class constant so it can be referenced and updated in one place.
+     */
+    const DEFAULT_WORKING_PLAN = '{"monday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"tuesday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"wednesday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"thursday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"friday":{"start":"09:00","end":"20:00","breaks":[{"start":"14:30","end":"15:00"}]},"saturday":null,"sunday":null}';
+
+	public $working_plan = self::DEFAULT_WORKING_PLAN;
 
 	
 	/**
@@ -169,23 +180,19 @@ class Company extends PhenyxObjectModel {
 	public function __construct($idCompany = null) {
 
 		$this->className = get_class($this);
-        if(Plugin::isInstalled('ph_ecommerce')) {
-            self::$definition['fields']['id_category'] = ['type' => self::TYPE_INT, 'validate' => 'isNullOrUnsignedId'];
-		    self::$definition['fields']['capital'] = ['type' => self::TYPE_INT, 'validate' => 'isNullOrUnsignedId'];
-		    self::$definition['fields']['company_type'] = ['type' => self::TYPE_STRING];
-        }
-        if(Plugin::isInstalled('ph_learning')) {
-            self::$definition['fields']['activity_number'] = ['type' => self::TYPE_STRING];
-            self::$definition['fields']['delivery_area'] = ['type' => self::TYPE_STRING];
-            self::$definition['fields']['delivery_address'] = ['type' => self::TYPE_HTML];
-        }
+
+        // Fix #11: the original mutated the static $definition array inside the
+        // constructor, meaning fields were re-added on every new Company() call.
+        // Moved to a dedicated static initializer called once via a guard flag.
+        static::initDefinition();
+
         $this->context = Context::getContext();
         if(!isset($this->context->phenyxConfig)) {
             $this->context->phenyxConfig = new Configuration();
         }
         
         if (!isset($this->context->language)) {
-            $this->context->language = PhenyxTool::getInstance()->jsonDecode(PhenyxTool::getInstance()->jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'))));
+            $this->context->language = PhenyxTool::getInstance()->jsonDecode(PhenyxTool::getInstance()->jsonEncode(new Language($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'))));
         }
         if (!isset(PhenyxObjectModel::$loaded_classes[$this->className])) {
             $this->def = PhenyxObjectModel::getDefinition($this->className);            
@@ -223,7 +230,9 @@ class Company extends PhenyxObjectModel {
             $date->modify('+11 month');
             $this->currentExerciceEnd = $date->format('Y-m-t');
             $this->exercices = $this->getExercices();
-            $this->previous_ecercices = $this->getPastExercices();
+            // Fix #9: corrected typo in property name.
+            $this->previous_exercices = $this->getPastExercices();
+            $this->previous_ecercices = $this->previous_exercices; // backward-compat alias
 			
 		} 
         if (!isset($this->context->company)) {
@@ -244,9 +253,43 @@ class Company extends PhenyxObjectModel {
 
         return Company::$instance;
     }
+
+    /**
+     * Fix #11: Plugin-specific definition fields were being added to the static
+     * $definition array on every construction. Extracted here and guarded by a
+     * flag so the mutation happens only once per request.
+     */
+    protected static $definitionInitialized = false;
+
+    protected static function initDefinition(): void {
+
+        if (static::$definitionInitialized) {
+            return;
+        }
+
+        static::$definitionInitialized = true;
+
+        if (Plugin::isInstalled('ph_ecommerce')) {
+            self::$definition['fields']['id_category']   = ['type' => self::TYPE_INT, 'validate' => 'isNullOrUnsignedId'];
+            self::$definition['fields']['capital']        = ['type' => self::TYPE_INT, 'validate' => 'isNullOrUnsignedId'];
+            self::$definition['fields']['company_type']   = ['type' => self::TYPE_STRING];
+        }
+
+        if (Plugin::isInstalled('ph_learning')) {
+            self::$definition['fields']['activity_number']  = ['type' => self::TYPE_STRING];
+            self::$definition['fields']['delivery_area']    = ['type' => self::TYPE_STRING];
+            self::$definition['fields']['delivery_address'] = ['type' => self::TYPE_HTML];
+        }
+    }
     
     public function isMultiDomain() {
-                
+
+        // Fix #7: $this->target_domain may be null or a string if setUrl() was not
+        // called or returned false. count(null) triggers a warning in PHP 8.
+        if (!is_array($this->target_domain)) {
+            return 0;
+        }
+
         return (count($this->target_domain) > 1) ? 1 : 0;
     }
     
@@ -382,25 +425,26 @@ class Company extends PhenyxObjectModel {
 			$company = new Company($idCompany);
 
 			if (!Validate::isLoadedObject($company) || !$company->active) {
-				$defaultCompany = new Company(Context::getContext()->phenyxConfig->get('EPH_COMPANY_ID'));
+			$defaultCompany = new Company(Context::getContext()->phenyxConfig->get('EPH_COMPANY_ID'));
 
-				if (!Validate::isLoadedObject($defaultShop)) {
+				// Fix #3: original referenced $defaultShop which was never defined — only
+				// $defaultCompany was instantiated. All occurrences replaced with $defaultCompany.
+				if (!Validate::isLoadedObject($defaultCompany)) {
 					throw new PhenyxException('Shop not found');
 				}
 
 				$params = $_GET;
 				unset($params['id_company']);
-				$url = $defaultShop->domain;
+				$url = $defaultCompany->domain;
 
 				if (!Context::getContext()->phenyxConfig->get('EPH_REWRITING_SETTINGS')) {
-					$url .= $defaultShop->getBaseURI() . 'index.php?' . http_build_query($params);
+					$url .= $defaultCompany->getBaseURI() . 'index.php?' . http_build_query($params);
 				} else {
-					
 
 					if (strpos($url, 'www.') === 0 && 'www.' . $_SERVER['HTTP_HOST'] === $url || $_SERVER['HTTP_HOST'] === 'www.' . $url) {
 						$url .= $_SERVER['REQUEST_URI'];
 					} else {
-						$url .= $defaultShop->getBaseURI();
+						$url .= $defaultCompany->getBaseURI();
 					}
 
 					if (count($params)) {
@@ -443,16 +487,20 @@ class Company extends PhenyxObjectModel {
 	}
     
     public function getBaseURL($autoSecureMode = false, $addBaseUri = true) {
-        
-        $url = [];
-        $url['protocol'] = 'https://';
-		$url['domain'] = $autoSecureMode && $this->context->_tools->usingSecureMode() ? $this->domain_ssl : $this->domain;
+
+        // Fix #8: original hardcoded 'https://' regardless of $autoSecureMode,
+        // generating incorrect URLs for non-SSL domains.
+        $secure = $autoSecureMode && $this->context->_tools->usingSecureMode();
+        $protocol = $secure ? 'https://' : 'http://';
+        $domain   = $secure ? $this->domain_ssl : $this->domain;
+
+        $url = $protocol . $domain;
 
         if ($addBaseUri) {
-            $url['base_uri'] = $this->getBaseURI();
+            $url .= $this->getBaseURI();
         }
 
-        return implode('', $url);
+        return $url;
     }
     
     public function getCategory() {
@@ -480,7 +528,7 @@ class Company extends PhenyxObjectModel {
 		if (!parent::add($autoDate, $nullValues)) {
 			return false;
 		}
-        $langs = Language::getLanguages(false, $this->id, true);
+        // Fix #12: $langs was declared here but never used — removed.
         $url = new CompanyUrl();
         $url->active = 1;
         $url->main = 1;
@@ -531,8 +579,12 @@ class Company extends PhenyxObjectModel {
 	 */
 	public function delete() {
 
-		return $this->update();
+		// Fix #4: original called $this->update() without setting deleted = 1 first,
+		// making delete() behave identically to update() — nothing was marked as deleted.
+		// Soft-delete: flag the record then persist via update().
+		$this->deleted = 1;
 
+		return $this->update();
 	}
     
     public function getTheme() {
@@ -541,8 +593,9 @@ class Company extends PhenyxObjectModel {
     }
     
     public static function getContext() {
-        
-        return $this->context;
+
+        // Fix #1: original used $this in a static method → fatal error.
+        return Context::getContext();
     }
     
     public static function getContextCompanyID($nullValueWithoutMultishop = false) {
@@ -551,8 +604,9 @@ class Company extends PhenyxObjectModel {
     }
     
     public static function cacheShops($refresh = false) {
-        
-        $context = Context::getComptext();
+
+        // Fix #2: original called Context::getComptext() which does not exist → fatal error.
+        $context = Context::getContext();
         if (!is_null(static::$companies) && !$refresh) {
             return;
         }
@@ -562,31 +616,40 @@ class Company extends PhenyxObjectModel {
         $employee = $context->employee;
 
         $sql = (new DbQuery())
-            ->select('c.*, gs.`name` AS `group_name`, c.`company_name`, c.`active`')
-            ->select('cu.`domain`, cu.`domain_ssl`,  cu.`physical_uri`, cu.`virtual_uri`')
+            ->select('c.*, c.`company_name`, c.`active`')
+            ->select('cu.`domain`, cu.`domain_ssl`, cu.`physical_uri`, cu.`virtual_uri`')
             ->from('company', 'c')
-            ->leftJoin('company_url', 'cu', 'c.`id_shop` = cu.`id_shop` AND cu.`main` = 1')
+            // Fix #6: original joined on c.`id_shop` = cu.`id_shop` — columns do not exist.
+            // Corrected to id_company.
+            ->leftJoin('company_url', 'cu', 'c.`id_company` = cu.`id_company` AND cu.`main` = 1')
             ->where('c.`deleted` = 0')
         ;
 
+        // Fix #5: original used getRow() — only the first company was ever cached.
+        // Changed to executeS() + foreach so all companies are stored.
+        // Also replaced the stale 'id_shop' key with 'id_company'.
+        if ($results = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($sql)) {
 
-        if ($result = Db::getInstance(_EPH_USE_SQL_SLAVE_)->getRow($sql)) {           
-
+            foreach ($results as $result) {
                 static::$companies[$result['id_company']] = [
-                    'id_shop'       => $result['id_company'],
-                    'name'          => $result['company_name'],
-                    'id_theme'      => $result['id_theme'],
-					'domain'        => $result['domain'],
-					'domain_ssl'    => $result['domain_ssl'],
-                    'uri'           => $result['physical_uri'].$result['virtual_uri'],
-                    'active'        => $result['active'],
+                    'id_company' => $result['id_company'],
+                    'name'       => $result['company_name'],
+                    'id_theme'   => $result['id_theme'],
+                    'domain'     => $result['domain'],
+                    'domain_ssl' => $result['domain_ssl'],
+                    'uri'        => $result['physical_uri'] . $result['virtual_uri'],
+                    'active'     => $result['active'],
                 ];
-            if (Plugin::isInstalled('ph_ecommerce')) {
-                static::$companies[$result['id_company']]['id_category'] = $result['id_category'];
+
+                if (Plugin::isInstalled('ph_ecommerce')) {
+                    static::$companies[$result['id_company']]['id_category'] = $result['id_category'] ?? null;
+                }
             }
+
+        }
            
         }
-    }
+   
     
     public function getUrls()  {
         return Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS(
@@ -598,23 +661,36 @@ class Company extends PhenyxObjectModel {
         );
     }
     
-    public function getExercices() {
-        
-        $exercice = [];
-        $today = date('Y-m-d');
-        $curent_year = date('Y');
-        $exercice[$this->start_date . '|' . $this->first_accounting_end] = sprintf($this->l('from %s to %s'), $this->start_date, $this->first_accounting_end);
-        $next_end = $this->currentExerciceEnd;
+    /**
+     * Fix #10: getExercices() and getPastExercices() were ~90% identical (copy-paste).
+     * Extracted the shared logic into this private helper.
+     *
+     * @param bool $includeFuture  When true, also appends the next exercice period
+     *                             (the extra block that only existed in getExercices).
+     */
+    private function buildExercices(bool $includeFuture = false): array {
+
+        $exercice    = [];
+        $today       = date('Y-m-d');
+        $currentYear = (int) date('Y');
+
+        $exercice[$this->start_date . '|' . $this->first_accounting_end] =
+            sprintf($this->l('from %s to %s'), $this->start_date, $this->first_accounting_end);
+
+        $nextEnd = $this->currentExerciceEnd;
 
         if ($today > $this->first_accounting_end) {
             $date = new DateTime($this->first_accounting_end);
             $date->modify('+1 day');
             $exerciceStart = $date->format('Y-m-d');
             $date->modify('+11 month');
-            $exerciceEnd = $date->format('Y-m-t');
-            $exercice_year = $date->format('Y');
-            $exercice[$exerciceStart . '|' . $exerciceEnd] = sprintf($this->l('from %s to %s'), $exerciceStart, $exerciceEnd);
-            $delta = $curent_year - $exercice_year;
+            $exerciceEnd  = $date->format('Y-m-t');
+            $exerciceYear = (int) $date->format('Y');
+
+            $exercice[$exerciceStart . '|' . $exerciceEnd] =
+                sprintf($this->l('from %s to %s'), $exerciceStart, $exerciceEnd);
+
+            $delta = $currentYear - $exerciceYear;
 
             if ($delta > 0) {
 
@@ -624,17 +700,19 @@ class Company extends PhenyxObjectModel {
                     $exerciceStart = $date->format('Y-m-d');
                     $date->modify('+11 month');
                     $exerciceEnd = $date->format('Y-m-t');
-                    $exercice[$exerciceStart . '|' . $exerciceEnd] = sprintf($this->l('from %s to %s'), $exerciceStart, $exerciceEnd);
-
+                    $exercice[$exerciceStart . '|' . $exerciceEnd] =
+                        sprintf($this->l('from %s to %s'), $exerciceStart, $exerciceEnd);
                 }
 
-                if ($next_end > $exerciceEnd) {
+                // Only getExercices() needs this extra future period
+                if ($includeFuture && $nextEnd > $exerciceEnd) {
                     $date = new DateTime($exerciceEnd);
                     $date->modify('+1 day');
                     $exerciceStart = $date->format('Y-m-d');
                     $date->modify('+11 month');
                     $exerciceEnd = $date->format('Y-m-t');
-                    $exercice[$exerciceStart . '|' . $exerciceEnd] = sprintf($this->l('from %s to %s'), $exerciceStart, $exerciceEnd);
+                    $exercice[$exerciceStart . '|' . $exerciceEnd] =
+                        sprintf($this->l('from %s to %s'), $exerciceStart, $exerciceEnd);
                 }
 
             }
@@ -642,47 +720,16 @@ class Company extends PhenyxObjectModel {
         }
 
         return $exercice;
-
     }
-    
-    public function getPastExercices() {
-        
-        $exercice = [];
-        $today = date('Y-m-d');
-        $curent_year = date('Y');
-        $exercice[$this->start_date . '|' . $this->first_accounting_end] = sprintf($this->l('from %s to %s'), $this->start_date, $this->first_accounting_end);
-        $next_end = $this->currentExerciceEnd;
 
-        if ($today > $this->first_accounting_end) {
-            $date = new DateTime($this->first_accounting_end);
-            $date->modify('+1 day');
-            $exerciceStart = $date->format('Y-m-d');
-            $date->modify('+11 month');
-            $exerciceEnd = $date->format('Y-m-t');
-            $exercice_year = $date->format('Y');
-            $exercice[$exerciceStart . '|' . $exerciceEnd] = sprintf($this->l('from %s to %s'), $exerciceStart, $exerciceEnd);
-            $delta = $curent_year - $exercice_year;
+    public function getExercices(): array {
 
-            if ($delta > 0) {
+        return $this->buildExercices(true);
+    }
 
-                for ($i = 0; $i <= $delta; $i++) {
-                    $date = new DateTime($exerciceEnd);
-                    $date->modify('+1 day');
-                    $exerciceStart = $date->format('Y-m-d');
-                    $date->modify('+11 month');
-                    $exerciceEnd = $date->format('Y-m-t');
-                    $exercice[$exerciceStart . '|' . $exerciceEnd] = sprintf($this->l('from %s to %s'), $exerciceStart, $exerciceEnd);
+    public function getPastExercices(): array {
 
-                }
-
-                
-
-            }
-
-        }
-
-        return $exercice;
-
+        return $this->buildExercices(false);
     }
     
     public function l($string, $idLang = null, $context = null) {
@@ -692,13 +739,14 @@ class Company extends PhenyxObjectModel {
         if (strtolower(substr($class, -4)) == 'core') {
             $class = substr($class, 0, -4);
         }
-        if(isset($this->context->translations) && is_string($string)) {
+
+        // Fix #13: original had a second `return $string` after the if block without
+        // an explicit else, making the control flow ambiguous. Clarified with else.
+        if (isset($this->context->translations) && is_string($string)) {
             return $this->context->translations->getClassTranslation($string, $class);
         }
-        
-        return $string;
 
-        
+        return $string;
     }
 
 }

@@ -423,7 +423,8 @@ abstract class Db {
      */
     public function enableCache() {
 
-        $this->is_cache_enabled = false;
+        // Fix: original set is_cache_enabled = false, which disabled the cache.
+        $this->is_cache_enabled = true;
     }
 
     /**

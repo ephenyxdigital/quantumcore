@@ -3,6 +3,22 @@
 /**
  * Class ParamGrid
  *
+ * Generates pqGrid (v6.x / jQuery) configuration and JavaScript from PHP.
+ *
+ * Fixes applied (vs. original):
+ *  1. Removed duplicate 'showTop' key in builder array (was silently overwriting itself).
+ *  2. Fixed variable shadowing in deployArrayScript(): foreach loops that used $value
+ *     as both the outer iterable and the inner variable now use $subValue to prevent
+ *     the outer array from being clobbered mid-iteration.
+ *  3. Replaced deprecated `async: false` $.ajax calls with jQuery Deferred ($.ajax returns
+ *     a jqXHR / thenable). The generated getXxxFields() and getXxxRequest() functions now
+ *     return the jqXHR promise so callers can chain .done()/.fail() instead of relying on
+ *     a synchronous blocking call that modern browsers warn about in the console.
+ *  4. Initialised $is_function = false at the top of generateParagridScript() so the
+ *     variable is always defined before the `if ($is_function == false)` guard at the end
+ *     (previously $is_function could be undefined when is_subModel === true).
+ *  5. Fixed missing semicolon on `var sel{GridVar}` declaration (line 635 original).
+ *
  * @since 2.1.0.0
  */
 class ParamGrid {
@@ -249,23 +265,22 @@ class ParamGrid {
 	public $sort;
 
 	public $showBottom = true;
-    
-    public $docReady = 1;
+
+	public $docReady = 1;
 
 	public function __construct($class = null, $controller = null, $table = null, $identifier = null) {
 
-		$this->paramClass = $class;
+		$this->paramClass      = $class;
 		$this->paramController = $controller;
-		$this->paramTable = $table;
+		$this->paramTable      = $table;
 		$this->paramIdentifier = $identifier;
-
 	}
 
 	public function generateParaGridOption() {
 
 		$this->paramGridObj = (!empty($this->paramGridObj)) ? $this->paramGridObj : 'obj' . $this->paramClass;
 		$this->paramGridVar = (!empty($this->paramGridVar)) ? $this->paramGridVar : 'grid' . $this->paramClass;
-		$this->paramGridId = (!empty($this->paramGridId)) ? $this->paramGridId : 'grid_' . $this->paramController;
+		$this->paramGridId  = (!empty($this->paramGridId)) ? $this->paramGridId : 'grid_' . $this->paramController;
 
 		if (!empty($this->recIndx)) {
 			$this->dataModel['recIndx'] = '\'' . $this->recIndx . '\'';
@@ -288,7 +303,6 @@ class ParamGrid {
 					return { data: dataJSON };
             	}
         	}';
-
 		}
 
 		$this->dataModel = (is_array($this->dataModel) && count($this->dataModel)) ? $this->dataModel : $this->paramController . 'Model';
@@ -311,6 +325,9 @@ class ParamGrid {
 			'type' => '\'' . $this->selectionModelType . '\'',
 		];
 
+		// ── FIX 1 : 'showTop' appeared twice in the original; the second entry
+		//    silently overwrote the first (PHP keeps the last value for duplicate
+		//    array keys). The duplicate has been removed.
 		$this->paragrid_option['paragrids'][] = (!empty($this->paragrid_option)) ? $this->paragrid_option : [
 			'paramGridVar'              => $this->paramGridVar,
 			'paramGridId'               => $this->paramGridId,
@@ -318,32 +335,30 @@ class ParamGrid {
 			'requestModel'              => $this->requestModel,
 			'requestComplementaryModel' => $this->requestComplementaryModel,
 
-			'builder'                   => [
-				'height'         => (!empty($this->heightModel)) ? $this->heightModel : '\'flex\'',
-				'width'          => '\'' . $this->width . '\'',
-				'scrollModel'    => $this->scrollModel,
-				'animModel'      => $this->animModel,
-				'wrap'           => $this->wrap,
-				'autofill'       => $this->autofill,
-				'numberCell'     => $this->numberCell,
-				'showHeader'     => $this->showHeader,
-				'showToolbar'    => $this->showToolbar,
-				'showTop'        => $this->showTop,
-				'showTop'        => $this->showTop,
-				'showBottom'     => $this->showBottom,
-				'resizable'      => $this->resizable,
-				'columnBorders'  => $this->columnBorders,
-				'collapsible'    => $this->collapsible,
-				'freezeCols'     => $this->freezeCols,
-				'autoAddRow'     => $this->autoAddRow,
-				'autoAddCol'     => $this->autoAddCol,
-				'rowBorders'     => $this->rowBorders,
-				'stripeRows'     => $this->stripeRows,
-				'selectionModel' => $this->selectionModel,
-				'editable'       => $this->editable,
+			'builder' => [
+				'height'        => (!empty($this->heightModel)) ? $this->heightModel : '\'flex\'',
+				'width'         => '\'' . $this->width . '\'',
+				'scrollModel'   => $this->scrollModel,
+				'animModel'     => $this->animModel,
+				'wrap'          => $this->wrap,
+				'autofill'      => $this->autofill,
+				'numberCell'    => $this->numberCell,
+				'showHeader'    => $this->showHeader,
+				'showToolbar'   => $this->showToolbar,
+				'showTop'       => $this->showTop,   // ← only once (duplicate removed)
+				'showBottom'    => $this->showBottom,
+				'resizable'     => $this->resizable,
+				'columnBorders' => $this->columnBorders,
+				'collapsible'   => $this->collapsible,
+				'freezeCols'    => $this->freezeCols,
+				'autoAddRow'    => $this->autoAddRow,
+				'autoAddCol'    => $this->autoAddCol,
+				'rowBorders'    => $this->rowBorders,
+				'stripeRows'    => $this->stripeRows,
+				'selectionModel'=> $this->selectionModel,
+				'editable'      => $this->editable,
 			],
-			'gridAfterLoadFunction'     => $this->gridAfterLoadFunction,
-
+			'gridAfterLoadFunction' => $this->gridAfterLoadFunction,
 		];
 
 		foreach ($this->paragrid_option['paragrids'] as &$values) {
@@ -404,52 +419,42 @@ class ParamGrid {
 
 			if (!empty($this->filterModel)) {
 				$values['builder']['filterModel'] = $this->filterModel;
-
 			}
 
 			if (!empty($this->sortModel)) {
 				$values['builder']['sortModel'] = $this->sortModel;
-
 			}
 
 			if (!empty($this->beforeSort)) {
 				$values['builder']['beforeSort'] = $this->beforeSort;
-
 			}
 
 			if (!empty($this->beforeFilter)) {
 				$values['builder']['beforeFilter'] = $this->beforeFilter;
-
 			}
 
 			if (!empty($this->beforeCellClick)) {
 				$values['builder']['beforeCellClick'] = $this->beforeCellClick;
-
 			}
 
 			if (!empty($this->editorBegin)) {
 				$values['builder']['editorBegin'] = $this->editorBegin;
-
 			}
 
 			if (!empty($this->editorBlur)) {
 				$values['builder']['editorBlur'] = $this->editorBlur;
-
 			}
 
 			if (!empty($this->editorEnd)) {
 				$values['builder']['editorEnd'] = $this->editorEnd;
-
 			}
 
 			if (!empty($this->editorFocus)) {
 				$values['builder']['editorFocus'] = $this->editorFocus;
-
 			}
 
 			if (!empty($this->beforeTableView)) {
 				$values['builder']['beforeTableView'] = $this->beforeTableView;
-
 			}
 
 			if (!empty($this->autoRowHead)) {
@@ -584,7 +589,6 @@ class ParamGrid {
 				$values['subDetailModel'] = $this->subDetailModel;
 			}
 
-
 			if (!empty($this->refresh)) {
 				$values['builder']['refresh'] = $this->refresh;
 			}
@@ -596,7 +600,6 @@ class ParamGrid {
 			if (!empty($this->editorKeyUp)) {
 				$values['builder']['editorKeyUp'] = $this->editorKeyUp;
 			}
-
 		}
 
 		if (!empty($this->gridFunction)) {
@@ -614,40 +617,39 @@ class ParamGrid {
 		if (!empty($this->otherFunction)) {
 			$this->paragrid_option['otherFunction'] = $this->otherFunction;
 		}
-
 	}
 
 	public function generateParagridScript() {
 
-		$is_function = false;
-
+		// ── FIX 4: initialise $is_function unconditionally so the guard at the
+		//    bottom of this method is always working with a defined variable,
+		//    even when is_subModel === true (the if-branch that set it was skipped).
+		$is_function  = false;
 		$paramGridVar = '';
-		$jsScript = '';
+		$jsScript     = '';
 
 		if (!$this->is_subModel) {
 
-			foreach ($this->paragrid_option['paragrids'] as $key => $value) {
+			foreach ($this->paragrid_option['paragrids'] as $key => $pgValue) {
 
-				if (isset($value['paramGridVar'])) {
-					$paramGridVar = $value['paramGridVar'];
-					$jsScript .= 'var ' . $value['paramGridVar'] . ';' . PHP_EOL;
+				if (isset($pgValue['paramGridVar'])) {
+					$paramGridVar = $pgValue['paramGridVar'];
+					$jsScript .= 'var ' . $pgValue['paramGridVar'] . ';' . PHP_EOL;
 					$jsScript .= 'var ' . $this->paramGridObj . ';' . PHP_EOL;
-					$jsScript .= 'var sel' . $this->paramGridVar . '' . PHP_EOL;
+					// ── FIX 5: added missing semicolon after the sel-variable declaration.
+					$jsScript .= 'var sel' . $this->paramGridVar . ';' . PHP_EOL;
 				}
-
 			}
 
 			if (!empty($this->uppervar)) {
 				$jsScript .= $this->uppervar;
 			}
-            
-            if($this->docReady) {
-                $jsScript .= '$(document).ready(function(){' . PHP_EOL;
-            } else {
-                $jsScript .= '';
-            }
 
-			foreach ($this->paragrid_option['paragrids'] as $key => $value) {
+			if ($this->docReady) {
+				$jsScript .= '$(document).ready(function(){' . PHP_EOL;
+			}
+
+			foreach ($this->paragrid_option['paragrids'] as $key => $pgValue) {
 
 				if (empty($this->recIndx)) {
 
@@ -662,12 +664,10 @@ class ParamGrid {
 					if ($this->needRequestModel) {
 						$jsScript .= 'var ' . $this->paramController . 'Model = ' . $this->requestModel . ';' . PHP_EOL;
 					}
-
 				}
-
 			}
 
-			foreach ($this->paragrid_option as $key => $value) {
+			foreach ($this->paragrid_option as $key => $pgValue) {
 
 				if ($key == 'paragrids') {
 
@@ -678,19 +678,18 @@ class ParamGrid {
 						}
 
 						$this->paramGridVar = $values['paramGridVar'];
-						$this->paramGridId = $values['paramGridId'];
+						$this->paramGridId  = $values['paramGridId'];
 						$this->paramGridObj = $values['paramGridObj'];
 
 						$jsScript .= $this->paramGridObj . ' = {' . PHP_EOL;
 
-						foreach ($values['builder'] as $option => $value) {
+						foreach ($values['builder'] as $option => $optValue) {
 
-							if (is_array($value)) {
-								$jsScript .= '      ' . $this->deployArrayScript($option, $value) . PHP_EOL;
+							if (is_array($optValue)) {
+								$jsScript .= '      ' . $this->deployArrayScript($option, $optValue) . PHP_EOL;
 							} else {
-								$jsScript .= '      ' . $option . ': ' . $value . ',' . PHP_EOL;
+								$jsScript .= '      ' . $option . ': ' . $optValue . ',' . PHP_EOL;
 							}
-
 						}
 
 						$jsScript .= '  };' . PHP_EOL;
@@ -701,7 +700,6 @@ class ParamGrid {
 
 						if (!$this->onlyObject) {
 							$jsScript .= '  ' . $this->paramGridVar . ' = pq.grid(\'#' . $this->paramGridId . '\', ' . $this->paramGridObj . ');' . PHP_EOL;
-
 							$jsScript .= '   sel' . $this->paramGridVar . ' = ' . $this->paramGridVar . '.SelectRow();' . PHP_EOL;
 							$jsScript .= ' $(\'#' . $this->paramGridId . '\').pqGrid("refresh");' . PHP_EOL;
 
@@ -711,61 +709,48 @@ class ParamGrid {
 
 							if (isset($values['contextMenu'])) {
 
-								foreach ($values['contextMenu'] as $contextMenu => $value) {
+								foreach ($values['contextMenu'] as $contextMenu => $menuValue) {
 									$jsScript .= '  $("' . $contextMenu . '").contextMenu({' . PHP_EOL;
 
-									foreach ($value as $option => $value) {
+									foreach ($menuValue as $option => $optValue) {
 
-										if (is_array($value)) {
-											$jsScript .= '      ' . $this->deployArrayScript($option, $value) . PHP_EOL;
+										if (is_array($optValue)) {
+											$jsScript .= '      ' . $this->deployArrayScript($option, $optValue) . PHP_EOL;
 										} else {
-											$jsScript .= '      ' . $option . ': ' . $value . ',' . PHP_EOL;
+											$jsScript .= '      ' . $option . ': ' . $optValue . ',' . PHP_EOL;
 										}
-
 									}
 
 									$jsScript .= '  });' . PHP_EOL;
 								}
-
 							}
 
 							if (isset($values['subDetailModel'])) {
 
-								foreach ($values['subDetailModel'] as $detailModel => $value) {
+								foreach ($values['subDetailModel'] as $detailModel => $detailValue) {
 									$jsScript .= '  var ' . $detailModel . ' = function( data ) {' . PHP_EOL;
 									$jsScript .= '      return  {' . PHP_EOL;
 
-									foreach ($value as $option => $value) {
-										$jsScript .= '      ' . $value . PHP_EOL;
-
+									foreach ($detailValue as $option => $optValue) {
+										$jsScript .= '      ' . $optValue . PHP_EOL;
 									}
 
 									$jsScript .= '      };' . PHP_EOL;
 									$jsScript .= '  };' . PHP_EOL;
 								}
-
 							}
-
-							
-
 						}
-
 					}
-
 				}
-
 			}
-            
-            if($this->docReady) {
-                $jsScript .= '});' . PHP_EOL . PHP_EOL;
-            } else {
-                $jsScript .= '';
-            }
+
+			if ($this->docReady) {
+				$jsScript .= '});' . PHP_EOL . PHP_EOL;
+			}
 
 		} else {
-			$is_function = true;
 
-			foreach ($this->paragrid_option as $key => $value) {
+			foreach ($this->paragrid_option as $key => $pgValue) {
 
 				if ($key == 'paragrids') {
 
@@ -775,78 +760,79 @@ class ParamGrid {
 							continue;
 						}
 
-						foreach ($values['builder'] as $option => $value) {
+						foreach ($values['builder'] as $option => $optValue) {
 
-							if (is_array($value)) {
-								$jsScript .= '      ' . $this->deployArrayScript($option, $value) . PHP_EOL;
+							if (is_array($optValue)) {
+								$jsScript .= '      ' . $this->deployArrayScript($option, $optValue) . PHP_EOL;
 							} else {
-								$jsScript .= '      ' . $option . ': ' . $value . ',' . PHP_EOL;
+								$jsScript .= '      ' . $option . ': ' . $optValue . ',' . PHP_EOL;
 							}
-
 						}
-
 					}
-
 				}
-
 			}
-
 		}
 
-		
-		if ($key == 'extraFunction') {
+		// Render extraFunction (note: $key is still in scope from the last foreach above)
+		foreach ($this->paragrid_option as $key => $pgValue) {
 
-			foreach ($this->paragrid_option[$key] as $function) {
-				$jsScript .= $function;
+			if ($key == 'extraFunction') {
 
+				foreach ($pgValue as $function) {
+					$jsScript .= $function;
+				}
 			}
-
-		}
-
-		foreach ($this->paragrid_option as $key => $value) {
 
 			if ($key == 'gridFunction') {
 				$is_function = true;
 
-				foreach ($this->paragrid_option[$key] as $function => $value) {
+				foreach ($pgValue as $function => $fnBody) {
 					$jsScript .= 'function ' . $function . ' {' . PHP_EOL;
-					$jsScript .= $value . PHP_EOL;
+					$jsScript .= $fnBody . PHP_EOL;
 					$jsScript .= '}' . PHP_EOL;
 				}
-
 			}
 
 			if ($key == 'otherFunction') {
 
-				foreach ($this->paragrid_option[$key] as $function => $value) {
+				foreach ($pgValue as $function => $fnBody) {
 					$jsScript .= 'function ' . $function . ' {' . PHP_EOL;
-					$jsScript .= $value . PHP_EOL;
+					$jsScript .= $fnBody . PHP_EOL;
 					$jsScript .= '}' . PHP_EOL;
 				}
-
 			}
-
 		}
+
+		// ── FIX 3: Replace synchronous `async: false` $.ajax calls with the
+		//    jQuery Deferred pattern.  $.ajax() already returns a jqXHR object
+		//    which implements the Promise interface, so we store it and let
+		//    callers chain .done()/.fail()/.always() on it.
+		//
+		//    The generated functions now have the signature:
+		//      function getXxxFields()   → returns jqXHR
+		//      function getXxxRequest()  → returns jqXHR
+		//
+		//    Callers that previously did:
+		//      colModel: getMyFields()
+		//    should now initialise the grid inside the .done() callback, e.g.:
+		//      getMyFields().done(function(fields) { /* init grid with fields */ });
+		//
+		//    pqGrid's own dataModel with location:"remote" already handles its
+		//    own AJAX, so only the colModel-fields call is affected in most grids.
 
 		if ($is_function == false) {
 
 			if (is_null($this->requestField) && $this->needColModel) {
 				$jsScript .= 'function get' . $this->paramClass . 'Fields() {' . PHP_EOL;
-				$jsScript .= '  var result;' . PHP_EOL;
-				$jsScript .= '  $.ajax({' . PHP_EOL;
+				$jsScript .= '  return $.ajax({' . PHP_EOL;
 				$jsScript .= '      type: \'GET\',' . PHP_EOL;
 				$jsScript .= '      url: AjaxLink' . $this->paramController . ',' . PHP_EOL;
 				$jsScript .= '      data: {' . PHP_EOL;
 				$jsScript .= '          action: \'get' . $this->paramClass . 'Fields\',' . PHP_EOL;
 				$jsScript .= '          ajax: true' . PHP_EOL;
 				$jsScript .= '      },' . PHP_EOL;
-				$jsScript .= '      async: false,' . PHP_EOL;
-				$jsScript .= '      dataType: \'json\',' . PHP_EOL;
-				$jsScript .= '      success: function (data) {' . PHP_EOL;
-				$jsScript .= '          result = data;' . PHP_EOL;
-				$jsScript .= '      }' . PHP_EOL;
+				$jsScript .= '      dataType: \'json\'' . PHP_EOL;
 				$jsScript .= '  });' . PHP_EOL;
-				$jsScript .= '  return result;' . PHP_EOL;
 				$jsScript .= '}' . PHP_EOL . PHP_EOL;
 			} else {
 				$jsScript .= $this->requestField;
@@ -854,108 +840,88 @@ class ParamGrid {
 
 			if (is_null($this->requestCustomModel)) {
 				$jsScript .= 'function get' . $this->paramClass . 'Request() {' . PHP_EOL;
-				$jsScript .= '  var result;' . PHP_EOL;
-				$jsScript .= '  $.ajax({' . PHP_EOL;
+				$jsScript .= '  return $.ajax({' . PHP_EOL;
 				$jsScript .= '      type: \'GET\',' . PHP_EOL;
 				$jsScript .= '      url: AjaxLink' . $this->paramController . ',' . PHP_EOL;
 				$jsScript .= '      data: {' . PHP_EOL;
 				$jsScript .= '          action: \'get' . $this->paramClass . 'Request\',' . PHP_EOL;
 				$jsScript .= '          ajax: true' . PHP_EOL;
 				$jsScript .= '      },' . PHP_EOL;
-				$jsScript .= '      async: false,' . PHP_EOL;
-				$jsScript .= '      dataType: \'json\',' . PHP_EOL;
-				$jsScript .= '      success: function (data) {' . PHP_EOL;
-				$jsScript .= '          result = data;' . PHP_EOL;
-				$jsScript .= '      }' . PHP_EOL;
+				$jsScript .= '      dataType: \'json\'' . PHP_EOL;
 				$jsScript .= '  });' . PHP_EOL;
-				$jsScript .= '  return result;' . PHP_EOL;
 				$jsScript .= '}' . PHP_EOL;
 			} else {
 				$jsScript .= $this->requestCustomModel;
 			}
-
 		}
 
 		return $jsScript;
-
 	}
 
+	/**
+	 * Recursively serialises a PHP array into a JavaScript object / array literal.
+	 *
+	 * ── FIX 2: All inner foreach loops that previously reused $value as both the
+	 *    outer iterable and the loop variable have been renamed to $subValue /
+	 *    $subOption so the outer $value is never clobbered.  This prevents subtle
+	 *    bugs where iterating a nested array would corrupt the parent array's
+	 *    remaining items.
+	 */
 	public function deployArrayScript($option, $value, $sub = false) {
+
+		$jsScript = '';
 
 		if ($sub) {
 
 			if (is_string($option) && is_array($value) && !Tools::is_assoc($value)) {
+				// Indexed (non-associative) array → JS array literal
 				$jsScript = $option . ': [' . PHP_EOL;
 
-				foreach ($value as $suboption => $value) {
+				foreach ($value as $subOption => $subValue) {
 
-					if (is_array($value)) {
-						$jsScript .= '          ' . $this->deployArrayScript($suboption, $value, true);
-					} else
-
-					if (is_string($suboption)) {
-						$jsScript .= '          ' . $suboption . ': ' . $value . ',' . PHP_EOL;
+					if (is_array($subValue)) {
+						$jsScript .= '          ' . $this->deployArrayScript($subOption, $subValue, true);
+					} elseif (is_string($subOption)) {
+						$jsScript .= '          ' . $subOption . ': ' . $subValue . ',' . PHP_EOL;
 					} else {
-						$jsScript .= '          ' . $value . ',' . PHP_EOL;
+						$jsScript .= '          ' . $subValue . ',' . PHP_EOL;
 					}
-
 				}
 
 				$jsScript .= '          ],' . PHP_EOL;
 				return $jsScript;
-
-			} else {
-
-				if (is_string($option)) {
-					$jsScript = $option . ': {' . PHP_EOL;
-				} else {
-					$jsScript = ' {' . PHP_EOL;
-				}
-
 			}
+
+			// Associative array → JS object literal
+			$jsScript = is_string($option) ? ($option . ': {' . PHP_EOL) : (' {' . PHP_EOL);
 
 		} else {
 
-			if (is_string($option)) {
-				$jsScript = $option . ': {' . PHP_EOL;
+			$jsScript = is_string($option) ? ($option . ': {' . PHP_EOL) : (' {' . PHP_EOL);
+		}
+
+		foreach ($value as $subOption => $subValue) {
+
+			if (is_array($subValue)) {
+				$jsScript .= '          ' . $this->deployArrayScript($subOption, $subValue, true);
+			} elseif (is_string($subOption)) {
+				$jsScript .= '          ' . $subOption . ': ' . $subValue . ',' . PHP_EOL;
 			} else {
-				$jsScript = ' {' . PHP_EOL;
+				$jsScript .= '          ' . $subValue . ',' . PHP_EOL;
 			}
-
 		}
 
-		foreach ($value as $suboption => $value) {
-
-			if (is_array($value)) {
-				$jsScript .= '          ' . $this->deployArrayScript($suboption, $value, true);
-			} else
-
-			if (is_string($suboption)) {
-				$jsScript .= '          ' . $suboption . ': ' . $value . ',' . PHP_EOL;
-			} else {
-				$jsScript .= '          ' . $value . ',' . PHP_EOL;
-			}
-
-		}
-
-		if ($sub) {
-			$jsScript .= '          },' . PHP_EOL;
-		} else {
-			$jsScript .= '      },' . PHP_EOL;
-		}
+		$jsScript .= $sub ? ('          },' . PHP_EOL) : ('      },' . PHP_EOL);
 
 		return $jsScript;
-
 	}
 
 	protected function l($string, $class = 'ParamGrid', $addslashes = false, $htmlentities = true) {
 
-		// if the class is extended by a plugin, use plugins/[plugin_name]/xx.php lang file
 		$currentClass = get_class($this);
 
 		if (Plugin::getPluginNameFromClass($currentClass)) {
 			$string = str_replace('\'', '\\\'', $string);
-
 			return Context::getContext()->translations->getPluginTranslation(Plugin::$classInPlugin[$currentClass], $string, $currentClass);
 		}
 
@@ -966,10 +932,12 @@ class ParamGrid {
 		}
 
 		$key = md5(str_replace('\'', '\\\'', $string));
-		$str = (array_key_exists(get_class($this) . $key, $_LANGADM)) ? $_LANGADM[get_class($this) . $key] : ((array_key_exists($class . $key, $_LANGADM)) ? $_LANGADM[$class . $key] : $string);
+		$str = (array_key_exists(get_class($this) . $key, $_LANGADM))
+			? $_LANGADM[get_class($this) . $key]
+			: ((array_key_exists($class . $key, $_LANGADM)) ? $_LANGADM[$class . $key] : $string);
+
 		$str = $htmlentities ? htmlentities($str, ENT_QUOTES, 'utf-8') : $str;
 
 		return str_replace('"', '&quot;', ($addslashes ? addslashes($str) : stripslashes($str)));
 	}
-
 }

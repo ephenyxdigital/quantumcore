@@ -19,8 +19,10 @@ abstract class Plugin {
     const TYPE_HTML = 6;
     const TYPE_NOTHING = 7;
     const TYPE_SQL = 8;
-    const TYPE_JSON = 9;
-    const TYPE_SCRIPT = 9;
+    const TYPE_JSON   = 9;
+    // Fix #1: TYPE_SCRIPT was erroneously identical to TYPE_JSON (both = 9),
+    // causing switch collisions. Assigned unique value 10.
+    const TYPE_SCRIPT = 10;
 
     const CACHE_FILE_TAB_PLUGINS_LIST = '/app/xml/tab_plugins_list.xml';
 
@@ -343,32 +345,35 @@ abstract class Plugin {
 
         foreach (Language::getLanguages(true) as $lang) {
 
+            // Fix #15: original used @include to silence errors. If a translation
+            // file has a PHP syntax error it would be swallowed silently.
+            // Using include without @ so errors are visible in logs.
             $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $lang['iso_code'] . '.php';
 
             if (file_exists($file)) {
-                @include $file;
-                $this->_translations[$lang['iso_code']]['plugin'] = $_PLUGINS;
+                include $file;
+                $this->_translations[$lang['iso_code']]['plugin'] = $_PLUGINS ?? [];
             }
 
             $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $lang['iso_code'] . '/admin.php';
 
             if (file_exists($file)) {
-                @include $file;
-                $this->_translations[$lang['iso_code']]['admin'] = $_LANGADM;
+                include $file;
+                $this->_translations[$lang['iso_code']]['admin'] = $_LANGADM ?? [];
             }
 
             $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $lang['iso_code'] . '/class.php';
 
             if (file_exists($file)) {
-                @include $file;
-                $this->_translations[$lang['iso_code']]['class'] = $_LANGCLASS;
+                include $file;
+                $this->_translations[$lang['iso_code']]['class'] = $_LANGCLASS ?? [];
             }
 
             $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $lang['iso_code'] . '/front.php';
 
             if (file_exists($file)) {
-                @include $file;
-                $this->_translations[$lang['iso_code']]['front'] = $_LANGFRONT;
+                include $file;
+                $this->_translations[$lang['iso_code']]['front'] = $_LANGFRONT ?? [];
             }
 
         }
@@ -424,10 +429,12 @@ abstract class Plugin {
 
     public function dropSqlColumn($table, $column) {
 
-        $query = 'ALTER TABLE `"' . _DB_PREFIX_ . $table . '"` DROP `' . $column . '';
+        // Fix #6: original query was malformed:
+        //   ALTER TABLE `"PREFIX_table"` DROP `column   (no closing backtick, stray double-quotes)
+        // Corrected to proper backtick-quoted SQL.
+        $query = 'ALTER TABLE `' . _DB_PREFIX_ . $table . '` DROP `' . $column . '`';
 
-        $result = Db::getInstance()->execute(trim($query));
-
+        Db::getInstance()->execute(trim($query));
     }
 
     public function installsql($file) {
@@ -755,7 +762,9 @@ abstract class Plugin {
             $plugins = empty($value) ? null : Tools::jsonDecode($value);
 
             if (!is_null($plugins) && is_array($plugins) && count($plugins)) {
-                // return $plugins;
+                // Fix #7: this return was commented out, making the cache completely
+                // useless — plugins were always reloaded from disk on every call.
+                return $plugins;
             }
 
         }
@@ -768,7 +777,6 @@ abstract class Plugin {
         }
 
         return $plugins;
-
     }
 
     public static function getPluginsOnDisk($full = false) {
@@ -1102,11 +1110,16 @@ abstract class Plugin {
         $cacheId = 'getInstalledPluginsDirOnDisk';
 
         if (!CacheApi::isStored($cacheId)) {
-            $plugins = [];
-            $pluginList = [];
-            $plugins = scandir(_EPH_PLUGIN_DIR_);
 
-            foreach ($plugins as $name) {
+            // Fix #13: original reused $plugins for both scandir() results and the
+            // final list of installed plugin names, mixing two different types in the
+            // same variable and storing corrupted data in the cache.
+            // Now using $scannedDirs for scandir results and $pluginList / $installedPlugins
+            // for the two distinct lists.
+            $pluginList    = [];
+            $scannedDirs   = scandir(_EPH_PLUGIN_DIR_);
+
+            foreach ($scannedDirs as $name) {
 
                 if (is_file(_EPH_PLUGIN_DIR_ . $name)) {
                     continue;
@@ -1123,9 +1136,9 @@ abstract class Plugin {
 
             }
 
-            $plugins = scandir(_EPH_SPECIFIC_PLUGIN_DIR_);
+            $scannedDirs = scandir(_EPH_SPECIFIC_PLUGIN_DIR_);
 
-            foreach ($plugins as $name) {
+            foreach ($scannedDirs as $name) {
 
                 if (is_file(_EPH_SPECIFIC_PLUGIN_DIR_ . $name)) {
                     continue;
@@ -1142,15 +1155,17 @@ abstract class Plugin {
 
             }
 
+            $installedPlugins = [];
+
             foreach ($pluginList as $plugin) {
 
                 if (Plugin::isInstalled($plugin, false)) {
-                    $plugins[] = $plugin;
+                    $installedPlugins[] = $plugin;
                 }
 
             }
 
-            CacheApi::store($cacheId, $plugins);
+            CacheApi::store($cacheId, $installedPlugins);
         }
 
         return CacheApi::retrieve($cacheId);
@@ -1209,15 +1224,17 @@ abstract class Plugin {
         if ($position) {
             $sql->leftJoin('hook_plugin', 'hm', 'm.`id_plugin` = hm.`id_plugin`');
             $sql->leftJoin('hook', 'h', 'h.`id_hook` = hm.`id_hook`');
-            $sql->where('k.`position` = 1');
+            // Fix #5: alias 'k' did not exist in the query — was causing an SQL error.
+            // The correct alias for the hook table is 'h'.
+            $sql->where('h.`position` = 1');
             $sql->groupBy('m.`id_plugin`');
         }
 
         $sql->where('m.active = 1');
         $sql->orderBy('m.position');
 
-        $plugins = Db::getInstance()->executeS($sql);
-
+        // Fix #4: the original executed the query twice (once into $plugins which
+        // was never used, then again in the return). Now executed only once.
         return Db::getInstance()->executeS($sql);
     }
 
@@ -1232,8 +1249,7 @@ abstract class Plugin {
             ->where('hp.id_plugin > 0')
             ->orderBy('p.position');
 
-        $plugins = Db::getInstance()->executeS($sql);
-
+        // Fix #4: same double-query pattern as getPluginsInstalled() — fixed.
         return Db::getInstance()->executeS($sql);
     }
 
@@ -1275,7 +1291,8 @@ abstract class Plugin {
             $groups = $context->user->getGroups();
 
             if (!count($groups)) {
-                $groups = [$this->context->phenyxConfig->get('EPH_UNIDENTIFIED_GROUP')];
+                // Fix #8: $this does not exist in a static method — use $context.
+                $groups = [$context->phenyxConfig->get('EPH_UNIDENTIFIED_GROUP')];
             }
 
         }
@@ -1284,7 +1301,8 @@ abstract class Plugin {
         $groups = $context->user->getGroups();
 
         if (!count($groups)) {
-            $groups = [$this->context->phenyxConfig->get('EPH_UNIDENTIFIED_GROUP')];
+            // Fix #8: same $this → $context fix.
+            $groups = [$context->phenyxConfig->get('EPH_UNIDENTIFIED_GROUP')];
         }
 
         $hookPayment = 'Payment';
@@ -1701,7 +1719,10 @@ abstract class Plugin {
         $curl = new Curl();
         $curl->setDefaultJsonDecoder($assoc = true);
         $curl->setHeader('Content-Type', 'application/json');
-        $curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
+        // Fix #16: SSL verification was disabled (CURLOPT_SSL_VERIFYPEER = false),
+        // exposing license key transmission to man-in-the-middle attacks.
+        // Re-enabled — the remote endpoint at ephenyx.io should have a valid certificate.
+        $curl->setOpt(CURLOPT_SSL_VERIFYPEER, true);
         $curl->post($url, json_encode($data_array));
         $response = $curl->response;
 
@@ -1713,7 +1734,10 @@ abstract class Plugin {
             return false;
         }
 
-        if (version_compare('1.6.1.20', $this->eph_versions_compliancy['max'], '>')) {
+        // Fix #9: the original hardcoded '1.6.1.20' as the version to compare against
+        // eph_versions_compliancy['max'], meaning the check was never based on the
+        // actual running version. Replaced with _EPH_VERSION_.
+        if (version_compare(_EPH_VERSION_, $this->eph_versions_compliancy['max'], '>')) {
             return false;
         }
 
@@ -2237,8 +2261,13 @@ abstract class Plugin {
             return false;
         }
 
-        Db::getInstance(_EPH_USE_SQL_SLAVE_)->execute('UPDATE `' . _DB_PREFIX_ . 'plugin` SET active = 1 WHERE `id_plugin` = ' . $this->id);
+        // Fix #10: original used Db::getInstance(_EPH_USE_SQL_SLAVE_) for a write
+        // operation — slave connections are read-only. Using master instance.
+        Db::getInstance()->execute(
+            'UPDATE `' . _DB_PREFIX_ . 'plugin` SET active = 1 WHERE `id_plugin` = ' . $this->id
+        );
         $this->updateIoPlugins();
+
         return true;
     }
 
@@ -2528,7 +2557,7 @@ abstract class Plugin {
         return $result;
     }
 
-    public function instalPluginTab($class_name, $name, $function = true, $idParent = null, $parentName = null, $position = null, $openFunction = null, $divider = 0, $fa_duatone = null, $common_function = null) {
+    public function installPluginTab($class_name, $name, $function = true, $idParent = null, $parentName = null, $position = null, $openFunction = null, $divider = 0, $fa_duatone = null, $common_function = null) {
 
         if (is_null($parentName) && is_null($idParent)) {
             return false;
@@ -2658,23 +2687,29 @@ abstract class Plugin {
     }
 
     public function unregisterHook($id_hook) {
-        $id_hook_plugin = Db::getInstance()->getValue((new DbQuery())
+
+        $id_hook_plugin = Db::getInstance()->getValue(
+            (new DbQuery())
                 ->select('hm.`id_hook_plugin`')
                 ->from('hook_plugin', 'hm')
                 ->leftJoin('hook', 'h', 'h.`id_hook` = hm.`id_hook`')
                 ->where('hm.`id_plugin` = ' . (int) $this->id)
-                ->where('h.`id_hook` = ' . $id_hook));
+                ->where('h.`id_hook` = ' . $id_hook)
+        );
 
         if ($id_hook_plugin) {
             $hookName = $this->context->_hook->getNameById((int) $id_hook);
             $this->context->_hook->exec('actionModuleUnRegisterHookBefore', ['object' => $this, 'hook_name' => $hookName]);
             $hookPlugin = new HookPlugin($id_hook_plugin);
-            return $hookPlugin->delete();
+            // Fix #2: original did `return $hookPlugin->delete()` here, making the
+            // "After" hook unreachable (dead code). Capture result first, then fire hook.
+            $result = $hookPlugin->delete();
             $this->context->_hook->exec('actionModuleUnRegisterHookAfter', ['object' => $this, 'hook_name' => $hookName]);
+
+            return $result;
         }
 
         return true;
-
     }
 
     public function cleanPositions($idHook) {
@@ -2768,42 +2803,17 @@ abstract class Plugin {
         }
 
         if (!isset($this->context->language)) {
-            $this->context->language = Tools::jsonDecode(Tools::jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'))));
-
+            $this->context->language = Tools::jsonDecode(
+                Tools::jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT')))
+            );
         }
 
+        // Fix #3: The original returned here but had ~30 lines of dead code below
+        // (config/company/language re-init + duplicate getPluginTranslation call).
+        // All unreachable code has been removed.
         $_translate = Translation::getInstance();
 
         return $_translate->getExistingTranslation($this->context->language->iso_code, $string);
-
-        if (!isset($this->context->phenyxConfig)) {
-            $this->context->phenyxConfig = Configuration::getInstance();
-
-        }
-
-        if (!isset($this->context->company)) {
-
-            $this->context->company = Company::initialize();
-        }
-
-        if (!isset($this->context->language)) {
-            $this->context->language = Tools::jsonDecode(Tools::jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'))));
-
-        }
-
-        if (!isset($this->context->translations)) {
-
-            $this->context->translations = new Translate($this->context->language->iso_code, $this->context->company);
-        }
-
-        try {
-            return $this->context->translations->getPluginTranslation($this, $string, ($specific) ? $specific : $this->name);
-
-        } catch (PhenyxException $e) {
-            PhenyxLogger::addLog($this->name . ' :' . $e->getMessage(), 2);
-        }
-
-        return $this->context->translations->getPluginTranslation($this, $string, ($specific) ? $specific : $this->name);
     }
 
     public function registerHook($hookName, $companyList = null, $position = null) {
@@ -3065,7 +3075,9 @@ abstract class Plugin {
 
         if ($dispatch) {
 
-            if (isset($exceptions_cache[$key], $exceptions_cache[$key])) {
+            // Fix #11: original was isset($exceptions_cache[$key], $exceptions_cache[$key])
+            // — checking the same key twice is redundant. Simplified to single check.
+            if (isset($exceptions_cache[$key])) {
                 $array_return = $exceptions_cache[$key];
             }
 
@@ -3125,7 +3137,8 @@ abstract class Plugin {
 
         if ($dispatch) {
 
-            if (isset($exceptions_cache[$key], $exceptions_cache[$key])) {
+            // Fix #11: same redundant isset($key, $key) as in getExceptions() — fixed.
+            if (isset($exceptions_cache[$key])) {
                 $array_return = $exceptions_cache[$key];
             }
 
