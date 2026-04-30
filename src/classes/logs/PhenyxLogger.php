@@ -129,27 +129,28 @@ class PhenyxLogger extends PhenyxObjectModel {
     public function sendByMail($log) {
 
         if ((int) $this->context->phenyxConfig->get('EPH_LOGS_BY_EMAIL') <= (int) $log->severity) {
-            $tpl = $this->context->smarty->createTemplate(_EPH_MAIL_DIR_ . 'log_alert.tpl');
-            $tpl->assign([
+            $mailer = new PhenyxMailer(_EPH_MAIL_DIR_ . 'log_alert.tpl');
+            $mailer->mailer->assign([
                 'message'   => $log->message,
                 'firstname' => 'Jeff',
                 'lastname'  => 'Hunger',
             ]);
-            $postfields = [
-                'sender'      => [
-                    'name'  => sprintf($this->l("Administrative department of %s"), $this->context->phenyxConfig->get('EPH_SHOP_NAME')),
-                    'email' => $this->context->phenyxConfig->get('EPH_SHOP_EMAIL'),
-                ],
-                'to'          => [
-                    [
-                        'name'  => 'Jeff Hunger',
-                        'email' => 'jeff@ephenyx.com',
-                    ],
-                ],
-                'subject'     => $this->l('Warning! New log alert'),
-                "htmlContent" => $tpl->fetch(),
+            $mailer->sender =  [
+                'name'  => sprintf($this->l("Administrative department of %s"), $this->context->phenyxConfig->get('EPH_SHOP_NAME')),
+                'email' => $this->context->phenyxConfig->get('EPH_SHOP_EMAIL'),
             ];
-            Tools::sendEmail($postfields);
+
+            $mailer->to =  [
+                [
+				    'name'  => 'Jeff Hunger',
+                    'email' => 'jeff@ephenyx.com',
+				],
+    
+            ];
+            $mailer->subject = $this->l('Warning! New log alert');
+            
+            $result = $mailer->send();
+            
         }
 
     }
