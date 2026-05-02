@@ -177,6 +177,7 @@ class PhenyxMailer {
             $mail->Username = $this->context->phenyxConfig->get('EPH_MAIL_USER');
             $mail->Password = $this->context->phenyxConfig->get('EPH_MAIL_PASSWD');
             $mail->setFrom($this->sender['email'], $this->sender['name']);
+            $mail->addReplyTo($this->sender['email'], $this->sender['name']);
 
             foreach ($this->to as $key => $value) {
                 $mail->addAddress($value['email'], $value['name']);

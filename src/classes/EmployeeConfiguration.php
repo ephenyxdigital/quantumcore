@@ -14,7 +14,7 @@ class EmployeeConfiguration extends PhenyxObjectModel {
 			'date_add'    => ['type' => self::TYPE_DATE, 'validate' => 'isDate'],
 			'date_upd'    => ['type' => self::TYPE_DATE, 'validate' => 'isDate'],
 			'generated'   => ['type' => self::TYPE_BOOL, 'lang' => true],
-			'value'       => ['type' => self::TYPE_JSON, 'lang' => true],
+			'value'       => ['type' => self::TYPE_STRING, 'lang' => true],
 		],
 	];
 
@@ -143,7 +143,7 @@ class EmployeeConfiguration extends PhenyxObjectModel {
 
 		$result = [
 			'success' => false,
-			'message' => sprintf($this->la('We encounter a problem creating %s %s preference'), $employee->firstname, $employee->lastname),
+			'message' => sprintf($this->l('We encounter a problem creating %s %s preference'), $this->context->employee->firstname, $this->context->employee->lastname),
 		];
 		die(Tools::jsonEncode($result));
 

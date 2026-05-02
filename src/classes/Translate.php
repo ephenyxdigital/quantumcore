@@ -719,7 +719,6 @@ class Translate {
         if (isset($langArray['FrontController' . $key])) {
             $str = $langArray['FrontController' . $key];
         } else {
-            // note in 1.5, some translations has moved from AdminXX to helper/*.tpl
             $str = $string;
         }
 
@@ -740,14 +739,12 @@ class Translate {
 
     public function postProcessTranslation($string, $params) {
 
-        // If tags were explicitely provided, we want to use them *after* the translation string is escaped.
-
         if (!empty($params['tags'])) {
 
             foreach ($params['tags'] as $index => $tag) {
-                // Make positions start at 1 so that it behaves similar to the %1$d etc. sprintf positional params
+               
                 $position = $index + 1;
-                // extract tag name
+         
                 $match = [];
 
                 if (preg_match('/^\s*<\s*(\w+)/', $tag, $match)) {
