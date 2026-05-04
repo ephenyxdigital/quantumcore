@@ -220,7 +220,7 @@ class SmartyTools {
     }
     
     public static function printR($array) {
-        if(is_array($array)) {
+        if(is_array($array) || is_object($array)) {
             return print_r($array);
         }
         return $array;
