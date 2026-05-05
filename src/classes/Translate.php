@@ -55,36 +55,42 @@ class Translate {
             $iso = $this->context->language->iso_code;
         }
 
-        global $_LANGADM, $_LANGOVADM, $_LANGCLASS, $_LANGFRONT, $_LANG, $_LANGMAIL, $_LANGPDF;
+        global $_LANGADM, $_LANGOVADM, $_LANGCLASS, $_LANGOVCLASS, $_LANGFRONT, $_LANGOVFRONT, $_LANG, $_LANGMAIL, $_LANGPDF;
+
+        // Reset all translation arrays before loading to prevent contamination
+        // from previously loaded languages in the same PHP process.
+        // Using include (not require_once) forces a fresh load every time.
+        $_LANGADM   = [];
+        $_LANGOVADM = [];
+        $_LANGCLASS = [];
+        $_LANGFRONT = [];
+        $_LANGMAIL  = [];
+        $_LANGPDF   = [];
 
         if (file_exists(_EPH_TRANSLATIONS_DIR_ . $iso . '/admin.php')) {
-            require_once _EPH_TRANSLATIONS_DIR_ . $iso . '/admin.php';
+            include _EPH_TRANSLATIONS_DIR_ . $iso . '/admin.php';
         }
         if (file_exists(_EPH_OVERRIDE_TRANSLATIONS_DIR_ . $iso . '/admin.php')) {
-
-            include_once _EPH_OVERRIDE_TRANSLATIONS_DIR_ . $iso . '/admin.php';
+            include _EPH_OVERRIDE_TRANSLATIONS_DIR_ . $iso . '/admin.php';
         }
-        if(is_array($_LANGADM) && is_array($_LANGOVADM)) {
-            $_LANGADM = array_merge(
-                $_LANGADM,
-                $_LANGOVADM
-            );
+        if (is_array($_LANGADM) && is_array($_LANGOVADM)) {
+            $_LANGADM = array_merge($_LANGADM, $_LANGOVADM);
         }
 
         if (file_exists(_EPH_TRANSLATIONS_DIR_ . $iso . '/class.php')) {
-            require_once _EPH_TRANSLATIONS_DIR_ . $iso . '/class.php';
+            include _EPH_TRANSLATIONS_DIR_ . $iso . '/class.php';
         }
 
         if (file_exists(_EPH_TRANSLATIONS_DIR_ . $iso . '/front.php')) {
-            require_once _EPH_TRANSLATIONS_DIR_ . $iso . '/front.php';
+            include _EPH_TRANSLATIONS_DIR_ . $iso . '/front.php';
         }
 
         if (file_exists(_EPH_TRANSLATIONS_DIR_ . $iso . '/mail.php')) {
-            require_once _EPH_TRANSLATIONS_DIR_ . $iso . '/mail.php';
+            include _EPH_TRANSLATIONS_DIR_ . $iso . '/mail.php';
         }
 
         if (file_exists(_EPH_TRANSLATIONS_DIR_ . $iso . '/pdf.php')) {
-            require_once _EPH_TRANSLATIONS_DIR_ . $iso . '/pdf.php';
+            include _EPH_TRANSLATIONS_DIR_ . $iso . '/pdf.php';
         }
         $this->translation = Translation::getInstance();
         

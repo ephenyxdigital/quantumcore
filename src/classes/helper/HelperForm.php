@@ -509,23 +509,31 @@ class HelperForm extends Helper {
                         $params['paramlogo'] = $html;
                         break;
                      case 'stdaccount':
-                            if(Plugin::isInstalled('ph_ecommerce')) {
-                                $stdType = $params['std_type'];
-
-                                if (!empty($this->fields_value[$params['name']])) {
-                                    $value = $this->fields_value[$params['name']];
-                                } else {
-                                    $value = $params['default_val'];
-                                }
-
-                                $account = new stdAccount($value);
-
-                                $html = '<a class="object-account btn btn-default ui-widget ui-state-default ui-corner-all" href="javascript:void(0);" onClick="openAccountGrid(\'' . $params['name'] . '_place\', \'' . $params['name'] . '\', \'' . $stdType . '\', \'' . $this->l('Supplier account') . '\');"  id="' . $params['name'] . '_place">' . $account->account . '<i class="fa-duotone fa-regular fa-bars"></i></a>       <input type="hidden" name="' . $params['name'] . '" id="' . $params['name'] . '" value="' . $this->fields_value[$params['name']] . '">';
-
-                                $params['stdaccount'] = $html;
-                            } else {
-                                $params['stdaccount'] = '';
+                            $stdType = $params['std_type'];
+                            $head = '';
+                            if($stdType == 'Expenses') {
+                                $head = $this->l('Expense account');
+                            } else if($stdType == 'Profits') {
+                                $head = $this->l('Profits account');
+                            } else if($stdType == 'Customer') {
+                                $head = $this->l('Customers account');
+                            } else if($stdType == 'Supplier') {
+                                $head = $this->l('Suppliers account');
+                            } else if($stdType == 'Banks') {
+                                $head = $this->l('Banks account');
                             }
+                            if (!empty($this->fields_value[$params['name']])) {
+                                $value = $this->fields_value[$params['name']];
+                            } else {
+                                $value = $params['default_val'];
+                            }
+
+                            $account = new StdAccount($value);
+
+                            $html = '<a class="object-account btn btn-default ui-widget ui-state-default ui-corner-all" href="javascript:void(0);" onClick="openAccountGrid(\'' . $params['name'] . '_place\', \'' . $params['name'] . '\', \'' . $stdType . '\', \'' . $head . '\');"  id="' . $params['name'] . '_place">' . $account->account . '<div><i class="fa-duotone fa-regular fa-bars"></i></div></a>       <input type="hidden" name="' . $params['name'] . '" id="' . $params['name'] . '" value="' . $this->fields_value[$params['name']] . '">';
+                            
+                            $params['stdaccount'] = $html;
+                            
                         break;
                     case 'file':
 
