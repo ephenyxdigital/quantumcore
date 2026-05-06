@@ -164,7 +164,7 @@ class PhenyxTools {
 	public static function getInstance() {
 
 		if (!PhenyxTools::$instance) {
-			PhenyxTools:$instance = new PhenyxTools();
+			PhenyxTools::$instance = new PhenyxTools(); 
 		}
 
 		return PhenyxTools::$instance;
@@ -178,197 +178,192 @@ class PhenyxTools {
     }
     
 
-	public function generateCurrentJson($use_cache = true) {
+	public function generateCurrentJson(bool $use_cache = true): array {
 
-		if ($use_cache) {
-            if (file_exists(_EPH_CONFIG_DIR_ . 'json/new_json.json')) {
-                $md5List = file_get_contents(_EPH_CONFIG_DIR_ . 'json/new_json.json');
-                unlink(_EPH_CONFIG_DIR_ . 'json/new_json.json');
-                return Tools::jsonDecode($md5List, true);
-            }
-		} else {
-            if (file_exists(_EPH_CONFIG_DIR_ . 'json/new_json.json')) {
-                unlink(_EPH_CONFIG_DIR_ . 'json/new_json.json');
-            }
-        }
-
-		$excludes = [];
-
-		$directories = Theme::getInstalledThemeDirectories();
-
-		$recursive_directory = [
-			'app/xml',
-			'content/backoffice',
-			'content/css',
-			'content/fonts',
-			'content/js',
-			'content/localization',
-			'content/img/pdfWorker',
-			'content/mails',
-			'content/mp3',
-			'content/pdf',
-			'content/themes/phenyx-theme-default',
-			'includes/classes',
-			'includes/controllers',
-			'vendor/ephenyxdigital',
-            'webephenyx',
-		];
-		$iso_langs = [];
-		$languages = Language::getLanguages(false);
-
-		foreach ($languages as $language) {
-			$recursive_directory[] = 'content/translations/' . $language['iso_code'];
-			$iso_langs[] = $language['iso_code'];
+		// Lecture du cache si disponible	
+    	if ($use_cache && file_exists(_EPH_CONFIG_DIR_ . 'json/new_json.json')) {
+        	$md5List = file_get_contents(_EPH_CONFIG_DIR_ . 'json/new_json.json');
+        	unlink(_EPH_CONFIG_DIR_ . 'json/new_json.json');
+        	return Tools::jsonDecode($md5List, true) ?? [];
 		}
 
-		foreach ($this->plugins as $plugin => $installed) {
+    	if (!$use_cache && file_exists(_EPH_CONFIG_DIR_ . 'json/new_json.json')) {
+        	unlink(_EPH_CONFIG_DIR_ . 'json/new_json.json');
+    	}
 
-			if (is_dir(_EPH_PLUGIN_DIR_ . $plugin)) {
-				$recursive_directory[] = 'includes/plugins/' . $plugin;
-			}
+		// CORRIGÉ : initialisé à [] — retour null impossible même si tous les fichiers sont exclus
+    	$md5List = [];
+    	$excludes = [];
 
+    	$directories = Theme::getInstalledThemeDirectories();
+
+    	$recursive_directory = [
+        	'app/xml',
+        	'content/backoffice',
+        	'content/css',
+        	'content/fonts',
+        	'content/js',
+        	'content/localization',
+        	'content/img/pdfWorker',
+        	'content/mails',
+        	'content/mp3',
+        	'content/pdf',
+        	'content/themes/phenyx-theme-default',
+        	'includes/classes',
+        	'includes/controllers',
+        	'vendor/ephenyxdigital',
+        	'webephenyx',
+    	];
+
+    	$iso_langs = [];
+    	$languages = Language::getLanguages(false);
+
+    	foreach ($languages as $language) {
+        	$recursive_directory[] = 'content/translations/' . $language['iso_code'];
+        	$iso_langs[]           = $language['iso_code'];
+    	}
+
+    	// CORRIGÉ : $this->plugins est ['pluginName' => true/false]
+    	// L'ancien code faisait foreach($this->plugins as $plugin) ce qui donnait
+    	// $plugin = true/false au lieu du nom du plugin.
+    	foreach ($this->plugins as $plugin => $installed) {
+
+        	if ($installed && is_dir(_EPH_PLUGIN_DIR_ . $plugin)) {
+            	$recursive_directory[] = 'includes/plugins/' . $plugin;
+        	}
 		}
 
-		$iterator = new AppendIterator();
-		$iterator->append(new DirectoryIterator(_EPH_ROOT_DIR_ . '/content/themes/'));
+    	$iterator = new AppendIterator();
+    	$iterator->append(new DirectoryIterator(_EPH_ROOT_DIR_ . '/content/themes/'));
 
-		foreach ($recursive_directory as $key => $directory) {
-
-			if (is_dir(_EPH_ROOT_DIR_ . '/' . $directory)) {
-				$iterator->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(_EPH_ROOT_DIR_ . '/' . $directory . '/')));
+    	foreach ($recursive_directory as $directory) {
+			
+        	if (is_dir(_EPH_ROOT_DIR_ . '/' . $directory)) {
+            	$iterator->append(new RecursiveIteratorIterator(
+					new RecursiveDirectoryIterator(_EPH_ROOT_DIR_ . '/' . $directory . '/')
+            	));
 			}
+    	}
 
-		}
+    	$iterator->append(new DirectoryIterator(_EPH_ROOT_DIR_ . '/app/'));
+    	$iterator->append(new DirectoryIterator(_EPH_ROOT_DIR_ . '/'));
 
-		$iterator->append(new DirectoryIterator(_EPH_ROOT_DIR_ . '/app/'));
-		$iterator->append(new DirectoryIterator(_EPH_ROOT_DIR_ . '/'));
+    	// Construction des exclusions de thèmes
+    	foreach ($directories as $directory) {
 
-		foreach ($directories as $directory) {
-
-			if ($directory == 'phenyx-theme-default') {
+        	if ($directory === 'phenyx-theme-default') {
 				continue;
+        	}
+
+        	foreach (['css', 'fonts', 'font', 'img', 'js', 'plugins', 'pdf', 'mail', 'docs'] as $sub) {
+            	$excludes[] = '/' . $directory . '/' . $sub . '/';
+        	}
+    	}
+
+    	$excludedFiles = ['.', '..', '.htaccess', '.env', 'composer.lock', 'settings.inc.php', '.gitattributes', '.php-ini', '.php-version'];
+    	$excludedExtensions = ['txt', 'zip', 'dat'];
+    	$excludedPaths = ['/uploads/', '/cache/', '/views/docs/', 'sitemap.xml'];
+
+    	foreach ($iterator as $file) {
+
+        	if (in_array($file->getFilename(), $excludedFiles, true)) {
+            	continue;
+        	}
+
+        	if (is_dir($file->getPathname())) {
+            	continue;
+        	}
+
+        	$filePath = str_replace(_EPH_ROOT_DIR_, '', $file->getPathname());
+        	$ext      = pathinfo($file->getFilename(), PATHINFO_EXTENSION);
+
+        	if (in_array($ext, $excludedExtensions, true)) {
+            	continue;
+        	}
+
+        	// Vérification des exclusions de chemin
+        	$skip = false;
+
+        	foreach ($excludes as $exclude) {
+
+            	if (str_contains($filePath, $exclude)) {
+                	$skip = true;
+                	break;
+            	}
 			}
 
-			$excludes[] = '/' . $directory . '/css/';
-			$excludes[] = '/' . $directory . '/fonts/';
-			$excludes[] = '/' . $directory . '/font/';
-			$excludes[] = '/' . $directory . '/img/';
-			$excludes[] = '/' . $directory . '/js/';
-			$excludes[] = '/' . $directory . '/plugins/';
-			$excludes[] = '/' . $directory . '/pdf/';
-			$excludes[] = '/' . $directory . '/mail/';
-			$excludes[] = '/' . $directory . '/docs/';
-		}
+        	foreach ($excludedPaths as $excludedPath) {
 
-		foreach ($iterator as $file) {
-			$filePath = $file->getPathname();
-			$filePath = str_replace(_EPH_ROOT_DIR_, '', $filePath);
+				if (str_contains($filePath, $excludedPath)) {
+					$skip = true;
+                	break;
+            	}
+        	}
 
-            
-			if (in_array($file->getFilename(), ['.', '..', '.htaccess', '.env', 'composer.lock', 'settings.inc.php', '.gitattributes', '.php-ini', '.php-version'])) {
-				continue;
-			}
+        	if ($skip) {
+            	continue;
+        	}
 
-			$inExclude = false;
+        	// Exclusion des CSS personnalisés
+        	if (str_contains($filePath, 'custom_') && $ext === 'css') {
+            	continue;
+        	}
 
-			foreach ($excludes as $exclude) {
+        	// CORRIGÉ : filtre des traductions de plugins
+        	// Avant : le continue portait sur foreach($this->plugins), pas sur foreach($iterator)
+        	// → les fichiers de traduction non pertinents étaient inclus quand même.
+        	// Après : flag $skipFile qui porte sur la bonne boucle.
+        	if (str_contains($filePath, '/plugins/') && str_contains($filePath, '/translations/')) {
+            	$skipFile = false;
 
-				if (str_contains($filePath, $exclude)) {
-					$inExclude = true;
-					continue;
-				}
+            	foreach ($this->plugins as $plugin => $installed) {
 
-			}
+                	if (str_contains($filePath, '/plugins/' . $plugin . '/translations/')) {
+                    	$isoTest = str_replace('/includes/plugins/' . $plugin . '/translations/', '', $filePath);
+                    	$isoTest = str_replace('.php', '', $isoTest);
 
-			if ($inExclude) {
-				continue;
-			}
+                    	if (!in_array($isoTest, $iso_langs, true)) {
+							$skipFile = true;
+                    	}
 
-			if (is_dir($file->getPathname())) {
+                    	break;
+                	}
+            	}
 
-				continue;
-			}
+            	if ($skipFile) {
+                	continue;
+            	}
+        	}
 
-			$ext = pathinfo($file->getFilename(), PATHINFO_EXTENSION);
+        	$md5List[$filePath] = md5_file($file->getPathname());
+    	}
 
-			if ($ext == 'txt') {
-				continue;
-			}
-
-			if ($ext == 'zip') {
-				continue;
-			}
-            
-            if ($ext == 'dat') {
-				continue;
-			}
-
-			if (str_contains($filePath, '/plugins/') && str_contains($filePath, '/translations/')) {
-
-				foreach ($this->plugins as $plugin) {
-
-					if (str_contains($filePath, '/plugins/' . $plugin . '/translations/')) {
-						$test = str_replace('/includes/plugins/' . $plugin . '/translations/', '', $filePath);
-						$test = str_replace('.php', '', $test);
-
-						if (!in_array($test, $iso_langs)) {
-							continue;
-
-						}
-
-					}
-
-				}
-
-			}
-
-			if (str_contains($filePath, 'custom_') && $ext == 'css') {
-				continue;
-			}
-
-			if (str_contains($filePath, '/uploads/')) {
-				continue;
-			}
-            
-			if (str_contains($filePath, 'sitemap.xml')) {
-				continue;
-			}
-
-			if (str_contains($filePath, '/cache/')) {
-				continue;
-			}
-
-			if (str_contains($filePath, '/views/docs/')) {
-				continue;
-			}
-
-			$md5List[$filePath] = md5_file($file->getPathname());
-		}
-
-		return $md5List;
-
+    	return $md5List;
 	}
 
-	public function generateOwnCurrentJson() {
-        
-        if (file_exists(_EPH_CONFIG_DIR_ . 'json/new_json.json')) {
-			unlink(_EPH_CONFIG_DIR_ . 'json/new_json.json');
 
-		} else {
-			$md5List = $this->generateCurrentJson(false);
+	public function generateOwnCurrentJson(): bool {
 
-			if (is_array($md5List)) {
-				file_put_contents(
-					_EPH_CONFIG_DIR_ . 'json/new_json.json',
-					json_encode($md5List, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
-				);
-				chmod(_EPH_CONFIG_DIR_ . 'json/new_json.json', 0777);
-				return true;
-			}
+		// Supprimer le cache périmé s'il existe
+    	if (file_exists(_EPH_CONFIG_DIR_ . 'json/new_json.json')) {
+        	unlink(_EPH_CONFIG_DIR_ . 'json/new_json.json');
+    	}
 
-		}
+    	// Générer la nouvelle liste (sans lire le cache)
+    	$md5List = $this->generateCurrentJson(false);
 
+    	if (!empty($md5List)) {
+        	file_put_contents(
+            	_EPH_CONFIG_DIR_ . 'json/new_json.json',
+            	json_encode($md5List, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        	);
+        	chmod(_EPH_CONFIG_DIR_ . 'json/new_json.json', 0777);
+        	return true;
+    	}
+
+    	return false;
 	}
+
 
 	public static function getConfiguration($tags) {
 
@@ -380,21 +375,20 @@ class PhenyxTools {
 		return Hook::getInstance()->exec($hook, $args, null, $return);
 	}
 
-	public static function getSmartyLink($method, $args) {
+	public static function getSmartyLink(string $method, $args) {
 
-		$link = new Link();
+    	$link = new Link();
 
-		if (method_exists($link, $method)) {
+    	if (method_exists($link, $method)) {
 
-			if (!is_array($args)) {
-				$args = [$args];
-			}
+        	if (!is_array($args)) {
+            	$args = [$args];
+        	}	
 
-			return $link->{method}
+        	return $link->{$method}(implode(',', $args)); // ← était $link->{method}
+    	}
 
-			(implode(',', $args));
-		}
-
+    	return null;
 	}
 
 	public static function addJsDef($jsDef) {
@@ -509,21 +503,22 @@ class PhenyxTools {
 		return true;
 	}
 
-	public function alterSqlTable($table, $column, $type, $after) {
+	public function alterSqlTable(string $table, string $column, string $type, string $after): void {
 
-		$query = 'SELECT `COLUMN_NAME`
-            FROM `INFORMATION_SCHEMA`.`COLUMNS`
-            WHERE `TABLE_SCHEMA`="' . _DB_NAME_ . '"
-            AND `TABLE_NAME`= "' . _DB_PREFIX_ . $table . '"
-            AND `COLUMN_NAME`= "' . $column . '"';
+    	$query = 'SELECT `COLUMN_NAME`
+        	FROM `INFORMATION_SCHEMA`.`COLUMNS`
+			WHERE `TABLE_SCHEMA` = \'' . pSQL(_DB_NAME_) . '\'
+        	AND `TABLE_NAME` = \'' . pSQL(_DB_PREFIX_ . $table) . '\'
+			AND `COLUMN_NAME` = \'' . pSQL($column) . '\'';
 
-		$result = Db::getInstance()->getValue(trim($query));
+    	$result = Db::getInstance()->getValue(trim($query));
 
-		if ($result != $column) {
-			$sql = 'ALTER TABLE `' . _DB_PREFIX_ . $table . '` ADD `' . $column . '` ' . $type . ' AFTER `' . $after . '`';
-			Db::getInstance()->execute(trim($sql));
-		}
-
+    	if ($result !== $column) {
+        	$sql = 'ALTER TABLE `' . bqSQL(_DB_PREFIX_ . $table) . '`'
+				. ' ADD `' . bqSQL($column) . '` ' . $type
+				. ' AFTER `' . bqSQL($after) . '`';
+        	Db::getInstance()->execute(trim($sql));
+    	}
 	}
 
 	public function checkString($string) {

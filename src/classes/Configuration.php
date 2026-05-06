@@ -141,7 +141,6 @@ class Configuration extends PhenyxObjectModel {
             'date_upd'   => ['type' => self::TYPE_DATE, 'validate' => 'isDate'],
             'generated'  => ['type' => self::TYPE_BOOL, 'lang' => true],
             'value_lang' => ['type' => self::TYPE_NOTHING, 'lang' => true],
-            //'date_upd'      => ['type' => self::TYPE_DATE, 'lang' => true, 'validate' => 'isDate'],
         ],
     ];
     /** @var array Configuration cache */
