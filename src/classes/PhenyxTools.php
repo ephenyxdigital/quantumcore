@@ -178,7 +178,7 @@ class PhenyxTools {
     }
     
 
-	public function generateCurrentJson(bool $use_cache = true): array {
+	public function generateCurrentJson($use_cache = true): array {
 
 		// Lecture du cache si disponible	
     	if ($use_cache && file_exists(_EPH_CONFIG_DIR_ . 'json/new_json.json')) {

@@ -54,9 +54,9 @@ class CronJobs extends PhenyxObjectModel {
      * @since 1.9.1.0
      * @version 1.8.1.0 Initial version
      */
-    public function __construct($id = null, $idLang = null, $idShop = null) {
+    public function __construct($id = null, $idLang = null) {
 
-        parent::__construct($id, $idLang, $idShop);
+        parent::__construct($id, $idLang);
 
     }
 
@@ -82,11 +82,10 @@ class CronJobs extends PhenyxObjectModel {
                         $task = $cron['task'];
 
                         if (method_exists($instance, $task)) {
-                            $args = !empty($cron['arg']) ? $cron['arg'] : null;
+                            $args = !empty($cron['args']) ? $cron['args'] : null;
+							fwrite($file, "args " . $args . PHP_EOL );
                             try {
-                                $result = $instance->{$task}
-
-                                ($args);
+                                $result = $instance->{$task}($args);
                                 $query = 'UPDATE ' . _DB_PREFIX_ . 'cronjobs
                                 SET `updated_at` = NOW()
                                 WHERE `id_cronjobs` = ' . (int) $cron['id_cronjobs'];

@@ -149,7 +149,7 @@ class Connection extends PhenyxObjectModel {
             }
 
             $connection = new Connection();
-            $connection->id_guest = (int) $this->context->guest->id;
+            $connection->id_guest =  isset($this->context->guest->id) ? $this->context->guest->id: 0;
             $connection->id_page = Page::getCurrentId();
             $connection->ip_address = Tools::getRemoteAddr() ? (int) ip2long(Tools::getRemoteAddr()) : '';
             $connection->date_add = $this->context->cookie->date_add;
@@ -161,6 +161,7 @@ class Connection extends PhenyxObjectModel {
             $connection->add();
             $this->_session->removeEndByKey('_dashboardData');
             $this->context->cookie->id_connections = $connection->id;
+			if(isset($this->context->guest->id)) {
             Db::getInstance()->execute(
                 (new DbQuery())
                     ->type('UPDATE')
@@ -168,6 +169,7 @@ class Connection extends PhenyxObjectModel {
                     ->set('`last_activity` = "' . time() . '"')
                     ->where('`id_guest` = ' . (int) $this->context->guest->id)
             );
+			}
 
             return $connection->id_page;
         }

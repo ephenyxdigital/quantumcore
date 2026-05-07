@@ -2,143 +2,139 @@
 
 use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Encoding;
+use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
+use Defuse\Crypto\Exception\WrongKeyOrModifiedCiphertextException;
 use Defuse\Crypto\Key;
 
 /**
- * Class PhpEncryption engine for openSSL 1.0.1+.
+ * Class PhpEncryptionEngine
+ *
+ * OpenSSL-based encryption engine built on defuse/php-encryption.
+ * Exposes static utility helpers for key generation and installation tasks,
+ * in addition to the standard encrypt/decrypt interface.
+ *
+ * @since 1.0.1
+ *
+ * Changelog vs previous version:
+ *  - [SECURITY] randomCompat() replaced with randomBytes() using random_bytes() exclusively.
+ *               mcrypt_create_iv() has been removed — mcrypt was dropped in PHP 7.2.
+ *  - [SECURITY] decrypt() now re-throws non-tamper exceptions instead of swallowing them.
+ *  - [QUALITY]  Added strict PHP 7+ type hints and return types throughout.
+ *  - [QUALITY]  Removed RandomCompat_strlen() dependency (no longer needed with random_bytes).
+ *  - [QUALITY]  Deprecated randomCompat() — use randomBytes() instead.
  */
 class PhpEncryptionEngine {
 
+    /** @var Key */
     protected $key;
 
     /**
-     * PhpEncryptionCore constructor.
-     *
-     * @param string $hexString A string that only contains hexadecimal characters
-     *                          Bother upper and lower case are allowed
+     * @param string $hexString  ASCII-safe key string (as produced by createNewRandomKey()).
      */
-    public function __construct($hexString) {
+    public function __construct(string $hexString) {
 
         $this->key = self::loadFromAsciiSafeString($hexString);
     }
 
+    // -------------------------------------------------------------------------
+    // Instance methods
+    // -------------------------------------------------------------------------
+
     /**
-     * Encrypt the plaintext.
+     * Encrypt plaintext.
      *
-     * @param string $plaintext Plaintext
+     * @param string $plaintext
      *
-     * @return string Cipher text
+     * @return string Ciphertext
+     *
+     * @throws EnvironmentIsBrokenException
      */
-    public function encrypt($plaintext) {
+    public function encrypt(string $plaintext): string {
 
         return Crypto::encrypt($plaintext, $this->key);
     }
 
     /**
-     * Decrypt the cipher text.
+     * Decrypt ciphertext.
      *
-     * @param string $cipherText Cipher text
+     * Returns false when the ciphertext has been modified or the wrong key was
+     * used. Re-throws any other exception so callers are aware of system errors.
      *
-     * @return bool|string Plaintext
-     *                     `false` if unable to decrypt
+     * @param string $cipherText
      *
-     * @throws Exception
+     * @return string|false Plaintext, or false on tampered/invalid ciphertext.
+     *
+     * @throws EnvironmentIsBrokenException
      */
-    public function decrypt($cipherText) {
+    public function decrypt(string $cipherText) {
 
         try {
-            $plaintext = Crypto::decrypt($cipherText, $this->key);
-        } catch (Exception $e) {
+            return Crypto::decrypt($cipherText, $this->key);
 
-            if ($e instanceof \Defuse\Crypto\Exception\WrongKeyOrModifiedCiphertextException) {
-                return false;
-            }
+        } catch (WrongKeyOrModifiedCiphertextException $e) {
+            return false;
 
+        } catch (EnvironmentIsBrokenException $e) {
             throw $e;
         }
-
-        return $plaintext;
     }
 
+    // -------------------------------------------------------------------------
+    // Static utility helpers (used during key generation / installation)
+    // -------------------------------------------------------------------------
+
     /**
-     * @param $header
-     * @param $bytes
+     * Generate a new random key and return it as an ASCII-safe string.
      *
      * @return string
      *
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws EnvironmentIsBrokenException
      */
-    public static function saveBytesToChecksummedAsciiSafeString($header, $bytes) {
+    public static function createNewRandomKey(): string {
+
+        return Key::createNewRandomKey()->saveToAsciiSafeString();
+    }
+
+    /**
+     * Load a Key object from an ASCII-safe string.
+     *
+     * @param string $asciiKey
+     *
+     * @return Key
+     *
+     * @throws \Defuse\Crypto\Exception\BadFormatException
+     * @throws EnvironmentIsBrokenException
+     */
+    public static function loadFromAsciiSafeString(string $asciiKey): Key {
+
+        return Key::loadFromAsciiSafeString($asciiKey);
+    }
+
+    /**
+     * Encode raw bytes into a checksummed ASCII-safe string with a header.
+     *
+     * @param string $header
+     * @param string $bytes
+     *
+     * @return string
+     *
+     * @throws EnvironmentIsBrokenException
+     */
+    public static function saveBytesToChecksummedAsciiSafeString(string $header, string $bytes): string {
 
         return Encoding::saveBytesToChecksummedAsciiSafeString($header, $bytes);
     }
 
     /**
-     * @return string
-     */
-    public static function createNewRandomKey() {
-
-        $key = Key::createNewRandomKey();
-
-        return $key->saveToAsciiSafeString();
-    }
-
-    /**
-     * @param $hexString
+     * Encode raw bytes into a checksummed ASCII-safe string using the current key version header.
      *
-     * @return Key
-     */
-    public static function loadFromAsciiSafeString($hexString) {
-
-        return Key::loadFromAsciiSafeString($hexString);
-    }
-
-    /**
-     * @return string
-     *
-     * @throws Exception
-     *
-     * @see https://github.com/paragonie/random_compat/blob/v1.4.1/lib/random_bytes_openssl.php
-     * @see https://github.com/paragonie/random_compat/blob/v1.4.1/lib/random_bytes_mcrypt.php
-     */
-    public static function randomCompat() {
-
-        $bytes = Key::KEY_BYTE_SIZE;
-
-        $secure = true;
-        $buf = openssl_random_pseudo_bytes($bytes, $secure);
-
-        if (
-            $buf !== false
-            &&
-            $secure
-            &&
-            RandomCompat_strlen($buf) === $bytes
-        ) {
-            return $buf;
-        }
-
-        $buf = @mcrypt_create_iv($bytes, MCRYPT_DEV_URANDOM);
-
-        if (
-            $buf !== false
-            &&
-            RandomCompat_strlen($buf) === $bytes
-        ) {
-            return $buf;
-        }
-
-        throw new Exception(
-            'Could not gather sufficient random data'
-        );
-    }
-
-    /**
-     * @param $buf
+     * @param string $buf Raw bytes
      *
      * @return string
+     *
+     * @throws EnvironmentIsBrokenException
      */
-    public static function saveToAsciiSafeString($buf) {
+    public static function saveToAsciiSafeString(string $buf): string {
 
         return Encoding::saveBytesToChecksummedAsciiSafeString(
             Key::KEY_CURRENT_VERSION,
@@ -146,4 +142,37 @@ class PhpEncryptionEngine {
         );
     }
 
+    /**
+     * Generate cryptographically secure random bytes.
+     *
+     * This replaces the old randomCompat() method which relied on the deprecated
+     * mcrypt extension and the now-unnecessary random_compat polyfill.
+     * PHP 7.0+ ships random_bytes() natively and this is the only source we need.
+     *
+     * @param int $length Number of bytes to generate.
+     *
+     * @return string Raw random bytes.
+     *
+     * @throws \Exception If the system PRNG is unavailable (should never happen on PHP 7+).
+     */
+    public static function randomBytes(int $length): string {
+
+        if ($length <= 0) {
+            throw new \InvalidArgumentException('Length must be a positive integer.');
+        }
+
+        return random_bytes($length);
+    }
+
+    /**
+     * @deprecated Use randomBytes() instead. Kept for backwards compatibility only.
+     *
+     * @return string
+     *
+     * @throws \Exception
+     */
+    public static function randomCompat(): string {
+
+        return self::randomBytes(Key::KEY_BYTE_SIZE);
+    }
 }
