@@ -7,12 +7,12 @@ use Language;
 use Link;
 use ReflectionClass;
 
-#[AllowDynamicProperties]
 /**
  * Class PhenyxObjectModel
  *
  * @since 1.9.1.0
  */
+#[\AllowDynamicProperties]
 abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInterface {
 
     /**

@@ -10,12 +10,12 @@ use Link;
 use StdAccount;
 use User;
 
-#[AllowDynamicProperties]
 /**
  * Class ControllerCore
  *
  * @since 1.6.6.3
  */
+#[\AllowDynamicProperties]
 abstract class PhenyxController {
 
     protected static $_plugins = [];

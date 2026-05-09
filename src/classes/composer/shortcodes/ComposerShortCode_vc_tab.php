@@ -1,9 +1,10 @@
 <?php
 
 namespace EphenyxDigital\QuantumCore;
-define('TAB_TITLE', "Tab");
 
-define('TAB_TITLE', "Tab");
+if (!defined('TAB_TITLE')) {
+    define('TAB_TITLE', "Tab");
+}
 
 class ComposerShortCode_vc_tab extends ComposerShortCode_vc_column {
 

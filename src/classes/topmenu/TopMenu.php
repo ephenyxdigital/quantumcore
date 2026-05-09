@@ -9,7 +9,7 @@ use Group;
 use Language;
 use PFGModel;
 use PGFModel;
-#[AllowDynamicProperties]
+#[\AllowDynamicProperties]
 class TopMenu extends PhenyxObjectModel {
 
     protected static $instance;

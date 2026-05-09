@@ -7,13 +7,12 @@ use Guest;
 
 use Detection\DeviceDetect;
 
-#[AllowDynamicProperties]
-
 /**
  * Class ContextCore
  *
  * @since 2.1.0.0
  */
+#[\AllowDynamicProperties]
 class Context {
 
 	// @codingStandardsIgnoreStart
@@ -54,6 +53,8 @@ class Context {
 	public $hook_args;
 	/** @var Link */
 	public $_link;
+	/** @var Link */
+	public $link;
 	/** @var Country */
 	public $country;
 	/** @var Employee */

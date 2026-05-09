@@ -99,7 +99,7 @@ class PhenyxException extends Exception {
             echo '<div id="ephException"><table id="table_exception" width="100%" border="1">
     <tbody>
         <tr>
-            <td><img src="/vendor/phenyxdigital/phenyxcore/lib/error.png"></td>
+            <td><img src="/vendor/ephenyxdigital/quantumcore/lib/error.png"></td>
 
         </tr>
         <tr>

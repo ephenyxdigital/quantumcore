@@ -753,7 +753,9 @@ class Performer {
 
             }
 
-            $controllerClass = $controllers[strtolower($this->controller)];
+            // Fallback robuste : si le controller (apres hook) n'est toujours pas mappe,
+            // on tombe sur PageNotFoundController plutot que de generer un Undefined index.
+            $controllerClass = $controllers[strtolower($this->controller)] ?? 'PageNotFoundController';
             $paramsHookActionDispatcher = ['controller_type' => static::FC_FRONT, 'controller_class' => $controllerClass, 'is_plugin' => 0];
             break;
 
