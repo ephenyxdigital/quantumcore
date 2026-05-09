@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $title = $number = $show_date = $el_class = '';
 extract(Composer::shortcode_atts([
 	'title'     => __('Recent Posts'),

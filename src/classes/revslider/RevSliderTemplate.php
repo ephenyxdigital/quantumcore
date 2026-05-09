@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use RevSliderSlide;
+use RevSliderSlider;
+use WP_Http_Curl;
+
+
 class RevSliderTemplate extends RevSliderFunction {
 
 	private $templates_list = 'revslider/get-list.php';

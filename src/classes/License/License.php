@@ -1,5 +1,19 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Address;
+use AppendIterator;
+use Customer;
+use DateTime;
+use DirectoryIterator;
+use Exception;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use User;
+use VersionController;
+
+
 /**
  * Class License
  *

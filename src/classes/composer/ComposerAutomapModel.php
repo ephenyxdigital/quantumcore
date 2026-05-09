@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 class ComposerAutomapModel {
 
 	protected static $option_name = 'vc_automapped_shortcodes';

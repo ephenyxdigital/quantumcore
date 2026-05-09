@@ -1,5 +1,18 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use AppendIterator;
+use Archive_Tar;
+use DateTime;
+use DirectoryIterator;
+use Guest;
+use Language;
+use Link;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+
+
 use \Curl\Curl;
 use \Curl\MultiCurl;
 

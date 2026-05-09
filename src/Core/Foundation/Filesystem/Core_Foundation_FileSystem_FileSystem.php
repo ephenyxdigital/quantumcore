@@ -1,4 +1,9 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
+use SplFileInfo;
+
 /**
  * Class Core_Foundation_FileSystem_FileSystem
  *

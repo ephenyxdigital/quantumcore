@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Teaser_Grid_Category_Walker;
+use WP_Query;
+
+
 $title = $grid_columns_count = $grid_teasers_count = $grid_layout = $grid_link = $grid_link_target = '';
 $grid_template = $grid_thumb_size = $grid_posttypes = $grid_layout_mode = $grid_taxomonies = $grid_categories = $posts_in = $posts_not_in = '';
 $grid_content = $el_class = $width = $orderby = $order = $el_position = $isotope_item = '';

@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $width = $el_class = $title = $twitter_name = $tweet_count = $el_position = $tweets_count = '';
 
 extract(Composer::shortcode_atts([

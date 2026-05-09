@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use EM_Event;
+use RevSliderSlider;
+
+
 class RevSliderEventsManager extends RevSliderFunction {
 
 	public function __construct() {

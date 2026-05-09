@@ -1,5 +1,7 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
 class ComposerShortCode_vc_button extends ComposerShortCode {
 
 	protected function outputTitle($title) {

@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Carrier;
+use Group;
+use Language;
+
+
 /**
  * Class HookCore
  *

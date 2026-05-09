@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Education;
+
+
 /**
  * Class Adapter_EducationPriceCalculator
  */

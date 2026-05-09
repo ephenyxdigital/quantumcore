@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Exception;
+use Language;
+use ReflectionClass;
+
+
 /**
  * Class WebPGeneratorConfig
  */
@@ -8,7 +15,7 @@ class WebPGeneratorConfig {
     /** Required for PHP < 5.6 compatibility */
     protected static $instance;
     
-    public static $className = 'WebPGeneratorConfig';
+    public static $className = WebPGeneratorConfig::class;
 
     public static $multiLang = [];
     

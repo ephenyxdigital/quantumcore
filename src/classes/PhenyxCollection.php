@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use ArrayAccess;
+use Countable;
+use Iterator;
+
+
 /**
  * Class PhenyxCollection
  *

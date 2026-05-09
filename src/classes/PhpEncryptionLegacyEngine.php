@@ -1,5 +1,15 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+/**
+ * Class PhpEncryption engine for openSSL < 0.9.8.
+ *
+ * @doc http://php.net/manual/fr/function.mcrypt-encrypt.php#refsect1-function.mcrypt-encrypt-examples
+ *
+ * This class will be deprecated when web hosting providers will update their version of OpenSSL.
+ */
+
 /**
  * Class PhpEncryption engine for openSSL < 0.9.8.
  *

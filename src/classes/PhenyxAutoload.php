@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use PDO;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+
+
 /**
  * Class PhenyxAutoload
  *

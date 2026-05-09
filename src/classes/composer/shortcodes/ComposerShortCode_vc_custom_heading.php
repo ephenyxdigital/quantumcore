@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use ComposerMap;
+
+
 class ComposerShortCode_vc_custom_heading extends ComposerShortCode {
 
 	public function getAttributes($atts) {

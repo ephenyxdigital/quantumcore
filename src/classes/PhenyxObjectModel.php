@@ -1,4 +1,12 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
+use ImageType;
+use Language;
+use Link;
+use ReflectionClass;
+
 #[AllowDynamicProperties]
 /**
  * Class PhenyxObjectModel

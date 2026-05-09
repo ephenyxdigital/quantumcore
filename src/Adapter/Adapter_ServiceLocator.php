@@ -1,5 +1,7 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
 /**
  * Class Adapter_ServiceLocator
  */
@@ -41,5 +43,4 @@ class Adapter_ServiceLocator {
 
         return self::$serviceContainer->make($serviceName);
     }
-
 }

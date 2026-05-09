@@ -1,5 +1,15 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Blank;
+use RevSliderFolder;
+use RevSliderOperations;
+use RevSliderSlide;
+use RevSliderSlider;
+use Sliders;
+
+
 class RevSliderFunctionsAdmin extends RevSliderFunction {
 
 	public function get_full_library($include = ['all'], $tmp_slide_uid = [], $refresh_from_server = false, $get_static_slide = false) {

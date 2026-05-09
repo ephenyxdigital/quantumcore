@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $el_position = $title = $width = $el_class = $sidebar_id = '';
 extract(Composer::shortcode_atts([
     'el_position' => '',

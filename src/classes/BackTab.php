@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Language;
+
+
 /**
  * Class BackTab
  *

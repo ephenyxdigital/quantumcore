@@ -1,5 +1,15 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use AdminController;
+use ITreeToolbarCore;
+use PluginAdminController;
+use ReflectionClass;
+use Traversable;
+use TreeToolbarCore;
+
+
 /**
  * Class TreeCore
  *

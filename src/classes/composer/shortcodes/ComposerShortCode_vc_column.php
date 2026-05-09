@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 
 class ComposerShortCode_vc_column extends ComposerShortCode {
 

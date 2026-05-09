@@ -1,4 +1,6 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
 /**
  */
 define('SLIDE_TITLE', "Slide");

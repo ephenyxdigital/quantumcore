@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 $output = $text = $google_fonts = $font_container = $el_class = $css = $google_fonts_data = $font_container_data = '';
 extract($this->getAttributes($atts));
 extract($this->getStyles($el_class, $css, $google_fonts_data, $font_container_data, $atts));

@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 class ComposerShortCode_vc_posts_grid extends ComposerShortCode {
 
 	protected $filter_categories = [];

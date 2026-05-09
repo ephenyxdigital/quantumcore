@@ -1,5 +1,14 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use IDs;
+use RevSliderBase;
+use RevSliderSlide;
+use RevSliderSlider;
+use stdClass;
+
+
 class RevSliderPluginUpdate extends RevSliderFunction {
 
 	public $revision;

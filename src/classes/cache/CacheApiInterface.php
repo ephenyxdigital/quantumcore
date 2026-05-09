@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 interface CacheApiInterface {
 	/**
 	 * Checks whether we can use the cache method performed by this API.

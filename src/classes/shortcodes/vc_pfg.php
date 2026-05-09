@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Link;
+
+
 $vc = ephenyx_manager();
 
 extract(Composer::shortcode_atts([

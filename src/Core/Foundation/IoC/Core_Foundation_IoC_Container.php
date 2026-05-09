@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use ReflectionClass;
+use ReflectionException;
+
+
 /**
  * Class Core_Foundation_IoC_Container
  *

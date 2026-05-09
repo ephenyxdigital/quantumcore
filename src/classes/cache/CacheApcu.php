@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use APCUIterator;
+
+
 /**
  * Our Cache API class
  *

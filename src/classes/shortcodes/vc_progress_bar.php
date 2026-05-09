@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $title = $values = $units = $bgcolor = $custombgcolor = $options = $el_class = '';
 extract(Composer::shortcode_atts([
 	'title'         => '',

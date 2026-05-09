@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $type = $annotation = '';
 extract(Composer::shortcode_atts([
     'type'       => '',

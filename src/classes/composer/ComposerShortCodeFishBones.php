@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Exception;
+
+
 class ComposerShortCodeFishBones extends ComposerShortCode {
 
 	protected $shortcode_class = false;

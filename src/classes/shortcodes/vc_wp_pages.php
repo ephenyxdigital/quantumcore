@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $title = $el_class = $sortby = $exclude = '';
 extract(Composer::shortcode_atts([
 	'title'    => __('Pages'),

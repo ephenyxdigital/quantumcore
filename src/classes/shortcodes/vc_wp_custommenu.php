@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $title = $el_class = $nav_menu = '';
 extract(Composer::shortcode_atts([
 	'title'    => '',

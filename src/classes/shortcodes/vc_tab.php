@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $title = $tab_id = '';
 extract(Composer::shortcode_atts($this->predefined_atts, $atts));
 

@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $color = $icon = $size = $target = $href = $title = $call_text = $position = $el_class = '';
 $vc_manager = ephenyx_manager();
 extract(Composer::shortcode_atts([

@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 class PasswordHash {
 	var $itoa64;
 	var $iteration_count_log2;

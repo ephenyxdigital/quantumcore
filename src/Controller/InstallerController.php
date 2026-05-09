@@ -1,5 +1,15 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use DOMDocument;
+use Employee;
+use FrontController;
+use Language;
+use Link;
+use User;
+
+
 class InstallerController extends PhenyxController {
 
    public $php_self = 'installer';

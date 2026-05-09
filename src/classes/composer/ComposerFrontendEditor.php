@@ -1,5 +1,14 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use ComposerMap;
+use JsComposer;
+use Smartlisence;
+use WPBakeryShortCode_Settings;
+use WpbakeryShortcodeParams;
+
+
 class ComposerFrontendEditor {
 
 	protected $dir;

@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 // return ;
 // print_r(Context::getContext()->controller->php_self);
 $page_type = Context::getContext()->controller->php_self;

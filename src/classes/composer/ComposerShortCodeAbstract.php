@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 abstract class ComposerShortCodeAbstract {
 
 	public static $config;
@@ -36,7 +39,7 @@ abstract class ComposerShortCodeAbstract {
 
 	public function l($string, $idLang = null, $context = null) {
 
-		$class = 'ComposerShortCodeAbstract';
+		$class = ComposerShortCodeAbstract::class;
 
 		return $this->context->translations->getClassTranslation($string, $class);
 	}

@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Language;
+
+
 /**
  * @since 1.9.1.0
  */

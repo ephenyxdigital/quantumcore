@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use User;
+
+
 class PclZip {
 
   // ----- Filename of the zip file

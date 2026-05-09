@@ -1,4 +1,10 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
+use Language;
+use Link;
+
 use Defuse\Crypto\Crypto;
 use \Curl\Curl;
 /**

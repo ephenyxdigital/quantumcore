@@ -1,5 +1,17 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+
+use Category;
+use Currency;
+use PluginAdminController;
+/**
+ * Class HelperCore
+ *
+ * @since 1.8.1.0
+ */
+
 /**
  * Class HelperCore
  *

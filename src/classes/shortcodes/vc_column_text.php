@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $el_class = $css_animation = '';
 
 extract(vc_map_get_attributes($this->getShortcode(), $atts));

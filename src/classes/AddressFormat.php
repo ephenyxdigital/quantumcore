@@ -1,5 +1,13 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Address;
+use ReflectionObject;
+use ReflectionProperty;
+use VatNumber;
+
+
 /**
  * Class AddressFormat
  *

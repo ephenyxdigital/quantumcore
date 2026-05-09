@@ -1,4 +1,8 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
+use ComposerShortCode_VC_Posts_Grid;
 r
 class ComposerShortCode_vc_carousel extends ComposerShortCode_VC_Posts_Grid {
 

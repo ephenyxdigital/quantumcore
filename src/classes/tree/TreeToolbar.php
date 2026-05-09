@@ -1,5 +1,14 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use AdminController;
+use ITreeToolbarButtonCore;
+use PluginAdminController;
+use ReflectionClass;
+use Traversable;
+
+
 class TreeToolbar implements ITreeToolbar {
     const DEFAULT_TEMPLATE_DIRECTORY = 'helpers/tree';
     const DEFAULT_TEMPLATE = 'tree_toolbar.tpl';

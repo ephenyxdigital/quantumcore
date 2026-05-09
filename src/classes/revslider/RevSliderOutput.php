@@ -1,5 +1,14 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Exception;
+use RevSliderBase;
+use RevSliderOperations;
+use RevSliderSlide;
+use RevSliderSlider;
+
+
 global $rs_double_jquery_script;
 global $rs_material_icons_css;
 global $rs_material_icons_css_parsed;

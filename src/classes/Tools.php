@@ -1,5 +1,30 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use AppendIterator;
+use Argument;
+use CMS;
+use ComposerMedia;
+use Cookie;
+use DOMDocument;
+use DateTime;
+use DirectoryIterator;
+use Exception;
+use Group;
+use HTMLPurifier;
+use HTMLPurifier_Config;
+use Imagick;
+use Language;
+use PhenyxWiki;
+use Product;
+use Profiling;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SMTP;
+use ZipArchive;
+
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPSQLParser\PHPSQLParser;
 use Google\Cloud\Translate\V2\TranslateClient;

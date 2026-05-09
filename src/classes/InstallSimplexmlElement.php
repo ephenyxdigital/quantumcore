@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use DOMDocument;
+use SimpleXMLElement;
+
+
 class InstallSimplexmlElement extends SimpleXMLElement {
 
     /**

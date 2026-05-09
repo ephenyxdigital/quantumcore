@@ -1,4 +1,6 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
 class ComposerShortCode_vc_posts_slider extends ComposerShortCode {
 
     protected function getPostThumbnail($post_id, $grid_thumb_size = 'full') {

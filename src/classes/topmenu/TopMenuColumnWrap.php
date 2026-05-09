@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 class TopMenuColumnWrap extends PhenyxObjectModel {
 
     public $id_topmenu;

@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Array;
+
+
 $revslider_rev_start_size_loaded = false;
 
 class RevSliderFront extends RevSliderFunction {

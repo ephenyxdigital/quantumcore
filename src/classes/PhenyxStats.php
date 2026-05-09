@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use CustomerThread;
+use Product;
+
+
 /**
  * Class PhenyxStat
  *

@@ -1,5 +1,8 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+
 class RevSliderVimeo extends RevSliderFunction {
 
 	/**

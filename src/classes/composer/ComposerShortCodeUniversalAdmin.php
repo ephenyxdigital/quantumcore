@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 abstract class ComposerShortCodeUniversalAdmin extends ComposerShortCode {
 
     protected $html_editor_already_is_used = true;
@@ -30,7 +33,7 @@ abstract class ComposerShortCodeUniversalAdmin extends ComposerShortCode {
 
     public function l($string, $idLang = null, $context = null) {
 
-        $class = 'ComposerShortCodeUniversalAdmin';
+        $class = ComposerShortCodeUniversalAdmin::class;
 
         if (isset($this->context->translations)) {
             return $this->context->translations->getClassTranslation($string, $class);

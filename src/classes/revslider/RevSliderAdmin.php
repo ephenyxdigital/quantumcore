@@ -1,5 +1,20 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Exception;
+use RevSliderBaseAdmin;
+use RevSliderFolder;
+use RevSliderSlide;
+use RevSliderSlider;
+use RevSliderSliderExport;
+use RevSliderSliderExportHtml;
+use RevSliderSliderImport;
+use RevSliderStaticSlide;
+use RevSliderUpdate;
+use Revloader;
+
+
 class RevSliderAdmin extends RevSliderFunctionsAdmin {
 
 	// private $theme_mode = false;

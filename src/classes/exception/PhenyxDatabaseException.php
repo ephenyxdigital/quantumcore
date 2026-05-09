@@ -1,5 +1,7 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
 /**
  * Class PhenyxDatabaseException
  *

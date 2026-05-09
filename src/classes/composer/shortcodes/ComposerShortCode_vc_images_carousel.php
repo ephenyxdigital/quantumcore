@@ -1,5 +1,8 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+
 class ComposerShortCode_vc_images_carousel extends ComposerShortCode_vc_gallery {
 
 	protected static $carousel_index = 1;

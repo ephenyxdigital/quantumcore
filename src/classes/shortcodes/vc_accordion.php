@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 //wp_enqueue_script('jquery-ui-accordion');
 Context::getContext()->controller->addJqueryUI('ui.accordion');
 

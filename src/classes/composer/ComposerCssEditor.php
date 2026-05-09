@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use JS;
+
+
 class ComposerCssEditor extends Composer {
 
 	protected static $css_instance;

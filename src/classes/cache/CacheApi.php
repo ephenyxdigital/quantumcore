@@ -1,8 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 abstract class CacheApi {
 
-	const APIS_DEFAULT = 'FileBased';
+	const APIS_DEFAULT = FileBased::class;
 
 	protected static $instance;
 	/**

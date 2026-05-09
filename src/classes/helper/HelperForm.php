@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use FormData;
+use Language;
+use StdAccount;
+
+
 /**
  * Class HelperForm
  *

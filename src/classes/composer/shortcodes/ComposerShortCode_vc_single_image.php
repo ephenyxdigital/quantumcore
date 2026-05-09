@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 class ComposerShortCode_vc_single_image extends ComposerShortCode {
 
 	public function singleParamHtmlHolder($param, $value) {

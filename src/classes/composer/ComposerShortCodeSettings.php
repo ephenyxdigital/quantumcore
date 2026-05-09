@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use ComposerShortcodeParams;
+use JS;
+
+
 class ComposerShortCodeSettings extends ComposerShortCodeUniversalAdmin {
 
 	public function content($atts, $content = null) {

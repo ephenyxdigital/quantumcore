@@ -1,5 +1,13 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use AppendIterator;
+use DOMDocument;
+use DirectoryIterator;
+use Minify_HTML;
+
+
 use JSMin\JSMin;
 use tubalmartin\CssMin\Minifier;
 

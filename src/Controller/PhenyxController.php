@@ -1,4 +1,15 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
+use Alignment;
+use Employee;
+use Exception;
+use Language;
+use Link;
+use StdAccount;
+use User;
+
 #[AllowDynamicProperties]
 /**
  * Class ControllerCore

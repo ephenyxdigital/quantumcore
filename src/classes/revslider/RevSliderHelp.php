@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Layers;
+
+
 class RevSliderHelp {
 
 	public function l($string, $idLang = null, $context = null) {

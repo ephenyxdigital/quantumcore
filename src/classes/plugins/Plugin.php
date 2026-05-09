@@ -1,5 +1,21 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Address;
+use AdminController;
+use Controller;
+use DOMDocument;
+use Exception;
+use Group;
+use Language;
+use Link;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use ReflectionClass;
+use User;
+
+
 use \Curl\Curl;
 
 /**

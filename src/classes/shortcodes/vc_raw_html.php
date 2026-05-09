@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $el_class = $width = $el_position = '';
 extract(Composer::shortcode_atts([
     'el_class'    => '',

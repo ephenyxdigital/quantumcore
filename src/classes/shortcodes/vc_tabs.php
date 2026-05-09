@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $vc_manager = ephenyx_manager();
 
 $output = $title = $tabs_mode = $el_class = $css_animation ='';

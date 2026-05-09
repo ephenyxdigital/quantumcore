@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 /**
  * Class Core_Foundation_Database_EntityManager
  */
@@ -63,7 +66,7 @@ class Core_Foundation_Database_EntityManager {
         }
 
         if (!$repositoryClass) {
-            $repositoryClass = 'Core_Foundation_Database_EntityRepository';
+            $repositoryClass = Core_Foundation_Database_EntityRepository::class;
         }
 
         $repository = new $repositoryClass(

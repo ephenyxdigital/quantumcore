@@ -1,5 +1,14 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+/**
+ * Class Adapter_EntityMetaDataRetriever
+ *
+ * @since 1.9.1.0
+ */
+// @codingStandardsIgnoreStart
+
 /**
  * Class Adapter_EntityMetaDataRetriever
  *

@@ -1,5 +1,22 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+
+use Image;
+use ImageType;
+use InstallLanguages;
+use PhenyxInstallerException;
+use Shop;
+use SimpleXMLElement;
+use StockAvailable;
+use Tag;
+/**
+ * Class InstallXmlLoader
+ *
+ * @since 1.0.0
+ */
+
 /**
  * Class InstallXmlLoader
  *

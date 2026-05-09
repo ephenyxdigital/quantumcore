@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use VcLoopQueryBuilder;
+use VcLoopSettings;
+
+
 class ComposerLoopSettings extends Composer {
 
 	// Available parts of loop for WP_Query object.

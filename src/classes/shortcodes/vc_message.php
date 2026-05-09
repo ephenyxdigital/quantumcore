@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $color = $el_class = $css_animation = '';
 extract(Composer::shortcode_atts([
     'color'         => 'alert-info',

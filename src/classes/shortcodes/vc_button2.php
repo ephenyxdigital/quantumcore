@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 $vc = ephenyx_manager();
 
 extract(Composer::shortcode_atts([

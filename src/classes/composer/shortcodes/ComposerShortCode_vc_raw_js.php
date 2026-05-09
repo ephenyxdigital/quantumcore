@@ -1,5 +1,7 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
 class ComposerShortCode_vc_raw_js extends ComposerShortCode_vc_raw_html {
 
 	protected function getFileName() {

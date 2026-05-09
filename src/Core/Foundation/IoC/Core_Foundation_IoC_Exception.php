@@ -1,6 +1,8 @@
 <?php
 
 
+
+namespace EphenyxDigital\QuantumCore;
 /**
  * Class Core_Foundation_IoC_Exception
  *

@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Exception;
+use Language;
+use Link;
+
+
 /**
  * Class PhenyxException
  *

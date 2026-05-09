@@ -1,5 +1,10 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+
+use Traversable;
+
 class TreeToolbarSearchCategories extends TreeToolbarButton implements ITreeToolbarButton {
     // @codingStandardsIgnoreStart
     protected $_template = 'tree_toolbar_search.tpl';

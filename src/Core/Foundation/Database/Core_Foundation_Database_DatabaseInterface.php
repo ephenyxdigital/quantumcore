@@ -1,5 +1,7 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
 /**
  * Interface Core_Foundation_Database_DatabaseInterface
  *

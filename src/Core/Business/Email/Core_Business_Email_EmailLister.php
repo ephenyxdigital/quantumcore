@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 class Core_Business_Email_EmailLister {
 
     // @codingStandardsIgnoreEnd

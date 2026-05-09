@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $title = $el_class = $open = $css_animation = '';
 extract(Composer::shortcode_atts([
     'title'         => "Click to toggle",

@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 define('SHORTCODE_CUSTOMIZE_PREFIX', 'vc_theme_');
 define('SHORTCODE_BEFORE_CUSTOMIZE_PREFIX', 'vc_theme_before_');
 define('SHORTCODE_AFTER_CUSTOMIZE_PREFIX', 'vc_theme_after_');

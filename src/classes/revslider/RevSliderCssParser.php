@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use RevSliderOperations;
+
+
 class RevSliderCssParser extends RevSliderFunction {
 
 	public $css;

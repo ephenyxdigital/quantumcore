@@ -1,5 +1,7 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
 /**
  * Class Core_Business_CMS_CMSRoleRepository
  *

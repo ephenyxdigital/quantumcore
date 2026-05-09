@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use CMS;
+use Language;
+use PFGModel;
+
+
 /**
  * Class Performer
  *
@@ -714,7 +721,7 @@ class Performer {
             $this->controller = str_replace('-', '', $this->controller);
             $controllers = Performer::getControllers($this->front_controllers);
             $controllers['index'] = 'IndexController';
-            $controllers['installer'] = 'InstallerController';
+            $controllers['installer'] = InstallerController::class;
 
             if (isset($controllers['auth'])) {
                 $controllers['authentication'] = $controllers['auth'];

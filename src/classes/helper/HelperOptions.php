@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Language;
+
+
 /**
  * Use this helper to generate preferences forms, with values stored in the configuration table
  *

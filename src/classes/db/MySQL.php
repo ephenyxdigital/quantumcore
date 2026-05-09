@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use DbCore;
+use PhenyxDatabaseExceptionException;
+
+
 /**
  * Class MySQLCore
  */

@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Language;
+use UniteFunctionsRev;
+
+
 class RevSliderWpml extends RevSliderFunction {
 
 	private $cur_lang;

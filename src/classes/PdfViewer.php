@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Language;
+
+
 /**
  * Class PdfViewer
  *
@@ -739,7 +744,7 @@ class PdfViewer {
 
     public function l($string, $idLang = null, $context = null) {
 
-        $class = 'PdfViewer';
+        $class = PdfViewer::class;
 
         if (isset($this->context->translations)) {
             return $this->context->translations->getClassTranslation($string, $class);

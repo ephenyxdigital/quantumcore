@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 class ComposerShortCode_vc_row extends ComposerShortCode {
 
 	protected $predefined_atts = [

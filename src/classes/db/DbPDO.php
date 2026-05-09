@@ -1,5 +1,14 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use DateTime;
+use DateTimeZone;
+use DbCore;
+use PDO;
+use PDOException;
+
+
 /**
  * Class DbPDO
  *

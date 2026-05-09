@@ -1,5 +1,10 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+
+use DateTime;
+use Language;
 /**
  * Class Company
  *
@@ -731,7 +736,7 @@ class Company extends PhenyxObjectModel {
 
         return $this->buildExercices(false);
     }
-    
+
     public function l($string, $idLang = null, $context = null) {
 
         $class = get_class($this);

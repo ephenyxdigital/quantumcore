@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use RevSliderBase;
+use RevSliderOperations;
+
+
 /**
  * Class RevsliderDataCore
  *

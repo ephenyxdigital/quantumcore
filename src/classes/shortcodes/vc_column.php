@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $font_color = $el_class = $width = $offset = '';
 extract(Composer::shortcode_atts([
 	'font_color' => '',

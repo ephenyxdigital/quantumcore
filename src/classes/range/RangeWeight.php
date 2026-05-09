@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Carrier;
+use ObjectModelCore;
+
+
 /**
  * Class RangeWeight
  *

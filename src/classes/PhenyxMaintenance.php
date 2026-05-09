@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Customer;
+use DateTime;
+use StdAccount;
+
+
 /**
  * Class PhenyxMaintenance
  *

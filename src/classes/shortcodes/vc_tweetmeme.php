@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $type = '';
 extract(Composer::shortcode_atts([
     'type' => 'horizontal', //horizontal, vertical, none

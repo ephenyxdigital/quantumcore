@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use ContentAnyWhere;
+
+
 extract(Composer::shortcode_atts([
     'id_product' => null,
     'style'      => '',

@@ -1,5 +1,9 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+
+use Exception;
 /**
  * Class Core_Foundation_Exception_Exception
  *

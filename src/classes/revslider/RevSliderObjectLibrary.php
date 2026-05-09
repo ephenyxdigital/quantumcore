@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use RevSliderBase;
+use WP_Http_Curl;
+use WP_Query;
+
+
 class RevSliderObjectLibrary extends RevSliderFunction {
 
 	private $library_list = 'library.php';

@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Employee;
+
+
 /**
  * Class PluginGraphCore
  *
@@ -355,7 +360,7 @@ abstract class PluginStats extends Plugin {
     public function createGraph($render, $type, $width, $height, $layers) {
 
         if (!file_exists($file = _EPH_ROOT_DIR_ . '/includes/plugins/' . $render . '/' . $render . '.php')) {
-            $render = 'PluginGraphEngine';
+            $render = PluginGraphEngine::class;
         } else {
             require_once $file;
         }
@@ -372,7 +377,7 @@ abstract class PluginStats extends Plugin {
     public function createGrid($render, $type, $width, $height, $start, $limit, $sort, $dir) {
 
         if (!file_exists($file = _EPH_ROOT_DIR_ . '/includes/plugins/' . $render . '/' . $render . '.php')) {
-            $render = 'PluginGridEngine';
+            $render = PluginGridEngine::class;
         } else {
             require_once $file;
         }

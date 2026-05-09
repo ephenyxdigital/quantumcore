@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 /**
  * Class Db
  *
@@ -368,7 +371,7 @@ abstract class Db {
      */
     public static function getClass() {
 
-        return 'DbPDO';
+        return DbPDO::class;
     }
 
     /**

@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Language;
+use ReflectionClass;
+
+
 /**
  * Class Meta
  *

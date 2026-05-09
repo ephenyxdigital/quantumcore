@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Row;
+use Slide;
+use Slides;
+
+
 class RevSliderTooltips {
 
 	public function l($string, $idLang = null, $context = null) {

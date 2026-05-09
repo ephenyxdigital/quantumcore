@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use RevSliderSlider;
+
+
 class RevSliderExtension {
 
 	public function __construct() {

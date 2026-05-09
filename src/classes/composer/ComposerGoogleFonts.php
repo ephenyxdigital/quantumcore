@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 class ComposerGoogleFonts extends Composer {
 
 	public function render($settings, $value) {

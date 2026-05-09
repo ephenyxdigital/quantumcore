@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use CMS;
+use Language;
+use SimpleXMLElement;
+
+
 class GsiteMap extends PhenyxObjectModel {
 
 	protected static $instance;

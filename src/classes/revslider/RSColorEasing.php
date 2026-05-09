@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 class RSColorEasing {
 
 	public function __construct() {}

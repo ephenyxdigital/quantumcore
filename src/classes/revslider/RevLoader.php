@@ -1,5 +1,14 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use DB;
+use Link;
+use RevSlider;
+use RevSliderSlide;
+use ZipArchive;
+
+
 $revslider_fonts = ['queue' => [], 'loaded' => []];
 $revslider_is_preview_mode = false;
 $revslider_save_post = false;

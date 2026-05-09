@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Exception;
+use Redis;
+
+
 /**
  * This class require Redis server to be installed
  *

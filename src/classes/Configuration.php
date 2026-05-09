@@ -1,5 +1,10 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+
+use Exception;
+use Language;
 /**
  * Class Configuration
  *
@@ -610,8 +615,7 @@ class Configuration extends PhenyxObjectModel {
 
         static::$_cache['configuration'] = null;
     }
-
-    public function isLangKey($key) {
+	 public function isLangKey($key) {
 
         $this->validateKey($key);
 
@@ -633,5 +637,5 @@ class Configuration extends PhenyxObjectModel {
         }
 
     }
-
 }
+  

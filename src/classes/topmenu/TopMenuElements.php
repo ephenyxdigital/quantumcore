@@ -1,5 +1,12 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use CMS;
+use Language;
+use PGFModel;
+
+
 class TopMenuElements extends PhenyxObjectModel {
 
     public $id_topmenu_column;

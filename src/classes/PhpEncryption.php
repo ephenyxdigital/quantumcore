@@ -1,5 +1,9 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
+
 use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
 use Defuse\Crypto\Exception\WrongKeyOrModifiedCiphertextException;

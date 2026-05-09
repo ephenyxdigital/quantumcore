@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 class ComposerShortCode_vc_accordion_tab extends ComposerShortCode_vc_tab {
 
 	protected $controls_css_settings = 'tc vc_control-container';

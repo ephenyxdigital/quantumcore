@@ -1,5 +1,13 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use AppendIterator;
+use DirectoryIterator;
+use FilesystemIterator;
+use GlobIterator;
+
+
 /**
  * Our Cache API class
  *

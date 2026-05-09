@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Language;
+
+
 class EmployeeConfiguration extends PhenyxObjectModel {
 
 	public static $instance;

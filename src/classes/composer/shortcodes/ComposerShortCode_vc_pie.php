@@ -1,4 +1,6 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
 class ComposerShortCode_vc_pie extends ComposerShortCode {
 
 	public function __construct($settings) {

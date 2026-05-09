@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $title = $el_class = $text = $filter = '';
 extract(Composer::shortcode_atts([
 	'title'    => '',

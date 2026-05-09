@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use ComposerMap;
+use ComposerTemplatesEditor;
+
+
 class ComposerBase {
 
 	protected $shortcode_edit_form = false;

@@ -1,5 +1,7 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
 class ComposerPostSeetings {
 
 	protected $editor;

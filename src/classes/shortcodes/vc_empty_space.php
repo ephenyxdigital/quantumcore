@@ -1,4 +1,9 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
+use ComposerMap;
+
 extract(Composer::shortcode_atts([
     'height'   => ComposerMap::getParam('vc_empty_space', 'height'),
     'el_class' => '',

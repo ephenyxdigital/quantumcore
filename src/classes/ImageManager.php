@@ -1,5 +1,17 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use AppendIterator;
+use DirectoryIterator;
+use Exception;
+use FileErrorException;
+use ImageType;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use Tool;
+
+
 use WebPConvert\WebPConvert;
 
 /**

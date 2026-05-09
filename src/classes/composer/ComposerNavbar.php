@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use CMS;
+use Language;
+
+
 /**
  * Renders navigation bar for Editors.
  */
@@ -114,7 +120,7 @@ class ComposerNavbar {
 
 	public function l($string, $idLang = null, $context = null) {
 
-		$class = 'ComposerNavbar';
+		$class = ComposerNavbar::class;
 
 		if (isset($this->context->translations)) {
 			return $this->context->translations->getClassTranslation($string, $class);

@@ -1,5 +1,7 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
 class RevSliderTwitterApi extends RevSliderFunction {
 
 	public $bearer_token;

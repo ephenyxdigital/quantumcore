@@ -1,5 +1,8 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+
 define('EPH_UNPACK_NATIVE', 1);
 define('EPH_UNPACK_MODIFIED', 2);
 

@@ -1,5 +1,9 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+
+use ComposerMap;
 class Mapper {
 
 	public function init() {

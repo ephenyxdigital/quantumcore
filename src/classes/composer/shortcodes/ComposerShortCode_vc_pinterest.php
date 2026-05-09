@@ -1,4 +1,6 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
 class ComposerShortCode_vc_pinterest extends ComposerShortCode {
 
     protected function contentInline($atts, $content = null) {

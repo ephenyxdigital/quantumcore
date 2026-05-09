@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $output = $title = $number = $el_class = '';
 extract(Composer::shortcode_atts([
 	'title'    => __('Recent Comments'),

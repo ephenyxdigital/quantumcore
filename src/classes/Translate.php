@@ -1,5 +1,15 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+
+use Language;
+/**
+ * Class Translate
+ *
+ * @since 1.8.1.0
+ */
+
 /**
  * Class Translate
  *

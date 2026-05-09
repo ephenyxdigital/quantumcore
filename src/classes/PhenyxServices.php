@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Language;
+use stdClass;
+
+
 // Base class for all services implementing the Singleton pattern
 
 class PhenyxServices extends stdClass {

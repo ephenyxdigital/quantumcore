@@ -1,4 +1,14 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
+use CMS;
+use DB;
+use FrontController;
+use Group;
+use Language;
+use PFGModel;
+use PGFModel;
 #[AllowDynamicProperties]
 class TopMenu extends PhenyxObjectModel {
 

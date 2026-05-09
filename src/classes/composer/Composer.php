@@ -1,4 +1,20 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
+use Category;
+use ComposerImageType;
+use ComposerMap;
+use ComposerMedia;
+use ComposerTemplatesEditor;
+use ContentAnyWhere;
+use Imagick;
+use Language;
+use Manufacturer;
+use Product;
+use Supplier;
+use VcImageType;
+
 use Thunder\Shortcode\HandlerContainer\HandlerContainer;
 use Thunder\Shortcode\Parser\RegularParser;
 use Thunder\Shortcode\Processor\Processor;
@@ -1699,7 +1715,7 @@ class Composer {
 
     public function l($string, $idLang = null, $context = null) {
 
-        $class = 'Composer';
+        $class = Composer::class;
 
         if (!isset($this->context)) {
             $this->context = Context::getContext();

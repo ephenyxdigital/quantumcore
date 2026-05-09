@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 /**
  */
 class ComposerShortCode_vc_tabs extends ComposerShortCode {

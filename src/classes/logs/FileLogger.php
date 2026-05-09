@@ -1,5 +1,13 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
+/**
+ * Class FileLogger
+ *
+ * @since 1.9.1.0
+ */
+
 /**
  * Class FileLogger
  *

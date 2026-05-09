@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Promise;
+
+
 /**
  * Class ParamGrid
  *
@@ -928,7 +933,7 @@ class ParamGrid {
 		global $_LANGADM;
 
 		if ($class == __CLASS__) {
-			$class = 'ParamGrid';
+			$class = ParamGrid::class;
 		}
 
 		$key = md5(str_replace('\'', '\\\'', $string));

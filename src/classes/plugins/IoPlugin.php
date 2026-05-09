@@ -1,5 +1,17 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Currency;
+use Group;
+use Language;
+use Link;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use User;
+use ZipArchive;
+
+
 /**
  * Class IoPlugin
  *

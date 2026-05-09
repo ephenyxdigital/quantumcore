@@ -1,5 +1,15 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Exception;
+use RevSliderBase;
+use RevSliderFunctionsWP;
+use RevSliderOperations;
+use URL;
+use stdClass;
+
+
 /**
  * Class RevSliderFunction
  *

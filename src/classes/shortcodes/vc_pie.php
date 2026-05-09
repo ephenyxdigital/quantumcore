@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 global $vc_manager;
 
 $title = $el_class = $value = $label_value = $units = '';

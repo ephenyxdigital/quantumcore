@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Employee;
+use ObjectModel;
+
+
 class PhenyxLogger extends PhenyxObjectModel {
 
     /** @var int Log id */

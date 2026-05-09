@@ -1,5 +1,11 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use AdminController;
+use PluginAdminController;
+
+
 /**
  * Class HelperUploader
  *

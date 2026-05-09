@@ -1,5 +1,10 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use VcLoopSettings;
+
+
 class ComposerLoopSuggestions {
 
 //	protected $content = array();

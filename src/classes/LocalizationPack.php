@@ -1,5 +1,16 @@
 <?php
 
+namespace EphenyxDigital\QuantumCore;
+
+use Currency;
+use Group;
+use Language;
+use PaymentPlugin;
+use Tax;
+use TaxRule;
+use TaxRulesGroup;
+
+
 /**
  * Class LocalizationPackCore
  *

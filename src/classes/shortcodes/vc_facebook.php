@@ -1,4 +1,7 @@
 <?php
+
+namespace EphenyxDigital\QuantumCore;
+
 $type = $url = '';
 extract(Composer::shortcode_atts([
     'type' => 'standard', //standard, button_count, box_count

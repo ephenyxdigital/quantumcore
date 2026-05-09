@@ -1,5 +1,7 @@
 <?php
 
+
+namespace EphenyxDigital\QuantumCore;
 class PhenyxSession extends PhenyxServices {
 
     const SESSION_NAMESPACE = 'phenyx_digital';
@@ -113,12 +115,10 @@ class PhenyxSession extends PhenyxServices {
 
         session_destroy();
     }
-
-    public function getId() {
+	
+	 public function getId() {
 
         return session_id();
     }
 
 }
-
-?>
