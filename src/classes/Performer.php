@@ -454,7 +454,7 @@ class Performer {
             }
 
         }
-
+		
         // Fix #8: the route-lookup block was copy-pasted four times (full_back,
         // full_front, conventionnel/admin, conventionnel/front). Extracted into
         // resolveControllerFromRoutes() called once per mode branch.
@@ -543,13 +543,17 @@ class Performer {
      */
     protected function resolveControllerFromRoutes(string $request_uri_clean): void {
 
-        if (is_null($this->controller) && isset($this->routes[$this->context->language->id])) {
-
-            foreach ($this->routes[$this->context->language->id] as $route) {
+        if (isset($this->routes[$this->context->language->id])) {
+					
+            foreach ($this->routes[$this->context->language->id] as $key => $route) {
 
                 if (isset($route['rule']) && $route['rule'] === $request_uri_clean) {
+                    if(!empty($route['plugin']) && !str_starts_with($key,'admin')) {
+						$_POST['plugin'] = $route['plugin'];
+                        $this->front_controller = static::FC_PLUGIN;
+                    }
                     $this->controller = $route['controller'];
-                    break;
+				    break;
                 }
 
             }
@@ -715,7 +719,6 @@ class Performer {
         if (!$this->controller) {
             $this->controller = $this->useDefaultController();
         }
-
         switch ($this->front_controller) {
         case static::FC_FRONT:
             $this->controller = str_replace('-', '', $this->controller);
@@ -760,7 +763,7 @@ class Performer {
             break;
 
         case static::FC_PLUGIN:
-
+				
             $pluginName = Validate::isPluginName($this->context->_tools->getValue('plugin')) ? $this->context->_tools->getValue('plugin') : '';
             $plugin = Plugin::getInstanceByName($pluginName);
             $controllerClass = 'PageNotFoundController';

@@ -605,24 +605,30 @@ class BackTab extends PhenyxObjectModel {
 
     public static function checkTabRights($idTab) {
 
-        if (Context::getContext()->employee->id_profile == _EPH_ADMIN_PROFILE_) {
+        $context = Context::getContext();
+
+        // No logged-in employee → no rights. Avoid null property access cascade.
+        if (!isset($context->employee) || empty($context->employee->id_profile)) {
+            return false;
+        }
+
+        if ($context->employee->id_profile == _EPH_ADMIN_PROFILE_) {
             return true;
         }
 
-        static::$_tabAccesses = [];
-        $idProfil = Context::getContext()->employee->id_profile;
+        $idProfil = (int) $context->employee->id_profile;
+        $idTab    = (int) $idTab;
 
         if (!isset(static::$_tabAccesses[$idProfil][$idTab])) {
+            $tabAccesses = Profile::getProfileAccesses($idProfil);
 
-            if ($tabAccesses === null) {
-                $tabAccesses = Profile::getProfileAccesses($idProfil);
+            // Initialize the cache slot in every branch so the return below
+            // never hits an undefined key (PHP 8 warning).
+            if (is_array($tabAccesses) && isset($tabAccesses[$idTab]['view'])) {
+                static::$_tabAccesses[$idProfil][$idTab] = $tabAccesses[$idTab]['view'];
+            } else {
+                static::$_tabAccesses[$idProfil][$idTab] = false;
             }
-
-            if (isset($tabAccesses[(int) $idTab]['view'])) {
-                static::$_tabAccesses[$idProfil][$idTab] = $tabAccesses[(int) $idTab]['view'];
-            }
-
-            return static::$_tabAccesses[$idProfil][$idTab];
         }
 
         return static::$_tabAccesses[$idProfil][$idTab];

@@ -2573,6 +2573,39 @@ abstract class Plugin {
         return $result;
     }
 
+	 public function updatePluginTab($user_tab, $function = null, $class_name = true, $plugin = null, $position = null, $parent = null) {
+
+        $id_user_tab = (int) BackTab::getIdFromClassName($user_tab);
+		if($id_user_tab > 0) {
+			 $tab = new BackTab($id_user_tab);
+			 if(!is_null($function)) {
+				$tab->function = $function;
+			 }
+			if(!is_null($class_name)) {
+				$tab->class_name = $class_name;
+			 }
+			if(!is_null($plugin)) {
+				$tab->plugin = $plugin;
+			 } else {
+				$tab->plugin = $this->name;
+			}
+			if(!is_null($position)) {
+				$tab->position = $position;
+			 } 
+             if(!is_null($parent)) {
+                $id_parent = (int) BackTab::getIdFromClassName($parent);
+                if($id_parent > 0) {
+                    $tab->id_parent = $id_parent;
+                }
+             } 
+        	        
+        	return $tab->update();
+		}
+		 return false;
+        
+
+    }
+
     public function installPluginTab($class_name, $name, $function = true, $idParent = null, $parentName = null, $position = null, $openFunction = null, $divider = 0, $fa_duatone = null, $common_function = null) {
 
         if (is_null($parentName) && is_null($idParent)) {

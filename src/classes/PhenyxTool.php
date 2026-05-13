@@ -5561,7 +5561,59 @@ class PhenyxTool {
     }
 
     public function generateTabs($use_cache = true) {
-        
+
+        // Whole method relies on a logged-in employee (cache key, master/admin
+        // filtering, etc). Without one we cannot produce a meaningful tab tree,
+        // and accessing $this->context->employee->* would emit null-property
+        // warnings on every call.
+        if (!isset($this->context->employee) || empty($this->context->employee->id)) {
+
+            // ---------------------------------------------------------------
+            // DIAGNOSTIC: log who called generateTabs() with a null employee.
+            // Writes at most once per unique call-site per request.
+            // Remove this block once the root cause has been identified.
+            // ---------------------------------------------------------------
+            static $loggedHashes = [];
+            try {
+                $bt    = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 15);
+                $lines = [];
+                foreach ($bt as $i => $f) {
+                    $where = (isset($f['file']) ? $f['file'] : '(internal)') . ':' . (isset($f['line']) ? $f['line'] : '?');
+                    $what  = (isset($f['class']) ? $f['class'] . (isset($f['type']) ? $f['type'] : '::') : '') . (isset($f['function']) ? $f['function'] : '');
+                    $lines[] = '#' . $i . ' ' . $where . ' ' . $what . '()';
+                }
+                $trace = implode(PHP_EOL, $lines);
+                $hash  = md5($trace);
+
+                if (!isset($loggedHashes[$hash])) {
+                    $loggedHashes[$hash] = true;
+
+                    $url    = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '(cli)';
+                    $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '-';
+                    $ref    = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '-';
+
+                    $ctxFlags = [];
+                    $ctxFlags[] = 'context_isset=' . (isset($this->context) ? '1' : '0');
+                    $ctxFlags[] = 'employee_isset=' . (isset($this->context->employee) ? '1' : '0');
+                    $ctxFlags[] = 'employee_type=' . (isset($this->context->employee) ? gettype($this->context->employee) : 'null');
+
+                    $entry = '[' . date('Y-m-d H:i:s') . '] ' . $method . ' ' . $url
+                           . ' | REFERER=' . $ref
+                           . ' | ' . implode(' ', $ctxFlags) . PHP_EOL
+                           . $trace . PHP_EOL
+                           . str_repeat('-', 80) . PHP_EOL;
+
+                    $logPath = (defined('_EPH_ROOT_DIR_') ? _EPH_ROOT_DIR_ : sys_get_temp_dir()) . '/null_employee_debug.log';
+                    @file_put_contents($logPath, $entry, FILE_APPEND | LOCK_EX);
+                }
+            } catch (\Throwable $e) {
+                // Diagnostics must never break the actual request.
+            }
+            // ---------------------------------------------------------------
+
+            return [];
+        }
+
         if ($use_cache && $this->context->cache_enable && is_object($this->context->cache_api)) {
             $value = $this->context->cache_api->getData('generateTabs_'.$this->context->employee->id);
             $temp = empty($value) ? null : $this->jsonDecode($value, true);
