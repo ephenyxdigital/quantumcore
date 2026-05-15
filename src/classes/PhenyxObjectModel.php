@@ -1369,7 +1369,11 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
             $values = $this->$field;
 
             if (!is_array($values)) {
-                $values = [$this->id_lang => $values];
+                // $this->id_lang can legitimately be null (the default declared on the class).
+                // Using null as an array key triggers a PHP 8.1+ Deprecated notice and silently
+                // coerces the key to ''. Fall back to the default language when id_lang is null.
+                $keyLang = ($this->id_lang !== null && $this->id_lang !== '') ? $this->id_lang : $idLangDefault;
+                $values = [$keyLang => $values];
             }
 
             if (!isset($values[$idLangDefault])) {
