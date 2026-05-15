@@ -4,7 +4,7 @@ namespace EphenyxDigital\QuantumCore;
 
 use CMS;
 use Language;
-use PGFModel;
+use PFGModel;
 
 
 class TopMenuElements extends PhenyxObjectModel {
@@ -328,7 +328,7 @@ class TopMenuElements extends PhenyxObjectModel {
                 $return .= htmlentities($this->name, ENT_COMPAT, 'UTF-8');
 
             } else {
-                $pfg = new PGFModel($this->id_pfg, $context->cookie->id_lang);
+                $pfg = new PFGModel($this->id_pfg, $context->cookie->id_lang);
                 $return .= $pfg->title;
             }
 

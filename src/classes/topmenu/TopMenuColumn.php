@@ -5,9 +5,6 @@ namespace EphenyxDigital\QuantumCore;
 use CMS;
 use Language;
 use PFGModel;
-use PGFModel;
-
-
 class TopMenuColumn extends PhenyxObjectModel {
 
     public $id;
@@ -284,7 +281,7 @@ class TopMenuColumn extends PhenyxObjectModel {
                 $return .= htmlentities($this->name, ENT_COMPAT, 'UTF-8');
 
             } else {
-                $pfg = new PGFModel($this->id_pfg, $this->context->cookie->id_lang);
+                $pfg = new PFGModel($this->id_pfg, $this->context->cookie->id_lang);
                 $return .= $pfg->title;
             }
 
@@ -796,7 +793,7 @@ class TopMenuColumn extends PhenyxObjectModel {
                 $name = htmlentities($objectData['name'], ENT_COMPAT, 'UTF-8');
 
             } else {
-                $pfg = new PGFModel($objectData['id_pfg'], $context->cookie->id_lang);
+                $pfg = new PFGModel($objectData['id_pfg'], $context->cookie->id_lang);
                 $name = $pfg->title;
             }
 

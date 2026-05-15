@@ -8,7 +8,6 @@ use FrontController;
 use Group;
 use Language;
 use PFGModel;
-use PGFModel;
 #[\AllowDynamicProperties]
 class TopMenu extends PhenyxObjectModel {
 
@@ -192,7 +191,7 @@ class TopMenu extends PhenyxObjectModel {
                 $name = htmlentities($this->name, ENT_COMPAT, 'UTF-8');
 
             } else {
-                $pfg = new PGFModel($this->id_pfg, $this->context->cookie->id_lang);
+                $pfg = new PFGModel($this->id_pfg, $this->context->cookie->id_lang);
                 $name = $pfg->title;
             }
 
@@ -856,7 +855,7 @@ class TopMenu extends PhenyxObjectModel {
                 $name = htmlentities($objectData['name'], ENT_COMPAT, 'UTF-8');
 
             } else {
-                $pfg = new PGFModel($objectData['id_pfg'], $context->cookie->id_lang);
+                $pfg = new PFGModel($objectData['id_pfg'], $context->cookie->id_lang);
                 $name = $pfg->title;
             }
 
