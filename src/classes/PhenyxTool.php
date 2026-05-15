@@ -1213,6 +1213,12 @@ class PhenyxTool {
         static $allowAccentedChars = null;
         static $hasMbStrtolower = null;
 
+        // Validation precoce du type : evite le deprecated PHP 8.1+
+        // "Using null as an array offset" sur l'acces au cache plus bas.
+        if (!is_string($str)) {
+            return false;
+        }
+
         if ($hasMbStrtolower === null) {
             $hasMbStrtolower = function_exists('mb_strtolower');
         }
@@ -1221,11 +1227,7 @@ class PhenyxTool {
             return $arrayStr[$str];
         }
 
-        if (!is_string($str)) {
-            return false;
-        }
-
-        if ($str == '') {
+        if ($str === '') {
             return '';
         }
 

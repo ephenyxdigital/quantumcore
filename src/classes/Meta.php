@@ -335,9 +335,11 @@ class Meta extends PhenyxObjectModel {
 
         }
 
-        // Add selected page
+        // Add selected page : on exige une string non-vide, sinon on aurait
+        // $selectedPages[true => true] qui devient $selectedPages[1 => true]
+        // et fait planter les consommateurs qui font foreach (cf AdminMetaController).
 
-        if ($addPage) {
+        if (is_string($addPage) && $addPage !== '') {
             $name = $addPage;
 
             if (preg_match('#plugin-([a-z0-9_-]+)-([a-z0-9]+)$#i', $addPage, $m)) {
@@ -345,7 +347,6 @@ class Meta extends PhenyxObjectModel {
             }
 
             $selectedPages[$addPage] = $name;
-
         }
 
         ksort($selectedPages);
