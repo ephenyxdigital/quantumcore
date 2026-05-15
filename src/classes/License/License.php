@@ -672,7 +672,7 @@ class License extends PhenyxObjectModel {
             'sitemap.xml',
         ];
 
-        $excludedExtensions = ['txt', 'csv', 'zip', 'dat'];
+        $excludedExtensions = ['txt', 'csv', 'zip', 'dat', 'log'];
 
         $md5List = [];
 

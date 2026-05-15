@@ -274,7 +274,7 @@ class PhenyxTools {
     	}
 
     	$excludedFiles = ['.', '..', '.htaccess', '.env', 'composer.lock', 'settings.inc.php', '.gitattributes', '.php-ini', '.php-version'];
-    	$excludedExtensions = ['txt', 'zip', 'dat'];
+    	$excludedExtensions = ['txt', 'zip', 'dat', 'log'];
     	$excludedPaths = ['/uploads/', '/cache/', '/views/docs/', 'sitemap.xml'];
 
     	foreach ($iterator as $file) {
