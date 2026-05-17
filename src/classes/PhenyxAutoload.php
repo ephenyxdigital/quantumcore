@@ -188,11 +188,17 @@ class PhenyxAutoload {
                     ];
 
                     if (substr($m['classname'], -4) === 'Core') {
-                        $classes[substr($m['classname'], 0, -4)] = [
-                            'path'     => '',
-                            'type'     => $classes[$m['classname']]['type'],
-                            'override' => $hostMode,
-                        ];
+                        $nonCoreName = substr($m['classname'], 0, -4);
+
+                        // Fix #13 (twin of scanPluginDir): never let a Core
+                        // placeholder write trump an existing real override.
+                        if (!isset($classes[$nonCoreName]) || empty($classes[$nonCoreName]['path'])) {
+                            $classes[$nonCoreName] = [
+                                'path'     => '',
+                                'type'     => $classes[$m['classname']]['type'],
+                                'override' => $hostMode,
+                            ];
+                        }
                     }
 
                 }
@@ -276,8 +282,17 @@ class PhenyxAutoload {
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_COLUMN,
             ]);
 
+            // Fix #12: the original query had no ORDER BY, so the row order
+            // returned by MySQL was effectively unspecified (and could shift
+            // between deployments or after table maintenance). That made the
+            // override resolution in scanPluginDir() non-deterministic, since
+            // "last scanned wins" for any name collision. Ordering by the
+            // admin-managed `position` (ascending, with `id_plugin` as a
+            // stable tiebreaker) makes the scan order reproducible.
             $stmt = $pdo->query(
-                'SELECT `name` FROM `' . $prefix . 'plugin` WHERE `active` = 1'
+                'SELECT `name` FROM `' . $prefix . 'plugin`'
+                . ' WHERE `active` = 1'
+                . ' ORDER BY `position` ASC, `id_plugin` ASC'
             );
 
             return $stmt ? $stmt->fetchAll() : [];
@@ -373,11 +388,22 @@ class PhenyxAutoload {
             ];
 
             if (substr($m['classname'], -4) === 'Core') {
-                $classes[substr($m['classname'], 0, -4)] = [
-                    'path'     => '',
-                    'type'     => $classes[$m['classname']]['type'],
-                    'override' => $hostMode,
-                ];
+                $nonCoreName = substr($m['classname'], 0, -4);
+
+                // Fix #13: when plugin A declares FooCore (which also emits a
+                // FrontLink-style placeholder `Foo => {path: ''}`) and plugin
+                // B declares the real override `class Foo extends FooCore`,
+                // the previous unconditional assignment let the placeholder
+                // overwrite the real override if A happened to be scanned
+                // after B. Guard the placeholder write so a real override
+                // entry (one with a non-empty path) is never trumped.
+                if (!isset($classes[$nonCoreName]) || empty($classes[$nonCoreName]['path'])) {
+                    $classes[$nonCoreName] = [
+                        'path'     => '',
+                        'type'     => $classes[$m['classname']]['type'],
+                        'override' => $hostMode,
+                    ];
+                }
             }
 
         }

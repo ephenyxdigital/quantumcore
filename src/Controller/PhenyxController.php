@@ -549,10 +549,20 @@ abstract class PhenyxController {
 
         }
 
+        // Fix #16: switched require_once → @include and reset $_LANGCLASS = []
+        // before each include. require_once was a no-op if anything (a cache
+        // pre-load, an autoloader, the Translate constructor, etc.) had already
+        // pulled the file into the current PHP process — and any prior load
+        // would freeze $_LANGCLASS to a stale plugin's content for the rest of
+        // the loop, so the merged class.php ended up missing keys. The reset +
+        // @include guarantees each iteration sees only the freshly read file.
         foreach ($_plugins as $plugin) {
 
-            if (file_exists(_EPH_PLUGIN_DIR_ . $plugin . DIRECTORY_SEPARATOR . 'translations/' . $iso . '/class.php')) {
-                require_once _EPH_PLUGIN_DIR_ . $plugin . DIRECTORY_SEPARATOR . 'translations/' . $iso . '/class.php';
+            $pluginClassFile = _EPH_PLUGIN_DIR_ . $plugin . DIRECTORY_SEPARATOR . 'translations/' . $iso . '/class.php';
+
+            if (file_exists($pluginClassFile)) {
+                $_LANGCLASS = [];
+                @include $pluginClassFile;
 
                 if (is_array($_LANGCLASS)) {
                     $_LANGCLAS = array_merge(
@@ -560,15 +570,16 @@ abstract class PhenyxController {
                         $_LANGCLASS
                     );
                 }
-
             }
-
         }
 
         foreach ($_plugins as $plugin) {
 
-            if (file_exists(_EPH_SPECIFIC_PLUGIN_DIR_ . $plugin . DIRECTORY_SEPARATOR . 'translations/' . $iso . '/class.php')) {
-                require_once _EPH_SPECIFIC_PLUGIN_DIR_ . $plugin . DIRECTORY_SEPARATOR . 'translations/' . $iso . '/class.php';
+            $pluginClassFile = _EPH_SPECIFIC_PLUGIN_DIR_ . $plugin . DIRECTORY_SEPARATOR . 'translations/' . $iso . '/class.php';
+
+            if (file_exists($pluginClassFile)) {
+                $_LANGCLASS = [];
+                @include $pluginClassFile;
 
                 if (is_array($_LANGCLASS)) {
                     $_LANGCLAS = array_merge(
@@ -576,9 +587,7 @@ abstract class PhenyxController {
                         $_LANGCLASS
                     );
                 }
-
             }
-
         }
 
         $toInsert = $_LANGCLAS;
@@ -617,11 +626,16 @@ abstract class PhenyxController {
 
         }
 
+        // Fix #16 (twin of the class.php section above): same require_once
+        // → @include + explicit $_LANGFRONT reset fix for plugin front.php
+        // translations. Same root cause, same fix.
         foreach ($_plugins as $plugin) {
 
-            if (file_exists(_EPH_PLUGIN_DIR_ . $plugin . DIRECTORY_SEPARATOR . 'translations/' . $iso . '/front.php')) {
+            $pluginFrontFile = _EPH_PLUGIN_DIR_ . $plugin . DIRECTORY_SEPARATOR . 'translations/' . $iso . '/front.php';
 
-                require_once _EPH_PLUGIN_DIR_ . $plugin . DIRECTORY_SEPARATOR . 'translations/' . $iso . '/front.php';
+            if (file_exists($pluginFrontFile)) {
+                $_LANGFRONT = [];
+                @include $pluginFrontFile;
 
                 if (is_array($_LANGFRONT)) {
                     $_LANGFRON = array_merge(
@@ -629,16 +643,16 @@ abstract class PhenyxController {
                         $_LANGFRONT
                     );
                 }
-
             }
-
         }
 
         foreach ($_plugins as $plugin) {
 
-            if (file_exists(_EPH_SPECIFIC_PLUGIN_DIR_ . $plugin . DIRECTORY_SEPARATOR . 'translations/' . $iso . '/front.php')) {
+            $pluginFrontFile = _EPH_SPECIFIC_PLUGIN_DIR_ . $plugin . DIRECTORY_SEPARATOR . 'translations/' . $iso . '/front.php';
 
-                require_once _EPH_SPECIFIC_PLUGIN_DIR_ . $plugin . DIRECTORY_SEPARATOR . 'translations/' . $iso . '/front.php';
+            if (file_exists($pluginFrontFile)) {
+                $_LANGFRONT = [];
+                @include $pluginFrontFile;
 
                 if (is_array($_LANGFRONT)) {
                     $_LANGFRON = array_merge(
@@ -646,9 +660,7 @@ abstract class PhenyxController {
                         $_LANGFRONT
                     );
                 }
-
             }
-
         }
 
         $toInsert = $_LANGFRON;
@@ -997,7 +1009,7 @@ abstract class PhenyxController {
     public function generateParaGridScript($idObjet = null, $use_cache = true) {
 
         if ($use_cache && $this->context->cache_enable) {
-            $temp = $this->cache_get_data('grid_' . $this->className . '_' . $idObjet);
+            $temp = $this->context->cache_api->getData('grid_' . $this->className . '_' . $idObjet);
 
             if (!empty($temp)) {
                 return $temp;
@@ -1026,10 +1038,47 @@ abstract class PhenyxController {
         $result = '<script type="text/javascript" data-defer="headJs">' . PHP_EOL . JSMin\JSMin::minify($this->paragridScript) . PHP_EOL . '</script>';
 
         if ($use_cache && $this->context->cache_enable) {
-            $this->cache_put_data('grid_' . $this->className . '_' . $idObjet, $result);
+            $this->context->cache_api->putData('grid_' . $this->className . '_' . $idObjet, $result);
         }
 
         return $result;
+    }
+
+    /**
+     * Cache helpers ported from PhenyxObjectModel.
+     *
+     * Fix #17: generateParaGridScript() (above) calls $this->cache_get_data()
+     * and $this->cache_put_data() but these methods only existed on
+     * PhenyxObjectModel and Plugin. As long as $context->cache_enable was
+     * never truly true (or as long as no caller actually reached the cache
+     * branch), the missing methods went unnoticed. They surfaced once the
+     * cache lookup in AdminPhlinksController::ajaxProcessOpenTargetController
+     * started working (P4.3 fix). Porting the same trivial wrappers here so
+     * the cache branch resolves cleanly on any controller subclass.
+     */
+    public function cache_get_data($key, $ttl = 120) {
+
+        if (empty($this->context->cache_enable) || empty($this->context->cache_api)) {
+            return null;
+        }
+
+        $value = $this->context->cache_api->getData($key, $ttl);
+
+        return empty($value) ? null : Tools::jsonDecode($value, true);
+    }
+
+    public function cache_put_data($key, $value, $ttl = 120) {
+
+        if (empty($this->context->cache_enable)) {
+            return;
+        }
+
+        if (empty($this->context->cache_api)) {
+            return;
+        }
+
+        $value = $value === null ? null : Tools::jsonEncode($value);
+        $this->context->cache_api->putData($key, $value, $ttl);
     }
 
     public static function myErrorHandler($errno, $errstr, $errfile, $errline) {
@@ -4714,89 +4763,5 @@ abstract class PhenyxController {
         if (isset(PhenyxObjectModel::$debug_list)) {
             $this->displayProfilingObjectModel();
         }
-
-        $this->displayProfilingHooks();
-        $this->displayProfilingPlugins();
-        $this->displayProfilingFiles();
-
-        $this->content_ajax .= '</div>';
-
-        return $this->content_ajax;
-
-    }
-
-    public function loadCacheAccelerator($overrideCache = '') {
-
-        if (!($this->context->cache_enable)) {
-            return false;
-        }
-
-        if (is_object($this->context->cache_api)) {
-            return $this->context->cache_api;
-        } else
-
-        if (is_null($this->context->cache_api)) {
-            $cache_api = false;
-        }
-
-        if (class_exists('CacheApi')) {
-            // What accelerator we are going to try.
-            $cache_class_name = !empty($overrideCache) ? $overrideCache : CacheApi::APIS_DEFAULT;
-
-            if (class_exists($cache_class_name)) {
-
-                $cache_api = new $cache_class_name($this->context);
-
-                // There are rules you know...
-
-                if (!($cache_api instanceof CacheApiInterface) || !($cache_api instanceof CacheApi)) {
-                    return false;
-                }
-
-                if (!$cache_api->isSupported()) {
-                    return false;
-                }
-
-                // Connect up to the accelerator.
-
-                if ($cache_api->connect() === false) {
-                    return false;
-                }
-
-                return $cache_api;
-            }
-
-            return false;
-        }
-
-        return false;
-    }
-
-    public function cache_put_data($key, $value, $ttl = 120) {
-
-        if (empty($this->context->cache_enable)) {
-            return;
-        }
-
-        if (empty($this->context->cache_api)) {
-            $this->context->cache_api = $this->loadCacheAccelerator();
-            return;
-        }
-
-        $value = $value === null ? null : $this->context->_tools->jsonEncode($value);
-        $this->context->cache_api->putData($key, $value, $ttl);
-
-    }
-
-    public function cache_get_data($key, $ttl = 120) {
-
-        if (empty($this->context->cache_enable) || empty($this->context->cache_api)) {
-            return null;
-        }
-
-        $value = $this->context->cache_api->getData($key, $ttl);
-
-        return empty($value) ? null : $this->context->_tools->jsonDecode($value, true);
-    }
-
+}
 }

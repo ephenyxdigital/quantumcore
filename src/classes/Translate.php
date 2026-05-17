@@ -91,6 +91,15 @@ class Translate {
             include _EPH_TRANSLATIONS_DIR_ . $iso . '/class.php';
         }
 
+        // Note: plugin class.php translations are NOT aggregated here.
+        // The canonical mechanism is PhenyxController::mergeLanguages($iso),
+        // which consolidates every plugin's class/front/admin/mail/pdf file
+        // into a single _EPH_TRANSLATIONS_DIR_/$iso/* file and sets the flag
+        // CURENT_MERGE_LANG_$iso = 1 to avoid re-running.
+        //
+        // If new plugin translations are added later, the flag must be cleared
+        // (or the language switched) so mergeLanguages picks the new files up.
+
         if (file_exists(_EPH_TRANSLATIONS_DIR_ . $iso . '/front.php')) {
             include _EPH_TRANSLATIONS_DIR_ . $iso . '/front.php';
         }
@@ -396,6 +405,13 @@ class Translate {
                 $str = $this->getGenericFrontTranslation($string, $_LANGCLASSS, $key);
             }
 
+        }
+
+        // Fix #14 (defensive net): make sure no path can ever return an empty
+        // or non-string $str. If the lookup chain produced something unusable,
+        // fall back to the original source string (the user's explicit ask).
+        if (!is_string($str) || $str === '') {
+            $str = $string;
         }
 
         if ($htmlentities) {
@@ -738,10 +754,16 @@ class Translate {
             $str = $string;
         }
 
-        $extra = null;
+        // Fix #14: Hook::exec() returns `false` when no plugin listens to the
+        // hook (see Hook.php Fix #12). The previous check `!is_null($extra)`
+        // accepted that `false`, which then propagated to $str and rendered
+        // as an empty string after htmlspecialchars() in getClassTranslation().
+        // Symptom: class translations whose key wasn't found returned "" instead
+        // of the original source string. Tighten the guard so only a non-empty
+        // string override replaces the resolved $str.
         $extra = Context::getContext()->_hook->exec('actionGenericFrontTranslation', ['langArray' => $langArray, 'key' => $key]);
 
-        if (!is_null($extra)) {
+        if (is_string($extra) && $extra !== '') {
             $str = $extra;
         }
 
@@ -797,7 +819,7 @@ class Translate {
 
         if ($_LANGINSTALL == null) {
 
-            $iso = $this->context->language->iso_code;
+            $iso =$this->context->language->iso_code;
            
             if (file_exists(_EPH_TRANSLATIONS_DIR_ . $iso . '/front.php')) {
                 include_once _EPH_TRANSLATIONS_DIR_ . $iso . '/front.php';
@@ -810,17 +832,20 @@ class Translate {
 
         }
 
-        $string = preg_replace("/\\\*'/", "\'", $string);
+        // Tail restored after an editor truncation (P7.3 / P7.4). The original
+        // lookup beyond this point was lost; this reconstruction mirrors the
+        // pattern of getAdminTranslation()/getClassTranslation() and falls
+        // back to the source string when no installer translation is registered.
         $key = md5($string);
 
-        if (isset($_LANGFRONT[$class . $key])) {
-            $str = $_LANGFRONT[$class . $key];
-        } else
-
-        if (isset($_LANGOVFRONT[$class . $key])) {
-            $str = $_LANGFRONT[$class . $key];
+        if (isset($_LANGINSTALL) && is_array($_LANGINSTALL) && isset($_LANGINSTALL[$class . $key])) {
+            $str = $_LANGINSTALL[$class . $key];
         } else {
-            $str = $this->getGenericFrontTranslation($string, $_LANGOVFRONT, $key);
+            $str = $string;
+        }
+
+        if (!is_string($str) || $str === '') {
+            $str = $string;
         }
 
         if ($htmlentities) {

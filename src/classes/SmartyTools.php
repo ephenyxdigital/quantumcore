@@ -45,6 +45,11 @@ class SmartyTools {
         }
         
     }
+	
+	public static function strtoTime($datetime, $timestamp = null)  {
+		
+		 return strtotime($datetime, $timestamp);
+	}
     
     public static function rtrimString($str, $str_search) {
 
