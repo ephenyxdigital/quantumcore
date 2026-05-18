@@ -494,7 +494,7 @@ class Translate {
                 
         $ret = null;
       
-        if ($_PLUGINS == null) {
+        if (count($_PLUGINS) == 0) {
              if ($sprintf !== null) {
                  $string = $this->checkAndReplaceArgs($string, $sprintf);
              }
@@ -538,7 +538,7 @@ class Translate {
                $ret = $this->checkAndReplaceArgs($ret, $sprintf);
             }
             return $ret;
-        } else if (!empty($_PLUGINS[$PhenyxShopKey2])) {
+        } else if (!empty($_PLUGIN[$PhenyxShopKey2])) {
 			$ret = stripslashes($_PLUGINS[$PhenyxShopKey2]);
             if ($sprintf !== null) {
                 $ret = $this->checkAndReplaceArgs($ret, $sprintf);
@@ -546,16 +546,14 @@ class Translate {
             return $ret;
         } else if (!empty($_PLUGINS)) {
 
-			foreach ($_PLUGINS as $k => $value) {
+			foreach ($_PLUGIN as $k => $value) {
                 if (str_ends_with($k, $key) && !empty($value)) {
                     $ret = stripslashes($value);
                 }
             }
 
-        } else if (!empty($_LANGADM)) {
-			$ret = stripslashes($this->getGenericAdminTranslation($string, $_LANGADM, $key));
-        } else if (is_null($ret)) {
-			$ret = stripslashes($string);
+        } else if (!is_string($ret) || $ret === '') { 
+			$ret = $string;
         }
 
         if ($sprintf !== null) {
