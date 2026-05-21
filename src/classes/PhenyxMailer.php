@@ -7,6 +7,7 @@ use Language;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
 class PhenyxMailer {
 
@@ -173,7 +174,16 @@ class PhenyxMailer {
 
         if ($mail_method == 1) {
             $encrypt = $this->context->phenyxConfig->get('EPH_MAIL_SMTP_ENCRYPTION');
-            $mail    = new PHPMailer();
+            $mail    = new PHPMailer(true);
+
+            // Fix #8 (encodage) : PHPMailer utilise par défaut iso-8859-1.
+            // Le contenu généré par Smarty est en UTF-8, ce qui provoque le
+            // mojibake côté client mail (ex. « reçu » → « reÃ§u »).
+            // On force donc le charset à UTF-8 et un encodage de transfert
+            // sûr pour les caractères 8 bits.
+            $mail->CharSet  = PHPMailer::CHARSET_UTF8;       // 'UTF-8'
+            $mail->Encoding = PHPMailer::ENCODING_BASE64;    // ou ENCODING_QUOTED_PRINTABLE
+
             // Fix #5: IsSMTP() is the deprecated CamelCase alias — use isSMTP().
             $mail->isSMTP();
             $mail->SMTPAuth = true;
@@ -181,7 +191,18 @@ class PhenyxMailer {
             $mail->Port     = $this->context->phenyxConfig->get('EPH_MAIL_SMTP_PORT');
             $mail->Username = $this->context->phenyxConfig->get('EPH_MAIL_USER');
             $mail->Password = $this->context->phenyxConfig->get('EPH_MAIL_PASSWD');
-            $mail->setFrom($this->sender['email'], $this->sender['name']);
+            // Fix #9 (data not accepted) : la majorité des serveurs SMTP
+            // (OVH, Gmail, O365, IONOS, Brevo…) rejettent au DATA si le
+            // From: du header diffère du compte SMTP authentifié, ou si
+            // l'envelope-sender (MAIL FROM SMTP / Return-Path) n'est pas
+            // sur le même domaine. On force donc :
+            //   - le Sender (= MAIL FROM SMTP) à l'utilisateur authentifié
+            //   - un Reply-To explicite vers la vraie adresse de l'expéditeur
+            //   - le From: garde le nom voulu, mais sur l'adresse authentifiée
+            //     pour rester aligné DMARC/SPF.
+            $authUser = $this->context->phenyxConfig->get('EPH_MAIL_USER');
+            $mail->Sender = $authUser; // Return-Path / envelope sender
+            $mail->setFrom($authUser, $this->sender['name']);
             $mail->addReplyTo($this->sender['email'], $this->sender['name']);
 
             foreach ($this->to as $key => $value) {
@@ -204,15 +225,38 @@ class PhenyxMailer {
                 $mail->SMTPAutoTLS = false;
             }
 
-            $mail->Body   = $this->htmlContent;
+            $mail->Body    = $this->htmlContent;
+            $mail->AltBody = trim(strip_tags($this->htmlContent)); // évite "no plaintext part" sur certains anti-spam
             $mail->isHTML(true);
 
             if (isset($this->attachment) && !is_null($this->attachment)) {
                 $mail->addAttachment($this->attachment);
             }
 
-            if (!$mail->send()) {
-                PhenyxLogger::addLog($mail->ErrorInfo, 4, null, null, null, true, null);
+            // Fix #10 : capturer la réponse SMTP brute en cas d'erreur.
+            // On active le debug uniquement si EPH_MAIL_SMTP_DEBUG est vrai
+            // dans la conf, sinon on reste silencieux en prod.
+            $debugBuffer = '';
+            if ($this->context->phenyxConfig->get('EPH_MAIL_SMTP_DEBUG')) {
+                $mail->SMTPDebug   = SMTP::DEBUG_LOWLEVEL; // 3 = client + server, sans le payload
+                $mail->Debugoutput = function ($str, $level) use (&$debugBuffer) {
+                    $debugBuffer .= '[' . $level . '] ' . $str . "\n";
+                };
+            }
+
+            try {
+                $mail->send();
+            } catch (PHPMailerException $e) {
+                $serverReply = '';
+                if ($mail->getSMTPInstance()) {
+                    $serverReply = $mail->getSMTPInstance()->getLastReply();
+                }
+                PhenyxLogger::addLog(
+                    'PhenyxMailer SMTP failure: ' . $e->getMessage()
+                    . ' | last server reply: ' . $serverReply
+                    . ($debugBuffer ? ' | debug: ' . $debugBuffer : ''),
+                    4, null, null, null, true, null
+                );
                 return false;
             }
 

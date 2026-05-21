@@ -141,7 +141,7 @@ class SmartyTools {
     public static function initGet($string) {
         
         if(is_string($string)) {
-            return ini_get($option);
+            return ini_get($string);
         }
         return false;
         

@@ -213,8 +213,23 @@ class PhenyxLogger extends PhenyxObjectModel {
     }
 
     public static function eraseAllLogs() {
-
-        return Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'log');
+		
+		$employees = new PhenyxCollection("User");		
+		$employees->where('is_admin', '=', 1);
+        $result = Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'log');
+		if($result) {
+			foreach($employees as $employee) {
+				 Db::getInstance()->execute(
+					 (new DbQuery())
+             		->type('UPDATE')
+            		->from('use_meta')
+            		->set('`id_last_log` = 0')
+            		->where('`id_user` = '. (int) $employee->id)
+        		); 
+			}
+			
+		}
+		return $result;
     }
 
     /**
