@@ -2,8 +2,8 @@
 
 namespace EphenyxDigital\QuantumCore;
 
+use Db;
 use RevSliderOperations;
-
 
 class RevSliderCssParser extends RevSliderFunction {
 
@@ -689,9 +689,6 @@ class RevSliderCssParser extends RevSliderFunction {
 	 * return the captions sorted by handle name
 	 **/
 	public function get_captions_sorted() {
-
-		global $wpdb;
-
 		$styles = Db::getInstance()->executeS("SELECT * FROM " . _DB_PREFIX_ . RevSliderFront::TABLE_CSS . " ORDER BY handle ASC", true);
 		$arr = ['5.0' => [], 'Custom' => [], '4' => []];
 
@@ -786,9 +783,6 @@ class RevSliderCssParser extends RevSliderFunction {
 	 * @before: RevSliderOperations::importCaptionsCssContentArray()
 	 */
 	public function import_css_captions() {
-
-		global $wpdb;
-
 		$css = $this->get_base_css_captions();
 		$static = [];
 
@@ -828,7 +822,7 @@ class RevSliderCssParser extends RevSliderFunction {
 
 				if (!empty($result)) {
 					//update
-					$wpdb->update(_DB_PREFIX_ . RevSliderFront::TABLE_CSS, $add, ['handle' => $class]);
+					Db::getInstance()->update(RevSliderFront::TABLE_CSS, $add, '`handle` = \'' . pSQL($class) . '\'');
 				} else {
 					//insert
 					$add['handle'] = $class;
@@ -863,9 +857,6 @@ class RevSliderCssParser extends RevSliderFunction {
 	 * get the css raw from the database
 	 */
 	public function get_raw_css() {
-
-		global $wpdb;
-
 		$result = Db::getInstance()->executeS("SELECT * FROM " . _DB_PREFIX_ . RevSliderFront::TABLE_CSS, true);
 
 		return $result;

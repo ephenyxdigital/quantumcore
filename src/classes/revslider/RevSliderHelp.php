@@ -2,8 +2,8 @@
 
 namespace EphenyxDigital\QuantumCore;
 
+use Context;
 use Layers;
-
 
 class RevSliderHelp {
 

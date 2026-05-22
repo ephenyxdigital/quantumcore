@@ -2,7 +2,6 @@
 
 namespace EphenyxDigital\QuantumCore;
 
-
 class RevSliderYoutube extends RevSliderFunction {
 
 	/**

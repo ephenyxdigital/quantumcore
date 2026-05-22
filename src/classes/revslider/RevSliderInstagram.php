@@ -5,7 +5,6 @@ namespace EphenyxDigital\QuantumCore;
 use Essential_Grid_Base;
 use InstagramBasicDisplay;
 
-
 class RevSliderInstagram extends RevSliderFunction {
 
 	/**

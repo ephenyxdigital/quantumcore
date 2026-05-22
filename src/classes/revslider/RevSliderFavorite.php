@@ -2,7 +2,6 @@
 
 namespace EphenyxDigital\QuantumCore;
 
-
 class RevSliderFavorite extends RevSliderFunction {
 
 	public $allowed = [

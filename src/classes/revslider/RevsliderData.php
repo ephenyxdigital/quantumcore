@@ -2,9 +2,10 @@
 
 namespace EphenyxDigital\QuantumCore;
 
+use Context;
+use Db;
 use RevSliderBase;
 use RevSliderOperations;
-
 
 /**
  * Class RevsliderDataCore

@@ -4,7 +4,6 @@ namespace EphenyxDigital\QuantumCore;
 
 use Exception;
 
-
 class RSColorpicker {
 
 	/**

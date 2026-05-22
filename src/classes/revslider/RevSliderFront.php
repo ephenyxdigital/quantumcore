@@ -2,6 +2,7 @@
 
 namespace EphenyxDigital\QuantumCore;
 
+use Tools;
 
 $revslider_rev_start_size_loaded = false;
 

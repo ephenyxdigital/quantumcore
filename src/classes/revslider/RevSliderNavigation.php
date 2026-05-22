@@ -2,6 +2,7 @@
 
 namespace EphenyxDigital\QuantumCore;
 
+use Db;
 
 /**
  * Class RevSliderNavigation
@@ -18,9 +19,6 @@ class RevSliderNavigation extends RevSliderFunction {
 		if ((int) ($nav_id) == 0) {
 			return false;
 		}
-
-		global $wpdb;
-
 		$row = Db::getInstance()->getRow(Db::getInstance()->prepare("SELECT `id`, `handle`, `type`, `css`, `settings` FROM " . _DB_PREFIX_ . RevSliderFront::TABLE_NAVIGATIONS . " WHERE `id` = %d", $nav_id), true);
 
 		return $row;
@@ -32,9 +30,6 @@ class RevSliderNavigation extends RevSliderFunction {
 	 * @since: 5.0
 	 **/
 	public function get_all_navigations_short() {
-
-		global $wpdb;
-
 		$navigations = Db::getInstance()->executeS("SELECT `id`, `handle`, `name` FROM " . _DB_PREFIX_ . RevSliderFront::TABLE_NAVIGATIONS, true);
 
 		return $navigations;
@@ -68,9 +63,6 @@ class RevSliderNavigation extends RevSliderFunction {
 	 * @since: 5.0
 	 **/
 	public function get_all_navigations($defaults = true, $raw = false, $old = false) {
-
-		global $wpdb;
-
 		$navigations = Db::getInstance()->executeS("SELECT * FROM " . _DB_PREFIX_ . RevSliderFront::TABLE_NAVIGATIONS, true);
 
 		if ($raw == false) {
@@ -178,9 +170,6 @@ class RevSliderNavigation extends RevSliderFunction {
 	 * @since: 5.0
 	 **/
 	public function create_update_full_navigation($data) {
-
-		global $wpdb;
-
 		if (!empty($data) && is_array($data)) {
 
 			$navigations = $this->get_all_navigations(false);
@@ -233,8 +222,6 @@ class RevSliderNavigation extends RevSliderFunction {
 	 **/
 	public function create_update_navigation($data, $nav_id = 0) {
 
-		global $wpdb;
-
 		if ($this->get_val($data, 'factory', false) == 'true') {
 			return false;
 		}
@@ -249,8 +236,8 @@ class RevSliderNavigation extends RevSliderFunction {
 		$nav_id = (int) ($nav_id);
 
 		if ($nav_id > 0) {
-			$response = $wpdb->update(
-				_DB_PREFIX_ . RevSliderFront::TABLE_NAVIGATIONS,
+			$response = Db::getInstance()->update(
+				RevSliderFront::TABLE_NAVIGATIONS,
 				[
 					'name'     => $this->get_val($data, 'name'),
 					'handle'   => $this->get_val($data, 'handle'),
@@ -258,11 +245,11 @@ class RevSliderNavigation extends RevSliderFunction {
 					'css'      => $this->get_val($data, 'css'),
 					'settings' => json_encode($this->get_val($data, 'settings')),
 				],
-				['id' => $nav_id]
+				'`id` = ' . (int) $nav_id
 			);
 		} else {
-			$response = $wpdb->insert(
-				_DB_PREFIX_ . RevSliderFront::TABLE_NAVIGATIONS,
+			$response = Db::getInstance()->insert(
+				RevSliderFront::TABLE_NAVIGATIONS,
 				[
 					'name'     => $this->get_val($data, 'name'),
 					'handle'   => $this->get_val($data, 'handle'),
@@ -283,13 +270,11 @@ class RevSliderNavigation extends RevSliderFunction {
 	 **/
 	public function delete_navigation($nav_id = 0) {
 
-		global $wpdb;
-
 		if (!isset($nav_id) || (int) ($nav_id) == 0) {
 			return $this->l('Invalid ID');
 		}
 
-		$response = $wpdb->delete(_DB_PREFIX_ . RevSliderFront::TABLE_NAVIGATIONS, ['id' => $nav_id]);
+		$response = Db::getInstance()->delete(RevSliderFront::TABLE_NAVIGATIONS, '`id` = ' . (int) $nav_id);
 
 		if ($response === false) {
 			return $this->l('Navigation could not be deleted');
@@ -727,11 +712,9 @@ $default_presets = array();
 
 					}
 
-					global $wpdb;
-
 					//save this navigation
-					$response = $wpdb->update(
-						_DB_PREFIX_ . RevSliderFront::TABLE_NAVIGATIONS,
+					$response = Db::getInstance()->update(
+						RevSliderFront::TABLE_NAVIGATIONS,
 						[
 							'settings' => json_encode(
 								[
@@ -742,7 +725,7 @@ $default_presets = array();
 								]
 							),
 						],
-						['id' => $nav['id']]
+						'`id` = ' . (int) $nav['id']
 					);
 
 					if ($response == 0) {
@@ -825,11 +808,9 @@ $default_presets = array();
 					return $this->l('Preset not found');
 				}
 
-				global $wpdb;
-
 				//save this navigation
-				$response = $wpdb->update(
-					_DB_PREFIX_ . RevSliderFront::TABLE_NAVIGATIONS,
+				$response = Db::getInstance()->update(
+					RevSliderFront::TABLE_NAVIGATIONS,
 					[
 						'settings' => json_encode(
 							[
@@ -840,7 +821,7 @@ $default_presets = array();
 							]
 						),
 					],
-					['id' => $nav['id']]
+					'`id` = ' . (int) $nav['id']
 				);
 
 				return $response;

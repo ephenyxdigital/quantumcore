@@ -3,6 +3,11 @@
 namespace EphenyxDigital\QuantumCore;
 
 use Exception;
+use Configuration;
+use Context;
+use Db;
+use Plugin;
+use Tools;
 use RevSliderBaseAdmin;
 use RevSliderFolder;
 use RevSliderSlide;
@@ -12,7 +17,6 @@ use RevSliderSliderExportHtml;
 use RevSliderSliderImport;
 use RevSliderStaticSlide;
 use RevSliderUpdate;
-use Revloader;
 
 
 class RevSliderAdmin extends RevSliderFunctionsAdmin {
@@ -204,8 +208,6 @@ class RevSliderAdmin extends RevSliderFunctionsAdmin {
 		$data = Tools::getValue('data');
 		$data = ($data == '') ? [] : $data;
 		$nonce = Tools::getValue('nonce');
-        $file = fopen("testRevAdmin.txt","a");
-        fwrite($file,$action.PHP_EOL.PHP_EOL);
 		$nonce = (empty($nonce)) ? Tools::getValue('rs-nonce') : $nonce;
 		try {
 
@@ -1871,8 +1873,6 @@ class RevSliderAdmin extends RevSliderFunctionsAdmin {
 						$rsn = str_replace('/', '\/', $revslider_domain_switch['revslider-domain-switch-addon-new']);
 
 						//go through all tables and replace image URLs with new names
-						global $wpdb;
-
 						$sql = Db::getInstance()->prepare("UPDATE " . _DB_PREFIX_ . RevSliderFront::TABLE_SLIDER . " SET `params` = replace(`params`, %s, %s)", [$rso, $rsn]);
 						Db::getInstance()->execute($sql);
 						$sql = Db::getInstance()->prepare("UPDATE " . _DB_PREFIX_ . RevSliderFront::TABLE_SLIDES . " SET `params` = replace(`params`, %s, %s)", [$rso, $rsn]);

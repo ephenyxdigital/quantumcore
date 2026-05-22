@@ -289,6 +289,10 @@ class PhenyxTools {
 
         	$filePath = str_replace(_EPH_ROOT_DIR_, '', $file->getPathname());
         	$ext      = pathinfo($file->getFilename(), PATHINFO_EXTENSION);
+			
+			if (str_contains($filePath, 'uploads/revslider')) {
+                continue;
+            }
 
         	if (in_array($ext, $excludedExtensions, true)) {
             	continue;

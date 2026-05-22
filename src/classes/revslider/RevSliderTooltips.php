@@ -2,10 +2,10 @@
 
 namespace EphenyxDigital\QuantumCore;
 
+use Context;
 use Row;
 use Slide;
 use Slides;
-
 
 class RevSliderTooltips {
 

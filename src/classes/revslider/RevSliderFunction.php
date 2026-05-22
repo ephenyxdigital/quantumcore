@@ -9,7 +9,6 @@ use RevSliderOperations;
 use URL;
 use stdClass;
 
-
 /**
  * Class RevSliderFunction
  *

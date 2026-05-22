@@ -2,7 +2,6 @@
 
 namespace EphenyxDigital\QuantumCore;
 
-
 class RevSliderFacebook extends RevSliderFunction {
 
 	private $stream;

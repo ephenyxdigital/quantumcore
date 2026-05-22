@@ -3,6 +3,7 @@
 namespace EphenyxDigital\QuantumCore;
 
 use Blank;
+use Db;
 use RevSliderFolder;
 use RevSliderOperations;
 use RevSliderSlide;
@@ -295,9 +296,9 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 
 		$handle = $this->get_val($animation, 'name', false);
 		$result = false;
+		$insert_id = false;
 
 		if ($handle !== false && trim($handle) !== '') {
-			global $wpdb;
 
 			//check if handle exists
 			$arr = [
@@ -306,15 +307,16 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 				'settings' => $type,
 			];
 
-			$result = $wpdb->insert(_DB_PREFIX_ . RevSliderFront::TABLE_LAYER_ANIMATIONS, $arr);
+			$result = Db::getInstance()->insert(RevSliderFront::TABLE_LAYER_ANIMATIONS, $arr);
+			if ($result) {
+				$insert_id = (int) Db::getInstance()->Insert_ID();
+			}
 		}
 
-		return ($result) ? $wpdb->insert_id : $result;
+		return ($result) ? $insert_id : $result;
 	}
 
 	public function update_animation($animation_id, $animation, $type) {
-
-		global $wpdb;
 
 		$arr = [
 			'handle'   => $this->get_val($animation, 'name'),
@@ -322,7 +324,7 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 			'settings' => $type,
 		];
 
-		$result = $wpdb->update(_DB_PREFIX_ . RevSliderFront::TABLE_LAYER_ANIMATIONS, $arr, ['id' => $animation_id]);
+		$result = Db::getInstance()->update(RevSliderFront::TABLE_LAYER_ANIMATIONS, $arr, '`id` = ' . (int) $animation_id);
 
 		return ($result) ? $animation_id : $result;
 	}
@@ -333,9 +335,7 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 	 */
 	public function delete_animation($animation_id) {
 
-		global $wpdb;
-
-		$result = $wpdb->delete(_DB_PREFIX_ . RevSliderFront::TABLE_LAYER_ANIMATIONS, ['id' => $animation_id]);
+		$result = Db::getInstance()->delete(RevSliderFront::TABLE_LAYER_ANIMATIONS, '`id` = ' . (int) $animation_id);
 
 		return $result;
 	}
@@ -467,9 +467,6 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 	 * get basic v5 Slider data
 	 **/
 	public function get_v5_slider_data() {
-
-		global $wpdb;
-
 		$sliders = [];
 		$do_order = 'id';
 		$direction = 'ASC';
@@ -496,30 +493,27 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 	 * get basic v5 Slider data
 	 **/
 	public function reimport_v5_slider($id) {
-
-		global $wpdb;
-
 		$done = false;
 
 		$slider_data = Db::getInstance()->getRow(Db::getInstance()->prepare("SELECT * FROM " . _DB_PREFIX_ . RevSliderFront::TABLE_SLIDER . "_bkp WHERE `id` = %s", $id), true);
 
 		if (!empty($slider_data)) {
-			$slides_data = Db::getInstance()->executeS(Db::getInstance()->prepare("SELECT * FROM " . _DB_PREFIX_ . RevSliderFront::TABLE_SLIDES . "_bkp WHERE `	id_revslider_slider` = %s", $id), true);
+			$slides_data = Db::getInstance()->executeS(Db::getInstance()->prepare("SELECT * FROM " . _DB_PREFIX_ . RevSliderFront::TABLE_SLIDES . "_bkp WHERE `id_revslider_slider` = %s", $id), true);
 			$static_slide_data = Db::getInstance()->getRow(Db::getInstance()->prepare("SELECT * FROM " . _DB_PREFIX_ . RevSliderFront::TABLE_STATIC_SLIDES . "_bkp WHERE `	id_revslider_slider` = %s", $id), true);
 
 			if (!empty($slides_data)) {
 				//check if the ID's exist in the new tables, if yes overwrite, if not create
-				$slider_v6 = Db::getInstance()->getRow(Db::getInstance()->prepare("SELECT * FROM " . _DB_PREFIX_ . RevSliderFront::TABLE_SLIDER . " WHERE `	id_revslider_slide` = %s", $id), true);
+				$slider_v6 = Db::getInstance()->getRow(Db::getInstance()->prepare("SELECT * FROM " . _DB_PREFIX_ . RevSliderFront::TABLE_SLIDER . " WHERE `id` = %s", $id), true);
 				unset($slider_data['id']);
 
 				if (!empty($slider_v6)) {
 					/**
 					 * push the old data to the already imported Slider
 					 **/
-					$result = $wpdb->update(_DB_PREFIX_ . RevSliderFront::TABLE_SLIDER, $slider_data, ['id' => $id]);
+					$result = Db::getInstance()->update(RevSliderFront::TABLE_SLIDER, $slider_data, '`id` = ' . (int) $id);
 				} else {
-					$result = $wpdb->insert(_DB_PREFIX_ . RevSliderFront::TABLE_SLIDER, $slider_data);
-					$id = ($result) ? $wpdb->insert_id : false;
+					$result = Db::getInstance()->insert(RevSliderFront::TABLE_SLIDER, $slider_data);
+					$id = ($result) ? (int) Db::getInstance()->Insert_ID() : false;
 				}
 
 				if ($id !== false) {
@@ -531,9 +525,9 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 						unset($slide_data['id_revslider_static_slide']);
 
 						if (!empty($slide_v6)) {
-							$result = $wpdb->update(_DB_PREFIX_ . RevSliderFront::TABLE_SLIDES, $slide_data, ['id_revslider_slide' => $slide_id]);
+							$result = Db::getInstance()->update(RevSliderFront::TABLE_SLIDES, $slide_data, '`id_revslider_slide` = ' . (int) $slide_id);
 						} else {
-							$result = $wpdb->insert(_DB_PREFIX_ . RevSliderFront::TABLE_SLIDES, $slide_data);
+							$result = Db::getInstance()->insert(RevSliderFront::TABLE_SLIDES, $slide_data);
 						}
 
 					}
@@ -545,9 +539,9 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 						unset($static_slide_data['id']);
 
 						if (!empty($slide_v6)) {
-							$result = $wpdb->update(_DB_PREFIX_ . RevSliderFront::TABLE_STATIC_SLIDES, $static_slide_data, ['id' => $slide_id]);
+							$result = Db::getInstance()->update(RevSliderFront::TABLE_STATIC_SLIDES, $static_slide_data, '`id` = ' . (int) $slide_id);
 						} else {
-							$result = $wpdb->insert(_DB_PREFIX_ . RevSliderFront::TABLE_STATIC_SLIDES, $static_slide_data);
+							$result = Db::getInstance()->insert(RevSliderFront::TABLE_STATIC_SLIDES, $static_slide_data);
 						}
 
 					}
@@ -555,9 +549,9 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 					$slider = new RevSliderSlider();
 					$slider->init_by_id($id);
 
-					$upd = new RevSliderPluginUpdate();
-
-					$upd->upgrade_slider_to_latest($slider);
+					// legacy WP plugin update path - removed (Phenyx slides are already v6+)
+					// $upd = new RevSliderPluginUpdate();
+					// $upd->upgrade_slider_to_latest($slider);
 					$done = true;
 				}
 

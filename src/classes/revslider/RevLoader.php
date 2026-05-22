@@ -2,8 +2,10 @@
 
 namespace EphenyxDigital\QuantumCore;
 
-use DB;
+use Context;
+use Db;
 use Link;
+use Tools;
 use RevSlider;
 use RevSliderSlide;
 use ZipArchive;
@@ -1902,9 +1904,6 @@ class RevLoader {
      * @since: 1.0.0
      */
     public static function fetch_slide_backups_overwrite($slide_id, $basic = false) {
-
-        global $wpdb;
-
         if (strpos($slide_id, 'static_') !== false) {
             $slide = new RevSliderSlide();
             $slide_id = $slide->get_static_slide_id(str_replace('static_', '', $slide_id));
@@ -1944,9 +1943,6 @@ class RevLoader {
      * @since: 1.0.0
      */
     public static function fetch_backup($backup_id) {
-
-        global $wpdb;
-
         $record = Db::getInstance()->executeS(Db::getInstance()->prepare("SELECT * FROM " . _DB_PREFIX_ . 'revslider_backup_slides' . " WHERE id = %s", [$backup_id]), true);
 
         if (!empty($record)) {
@@ -1963,9 +1959,6 @@ class RevLoader {
      *
      */
     private static function fetch($tableName, $where = "", $orderField = "", $groupByField = "", $sqlAddon = "") {
-
-        global $wpdb;
-
         $query = "select * from $tableName";
 
         if ($where) {
@@ -2006,8 +1999,6 @@ class RevLoader {
     }
 
     public static function getDataByID($slideid) {
-
-        global $wpdb;
         $return = false;
 
         $record = self::fetchSingle(_DB_PREFIX_ . 'revslider_slide', Db::getInstance()->prepare("id_revslider_slide = %d", [$slideid]));
@@ -2021,8 +2012,6 @@ class RevLoader {
      * @since: 1.0.0
      */
     public static function restore_slide_backup($backup_id, $slide_id, $session_id) {
-
-        global $wpdb;
         $backup = self::fetch_backup($backup_id);
 
         $current = self::getDataByID($slide_id);
@@ -2046,18 +2035,8 @@ class RevLoader {
             }
 
             if ($legacy) {
-
-                $slide = new RevSliderSlide();
-                $slide->init_by_data($backup);
-
-                $update = new RevSliderPluginUpdate();
-                $slide = $update->migrate_slide_to_6_0($slide);
-
+                // legacy WP plugin update path - removed (Phenyx slides are already v6+)
                 $layers = json_decode($backup['layers'], true);
-
-                foreach ($layers as $key => $layer) {
-                    $layers[$key] = $update->migrate_layer_to_6_0($layer, false, $slide);
-                }
 
                 $backup['params'] = json_encode($slide);
                 $backup['layers'] = json_encode($layers);
@@ -2082,7 +2061,7 @@ class RevLoader {
             $update_id = $backup['id'];
             unset($backup['id']);
 
-            $return1 = $wpdb->update(_DB_PREFIX_ . 'revslider_backup_slides', $backup, ['id' => $update_id]);
+            $return1 = Db::getInstance()->update('revslider_backup_slides', $backup, '`id` = ' . (int) $update_id);
 
             return true;
         }
@@ -2106,9 +2085,6 @@ class RevLoader {
      * @since: 1.0.0
      */
     public static function check_add_new_backup($ajax_data, $slide_class) {
-
-        global $wpdb;
-
         $record = Db::getInstance()->executeS(Db::getInstance()->prepare("SELECT * FROM " . _DB_PREFIX_ . "revslider_slide WHERE id_revslider_slide = %s", [$slide_class->get_id()]), true);
 
         if (!empty($record)) {
@@ -2122,9 +2098,6 @@ class RevLoader {
      * @since: 1.0.0
      */
     public static function add_new_backup($slide, $session_id, $static = 'false') {
-
-        global $wpdb;
-
         $slide['slide_id'] = $slide['id'];
         unset($slide['id']);
 
@@ -2136,7 +2109,7 @@ class RevLoader {
         $row = Db::getInstance()->executeS(Db::getInstance()->prepare("SELECT id FROM " . _DB_PREFIX_ . "revslider_backup_slides WHERE session = %s AND slide_id = %s", [$session_id, $slide['slide_id']]), true);
 
         if (!empty($row) && isset($row[0]) && !empty($row[0])) {
-            $wpdb->update(_DB_PREFIX_ . "revslider_backup_slides", $slide, ['id' => $row[0]['id']]);
+            Db::getInstance()->update('revslider_backup_slides', $slide, '`id` = ' . (int) $row[0]['id']);
         } else {
             Db::getInstance()->insert("revslider_backup_slides", $slide);
         }
@@ -2159,9 +2132,6 @@ class RevLoader {
      * @since: 1.0.0
      */
     public static function get_oldest_backup($slide_id) {
-
-        global $wpdb;
-
         $early = Db::getInstance()->executeS(Db::getInstance()->prepare("SELECT id FROM " . _DB_PREFIX_ . "revslider_backup_slides WHERE slide_id = %s ORDER BY `created` ASC LIMIT 0,1", [$slide_id]), true);
 
         if (!empty($early)) {
@@ -2177,9 +2147,6 @@ class RevLoader {
      * @since: 1.0.0
      */
     public static function check_backup_num($slide_id) {
-
-        global $wpdb;
-
         $cur = Db::getInstance()->executeS(Db::getInstance()->prepare("SELECT COUNT(*) AS `row` FROM " . _DB_PREFIX_ . "revslider_backup_slides WHERE slide_id = %s GROUP BY `slide_id`", [$slide_id]), true);
 
         if (!empty($cur)) {
@@ -2195,9 +2162,6 @@ class RevLoader {
      * @since: 1.0.0
      */
     public static function delete_backup($id) {
-
-        global $wpdb;
-
         Db::getInstance()->execute(Db::getInstance()->prepare("DELETE FROM " . _DB_PREFIX_ . "revslider_backup_slides WHERE id = %s", [$id]));
 
     }
@@ -2207,9 +2171,6 @@ class RevLoader {
      * @since: 1.0.0
      */
     public function delete_backup_full($id) {
-
-        global $wpdb;
-
         Db::getInstance()->execute(Db::getInstance()->prepare("DELETE FROM " . _DB_PREFIX_ . "revslider_backup_slides WHERE slide_id = %s", [$id]));
 
     }
@@ -2219,9 +2180,6 @@ class RevLoader {
      * @since: 1.0.0
      */
     public function delete_backup_full_slider($id) {
-
-        global $wpdb;
-
         Db::getInstance()->execute(Db::getInstance()->prepare("DELETE FROM " . _DB_PREFIX_ . "revslider_backup_slides WHERE slider_id = %s", [$id]));
 
     }
