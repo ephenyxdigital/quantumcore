@@ -2,6 +2,7 @@
 
 namespace EphenyxDigital\QuantumCore;
 
+use CacheApi;
 use Context;
 use Db;
 use RevSliderBase;
@@ -18,6 +19,11 @@ class RevsliderData {
 	public $animations;
 
 	public function get_font_familys() {
+
+		$cacheKey = 'RevsliderData::get_font_familys';
+		if (CacheApi::isStored($cacheKey)) {
+			return CacheApi::retrieve($cacheKey);
+		}
 
 		$fonts = [];
 
@@ -83,7 +89,9 @@ class RevsliderData {
 			$fonts[] = ['type' => 'googlefont', 'version' => $this->l('Google Fonts'), 'label' => $f, 'variants' => $val['variants'], 'subsets' => $val['subsets'], 'category' => $val['category']];
 		}
 
-		return RevLoader::apply_filters('revslider_data_get_font_familys', RevLoader::apply_filters('revslider_operations_getArrFontFamilys', $fonts));
+		$result = RevLoader::apply_filters('revslider_data_get_font_familys', RevLoader::apply_filters('revslider_operations_getArrFontFamilys', $fonts));
+		CacheApi::store($cacheKey, $result);
+		return $result;
 	}
 
 	public function l($string, $idLang = null, $context = null) {

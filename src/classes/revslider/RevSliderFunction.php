@@ -2,6 +2,7 @@
 
 namespace EphenyxDigital\QuantumCore;
 
+use CacheApi;
 use Exception;
 use RevSliderBase;
 use RevSliderFunctionsWP;
@@ -54,13 +55,20 @@ class RevSliderFunction extends RevsliderData {
 	 **/
 	public function get_global_settings() {
 
+		$cacheKey = 'RevSliderFunction::get_global_settings';
+		if (CacheApi::isStored($cacheKey)) {
+			return CacheApi::retrieve($cacheKey);
+		}
+
 		$gs = RevLoader::get_option('revslider-global-settings', '');
 
 		if (!is_array($gs)) {
 			$gs = json_decode($gs, true);
 		}
 
-		return RevLoader::apply_filters('rs_get_global_settings', $gs);
+		$result = RevLoader::apply_filters('rs_get_global_settings', $gs);
+		CacheApi::store($cacheKey, $result);
+		return $result;
 	}
 
 	public static function validateNotEmpty($val, $fieldName = "") {

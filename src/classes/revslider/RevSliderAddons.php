@@ -2,6 +2,7 @@
 
 namespace EphenyxDigital\QuantumCore;
 
+use CacheApi;
 use ZipArchive;
 
 
@@ -47,6 +48,12 @@ class RevSliderAddons extends RevSliderFunction {
 	 **/
 	public function get_addon_list() {
 
+		$cacheKey = 'RevSliderAddons::get_addon_list';
+		if (CacheApi::isStored($cacheKey)) {
+			return CacheApi::retrieve($cacheKey);
+		}
+
+		// HTTP call to themepunch CDN — keep in-request cached to avoid duplicate hits.
 		RevLoader::update_addon_json();
 
 		$addons = RevLoader::get_option('revslider-addons');
@@ -86,6 +93,7 @@ class RevSliderAddons extends RevSliderFunction {
 
 		}
 
+		CacheApi::store($cacheKey, $addons);
 		return $addons;
 	}
 

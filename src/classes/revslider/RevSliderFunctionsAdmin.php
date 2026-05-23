@@ -3,6 +3,7 @@
 namespace EphenyxDigital\QuantumCore;
 
 use Blank;
+use CacheApi;
 use Db;
 use RevSliderFolder;
 use RevSliderOperations;
@@ -185,6 +186,11 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 
 	public function get_short_library() {
 
+		$cacheKey = 'RevSliderFunctionsAdmin::get_short_library';
+		if (CacheApi::isStored($cacheKey)) {
+			return CacheApi::retrieve($cacheKey);
+		}
+
 		$template = new RevSliderTemplate();
 		$library = new RevSliderObjectLibrary();
 		$sliders = $this->get_slider_overview();
@@ -243,10 +249,17 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 			'wpimages'	=> array('tags' => $wpi),
 			'wpvideos'	=> array('tags' => $wpv)*/
 		];
-		return RevLoader::apply_filters('revslider_get_short_library', $tags, $library, $this);
+		$result = RevLoader::apply_filters('revslider_get_short_library', $tags, $library, $this);
+		CacheApi::store($cacheKey, $result);
+		return $result;
 	}
 
 	public function get_slider_overview() {
+
+		$cacheKey = 'RevSliderFunctionsAdmin::get_slider_overview';
+		if (CacheApi::isStored($cacheKey)) {
+			return CacheApi::retrieve($cacheKey);
+		}
 
 		$rs_slider = RevSliderSlider::getInstance();
 		$rs_slide = RevSliderSlide::getInstance();
@@ -288,7 +301,7 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 			}
 
 		}
-
+		CacheApi::store($cacheKey, $data);
 		return $data;
 	}
 
@@ -567,6 +580,11 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 	 **/
 	public function get_system_requirements() {
 
+		$cacheKey = 'RevSliderFunctionsAdmin::get_system_requirements';
+		if (CacheApi::isStored($cacheKey)) {
+			return CacheApi::retrieve($cacheKey);
+		}
+
 		$dir = RevLoader::wp_upload_dir();
 		$basedir = $this->get_val($dir, 'basedir') . '/';
 		$ml = ini_get('memory_limit');
@@ -580,7 +598,7 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 		$umfg = ($umfb >= 33554432) ? true : false;
 		$pmsg = ($pmsb >= 33554432) ? true : false;
 
-		return [
+		$result = [
 			'memory_limit'            => [
 				'has'  => RevLoader::size_format($mlb),
 				'min'  => RevLoader::size_format(268435456),
@@ -600,6 +618,8 @@ class RevSliderFunctionsAdmin extends RevSliderFunction {
 			'object_library_writable' => RevLoader::wp_image_editor_supports(['methods' => ['resize', 'save']]),
 			'server_connect'          => RevLoader::get_option('revslider-connection', false),
 		];
+		CacheApi::store($cacheKey, $result);
+		return $result;
 	}
 
 	public function sort_by_slide_order($a, $b) {

@@ -2,6 +2,7 @@
 
 namespace EphenyxDigital\QuantumCore;
 
+use CacheApi;
 use Exception;
 
 class RSColorpicker {
@@ -753,7 +754,13 @@ class RSColorpicker {
 	 */
 	public static function get_color_presets() {
 
-		return RevLoader::get_option('tp_colorpicker_presets', []);
+		$cacheKey = 'RSColorpicker::get_color_presets';
+		if (CacheApi::isStored($cacheKey)) {
+			return CacheApi::retrieve($cacheKey);
+		}
+		$result = RevLoader::get_option('tp_colorpicker_presets', []);
+		CacheApi::store($cacheKey, $result);
+		return $result;
 	}
 
 }

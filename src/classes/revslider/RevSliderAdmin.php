@@ -197,10 +197,40 @@ class RevSliderAdmin extends RevSliderFunctionsAdmin {
 	}
 
 	/**
+	 * Validate the AJAX call before dispatching it to the switch.
+	 * Checks: employee authentication + CSRF nonce.
+	 *
+	 * Permission to perform any specific action is left to the BackOffice
+	 * Tab system (Phenyx grants/denies access at the controller level).
+	 *
+	 * @param string $action  the client_action name (unused — kept for future per-action policies)
+	 * @param string $nonce   the CSRF token supplied by the client
+	 * @return bool true if the call may proceed; false if the response has already been sent
+	 */
+	private function checkAjaxSecurity($action, $nonce) {
+
+		// 1. Authentication: an employee must be connected.
+		if (!isset($this->context->employee) || !$this->context->employee || !$this->context->employee->id) {
+			$this->ajax_response_error($this->l('Authentication required'));
+			return false;
+		}
+
+		// 2. CSRF: the nonce must match the deterministic token bound to action+employee.
+		if (!RevLoader::wp_verify_nonce($nonce, 'revslider_actions')) {
+			$this->ajax_response_error($this->l('Invalid security token (CSRF)'));
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * The Ajax Action part for backend actions only
 	 **/
 	public function do_ajax_action() {
 
+		// Pre-instantiated helpers used by several cases of the switch below.
+		// (Do not remove — referenced e.g. by 'preview_slider', 'duplicate_slider', etc.)
 		$slider = new RevSliderSlider();
 		$slide = new RevSliderSlide();
 
@@ -209,9 +239,15 @@ class RevSliderAdmin extends RevSliderFunctionsAdmin {
 		$data = ($data == '') ? [] : $data;
 		$nonce = Tools::getValue('nonce');
 		$nonce = (empty($nonce)) ? Tools::getValue('rs-nonce') : $nonce;
+
+		// SECURITY: enforce auth + CSRF + permissions before dispatching.
+		if (!$this->checkAjaxSecurity($action, $nonce)) {
+			return;
+		}
+
 		try {
 
-			if (RS_DEMO) {
+			if (defined('RS_DEMO') && RS_DEMO) {
 
 				switch ($action) {
 				case 'get_template_information_short':
@@ -616,7 +652,7 @@ class RevSliderAdmin extends RevSliderFunctionsAdmin {
                 $slide->delete();
                 $this->ajax_response_success($this->l('Slide Deleted'));
                 break;
-            case 'update_shortcode';
+            case 'update_shortcode':
                 $id = $this->get_val($data, 'id');
                 $alias = $this->get_val($data, 'alias');
                 $slider = new RevSliderSlider($id);
@@ -1941,7 +1977,7 @@ class RevSliderAdmin extends RevSliderFunctionsAdmin {
 		$token = $this->get_post_var('token', false);
 
 		// verify the token
-		$is_verified = wp_verify_nonce($token, 'RevSlider_Front');
+		$is_verified = RevLoader::wp_verify_nonce($token, 'RevSlider_Front');
 
 		$error = false;
 

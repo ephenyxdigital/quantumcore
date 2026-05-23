@@ -271,7 +271,6 @@ class RevLoader {
         curl_setopt($hcurl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($hcurl, CURLOPT_SSL_VERIFYPEER, false);
         $result = curl_exec($hcurl);
-        curl_close($hcurl);
         return $result;
     }
 
@@ -713,11 +712,31 @@ class RevLoader {
         return $value;
     }
 
-    public static function wp_create_nonce($pure_string = '') {
+    /**
+     * Generate a CSRF token tied to the current employee + action name.
+     * Replaces the original broken implementation (rand 10-100).
+     */
+    public static function wp_create_nonce($action = '') {
 
-        // RevLoader::createNonce($pure_string);
-        $token = rand(10, 100);
-        return $token;
+        $employee_id = 0;
+        $ctx = Context::getContext();
+        if ($ctx && isset($ctx->employee) && isset($ctx->employee->id)) {
+            $employee_id = (int) $ctx->employee->id;
+        }
+        return Tools::encrypt('revslider_nonce|' . $action . '|' . $employee_id);
+    }
+
+    /**
+     * Verify a CSRF token against an action.
+     * Constant-time comparison to prevent timing attacks.
+     */
+    public static function wp_verify_nonce($nonce, $action = '') {
+
+        if (empty($nonce) || !is_string($nonce)) {
+            return false;
+        }
+        $expected = self::wp_create_nonce($action);
+        return is_string($expected) && hash_equals($expected, $nonce);
     }
 
     public static function do_action($tag, $arg1 = '', $arg2 = '', $arg3 = '', $arg4 = '', $arg5 = '') {
@@ -1663,7 +1682,6 @@ class RevLoader {
             $error = curl_error($curl);
             $errorcode = curl_errno($curl);
             $info = curl_getinfo($curl);
-            curl_close($curl);
             $info_as_response = $info;
             $info_as_response['code'] = $info['http_code'];
             $info_as_response['message'] = 'OK';

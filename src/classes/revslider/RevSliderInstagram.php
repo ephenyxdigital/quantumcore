@@ -208,7 +208,6 @@ class RevSliderInstagram extends RevSliderFunction {
 		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 20);
 		$page = curl_exec($ch);
-		curl_close($ch);
 		return $page;
 	}
 
@@ -652,7 +651,6 @@ class RevSliderInstagram extends RevSliderFunction {
 			$curl_info = curl_getinfo($curl);
 			$curl_error = curl_error($curl);
 
-			curl_close($curl);
 
 			if ($curl_info['http_code'] === 0) {
 				log_error('An error occurred while loading data. curl_error: ' . $curl_error);
