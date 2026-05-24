@@ -245,7 +245,7 @@ class SmartyTools {
         
     }
     
-    public static function getAdminTranslation($string, $className) {
+    public static function getAdminTranslation($string, $className, $plugin = null) {
         
         $context = Context::getContext();
         if (!isset($context->phenyxConfig)) {
@@ -263,7 +263,7 @@ class SmartyTools {
 
             $context->translations = new Translate($context->language->iso_code, $context->company);
         }
-        return $context->translations->getAdminTranslation($string, $$className);
+        return $context->translations->getAdminTranslation($string, $$className, $plugin);
         
     }
     

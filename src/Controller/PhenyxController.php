@@ -242,6 +242,8 @@ abstract class PhenyxController {
     public $configurationField;
     
     public $has_composer = false;
+	
+	public $plugin_name = null;
     
     
     public $backtab;
@@ -309,11 +311,14 @@ abstract class PhenyxController {
             static::$_plugins = $this->getPlugins();
         }
 
-        static::$_is_merge_lang = $this->context->phenyxConfig->get('CURENT_MERGE_LANG_' . $this->context->language->iso_code, null, false);
-
-        if (!static::$_is_merge_lang) {
-            $this->mergeLanguages($this->context->language->iso_code);
-        }
+        // Refactor 2026-05 : l'agrégation pré-page mergeLanguages() n'est plus
+        // nécessaire — Translate.php charge maintenant les traductions de
+        // chaque plugin à la demande via $this->plugin_name (cf. helper
+        // Translate::loadPluginTranslations(), cache mémoire process-wide).
+        // L'ancien flag CURENT_MERGE_LANG_{iso} ne sert plus à rien et peut
+        // être purgé : DELETE FROM eph_configuration WHERE name LIKE 'CURENT_MERGE_LANG_%';
+        // La méthode mergeLanguages() est conservée @deprecated en no-op pour
+        // ne pas casser un appelant externe éventuel.
 
         $this->context->phenyxgrid->create = 'function (evt, ui) {
             buildHeadingAction(\'' . 'grid_' . $this->controller_name . '\', \'' . $this->controller_name . '\');
@@ -435,25 +440,111 @@ abstract class PhenyxController {
     }
     
     /**
-     * Fusionne tous les fichiers de traduction en un seul fichier par langue.
-     * 
-     * Cette méthode consolide les traductions provenant de :
-     * - L'application principale
-     * - Les overrides
-     * - Les plugins installés
-     * 
-     * Pour chaque catégorie (admin, class, pdf...), les traductions sont
-     * triées par clé et écrites dans un fichier PHP compilé dans le dossier
-     * _EPH_TRANSLATIONS_DIR_.
-     * 
-     * Une fois la fusion effectuée, le flag CURENT_MERGE_LANG_{iso} est
-     * mis à 1 en configuration pour éviter une refusion inutile.
-     * 
-     * @param string $iso Code ISO de la langue à fusionner (ex: 'fr', 'en')
-     * @return bool True si la fusion s'est bien passée
+     * @deprecated 2026-05 — Conservée en no-op pour compatibilité d'appelants externes.
+     *
+     * L'agrégation pré-page des fichiers de traduction (cœur + overrides + plugins)
+     * dans `_EPH_TRANSLATIONS_DIR_/{iso}/admin|class|front|mail|pdf.php` n'est plus
+     * nécessaire : Translate.php charge maintenant les traductions de chaque plugin
+     * à la demande via {@see Translate::loadPluginTranslations()}, avec cache mémoire
+     * process-wide indexé par (pluginName, domain, iso).
+     *
+     * Ne plus appeler cette méthode. Si du code externe l'invoque encore, elle
+     * retourne simplement `true` sans rien faire (pas d'I/O disque, pas de
+     * mutation du flag CURENT_MERGE_LANG_{iso}).
+     *
+     * Les flags obsolètes peuvent être purgés :
+     *   DELETE FROM eph_configuration WHERE name LIKE 'CURENT_MERGE_LANG_%';
+     *
+     * @param string $iso Code ISO de la langue dont les fichiers viennent d'etre regeneres.
+     * @return bool       True si l'invalidation OPcache a tourne, false sinon.
+     *
+     * Refactor 2026-05 (suite) : le corps historique d'agregation a ete retire,
+     * et la methode est desormais detournee pour faire UNE chose utile : purger
+     * OPcache pour les fichiers de traduction qui viennent d'etre reecrits par
+     * l'admin (admin.php, class.php, front.php, mail.php, pdf.php) ainsi que
+     * pour les fichiers correspondants dans chaque plugin.
+     *
+     * Sans cette purge, OPcache (avec opcache.validate_timestamps=0) sert l'ancien
+     * bytecode jusqu'au prochain reset/touch du fichier, ce qui rend les
+     * traductions invisibles cote front jusqu'a un redemarrage PHP-FPM.
      */
-
     public function mergeLanguages($iso) {
+
+        return static::invalidateTranslationOPcache($iso);
+    }
+
+    /**
+     * Invalide OPcache pour tous les fichiers de traduction d'une langue donnee.
+     * Couvre le repertoire central, les overrides, et les translations de chaque
+     * plugin (standard + specifique).
+     *
+     * Safe a appeler meme si OPcache est desactive — opcache_invalidate() est
+     * gardee par function_exists().
+     *
+     * @param string $iso Code ISO (ex: 'fr'). Si vide/invalide, no-op.
+     * @return bool       True si au moins un fichier a ete invalide.
+     */
+    public static function invalidateTranslationOPcache($iso) {
+
+        if (!is_string($iso) || $iso === '' || !function_exists('opcache_invalidate')) {
+            return false;
+        }
+
+        $domains = ['admin.php', 'class.php', 'front.php', 'mail.php', 'pdf.php'];
+        $invalidated = 0;
+
+        // Fichiers centraux + overrides
+        $roots = [
+            defined('_EPH_TRANSLATIONS_DIR_')          ? _EPH_TRANSLATIONS_DIR_          . $iso . '/' : null,
+            defined('_EPH_OVERRIDE_TRANSLATIONS_DIR_') ? _EPH_OVERRIDE_TRANSLATIONS_DIR_ . $iso . '/' : null,
+        ];
+
+        foreach ($roots as $root) {
+            if (!$root) {
+                continue;
+            }
+            foreach ($domains as $d) {
+                $f = $root . $d;
+                if (is_file($f) && @opcache_invalidate($f, true)) {
+                    $invalidated++;
+                }
+            }
+        }
+
+        // Fichiers de chaque plugin (standard + specifique)
+        $pluginDirs = array_filter([
+            defined('_EPH_PLUGIN_DIR_')          ? _EPH_PLUGIN_DIR_          : null,
+            defined('_EPH_SPECIFIC_PLUGIN_DIR_') ? _EPH_SPECIFIC_PLUGIN_DIR_ : null,
+        ]);
+
+        foreach ($pluginDirs as $pluginDir) {
+
+            if (!is_dir($pluginDir)) {
+                continue;
+            }
+
+            $plugins = @scandir($pluginDir) ?: [];
+            foreach ($plugins as $plugin) {
+                if ($plugin === '.' || $plugin === '..') {
+                    continue;
+                }
+                foreach ($domains as $d) {
+                    $f = $pluginDir . $plugin . '/translations/' . $iso . '/' . $d;
+                    if (is_file($f) && @opcache_invalidate($f, true)) {
+                        $invalidated++;
+                    }
+                }
+            }
+        }
+
+        return $invalidated > 0;
+    }
+
+    /**
+     * Ancien corps de mergeLanguages() — conservé sous forme commentée pour
+     * référence historique. Voir l'historique git pour le code complet.
+     */
+    protected function _legacy_mergeLanguages_DO_NOT_USE($iso) {
 
         global $_LANGADM, $_LANGCLASS, $_LANGFRONT, $_LANGMAIL, $_LANGPDF;
         $_plugins = $this->getPlugins();
@@ -3275,7 +3366,7 @@ abstract class PhenyxController {
             $class = substr($class, 0, -10);
         }
 
-        return $this->context->translations->getAdminTranslation($string, $class, $addslashes, $htmlentities);
+        return $this->context->translations->getAdminTranslation($string, $class,  $this->plugin_name, $addslashes, $htmlentities);
     }
 
     protected function isCached($template, $cacheId = null, $compileId = null) {

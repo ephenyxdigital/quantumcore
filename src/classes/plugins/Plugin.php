@@ -1555,14 +1555,32 @@ abstract class Plugin {
 
         }
 
-        $this->mergeLanguages();
+        // Refactor 2026-05 : appel à $this->mergeLanguages() retiré — Translate.php
+        // charge maintenant les traductions du plugin à la demande, plus besoin
+        // de régénérer les fichiers agrégés _EPH_TRANSLATIONS_DIR_/{iso}/*.php.
         Tools::generateIndex();
         $this->updateIoPlugins();
 
         return true;
     }
 
+    /**
+     * @deprecated Refactor 2026-05 — l'agrégation des traductions du plugin
+     * dans les fichiers globaux _EPH_TRANSLATIONS_DIR_/{iso}/*.php n'est plus
+     * nécessaire : Translate.php charge les traductions de chaque plugin à la
+     * demande via $this->plugin_name (cf. Translate::loadPluginTranslations(),
+     * cache mémoire process-wide).
+     *
+     * Méthode conservée en no-op pour ne pas casser un éventuel appelant
+     * externe. À supprimer définitivement quand on aura confirmé qu'aucun
+     * module ne l'appelle. Ancien corps disponible dans l'historique git.
+     */
     public function mergeLanguages() {
+
+        return true;
+    }
+
+    protected function _legacy_mergeLanguages_DO_NOT_USE() {
 
         foreach (Language::getLanguages(true) as $lang) {
             $iso = $lang['iso_code'];

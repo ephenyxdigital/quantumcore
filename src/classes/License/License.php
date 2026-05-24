@@ -601,7 +601,7 @@ class License extends PhenyxObjectModel {
      * - str_contains($filePath, 'truc') supprimé (filtre de debug oublié)
      */
     public function generateReferenceFiles() {
-
+		
         if (Validate::isJSON($this->iso_langs)) {
             $this->iso_langs = Tools::jsonDecode($this->iso_langs, true);
         }
@@ -609,7 +609,7 @@ class License extends PhenyxObjectModel {
         if (Validate::isJSON($this->plugins)) {
             $this->plugins = Tools::jsonDecode($this->plugins, true);
         }
-
+		
         $recursive_directory = [
             'app/xml',
             'content/css',
@@ -713,18 +713,20 @@ class License extends PhenyxObjectModel {
             if (str_contains($filePath, 'custom_') && $ext == 'css') {
                 continue;
             }
-
+			
             if (str_contains($filePath, '/plugins/') && str_contains($filePath, '/translations/')) {
-
+				
                 foreach ($this->plugins as $plugin => $installed) {
-
                     if (str_contains($filePath, '/plugins/' . $plugin . '/translations/')) {
                         $test = str_replace('/includes/plugins/' . $plugin . '/translations/', '', $filePath);
+						$test2 = str_replace('/'.$file->getFilename(), '', $test);
                         $test = str_replace('.php', '', $test);
-
-                        if (!array_key_exists($test, $this->iso_langs)) {
-                            continue 2;
-                        }
+												
+						if (!array_key_exists($test2, $this->iso_langs)) {
+                        	if (!array_key_exists($test, $this->iso_langs)) {
+                            	continue 2;
+                        	}
+						}
                     }
                 }
             }
@@ -761,7 +763,6 @@ class License extends PhenyxObjectModel {
         foreach ($licences as $licence) {
             $licence->getInstalledLangs();
             $lic = new License($licence->id);
-            $lic->mergeGlobalLanuages();
         }
     }
 
@@ -909,18 +910,7 @@ class License extends PhenyxObjectModel {
             $this->iso_langs = Tools::jsonDecode($this->iso_langs, true);
         }
     }
-
-    public function mergeGlobalLanuages() {
-
-        $translations = new Translation(null, $this->iso_langs);
-        $this->callApi('mergeGlobalLanuages', ['translations' => $translations->translations], 5, true);
-    }
-
-    public function mergeLanuages() {
-
-        $this->callApi('mergeLanuages', [], 5, true);
-        return true;
-    }
+   
 
     public function generateClassIndex() {
 

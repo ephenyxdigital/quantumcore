@@ -515,7 +515,9 @@ class Helper {
             return Context::getContext()->translations->getPluginTranslation(Plugin::$classInPlugin[$currentClass], $string, $currentClass);
         }
 
-        return Context::getContext()->translations->getAdminTranslation($string, get_class($this), $addslashes, $htmlentities);
+        // Fix : signature getAdminTranslation = ($string, $class, $plugin, $addslashes, $htmlentities, $sprintf).
+        // L'ancien appel sautait le parametre $plugin et decalait $addslashes/$htmlentities.
+        return Context::getContext()->translations->getAdminTranslation($string, get_class($this), null, $addslashes, $htmlentities);
     }
 
     public function l($string, $class = 'Helper') {

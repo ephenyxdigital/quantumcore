@@ -325,7 +325,7 @@ class PhenyxTools {
         	if (str_contains($filePath, 'custom_') && $ext === 'css') {
             	continue;
         	}
-
+			
         	// CORRIGÉ : filtre des traductions de plugins
         	// Avant : le continue portait sur foreach($this->plugins), pas sur foreach($iterator)
         	// → les fichiers de traduction non pertinents étaient inclus quand même.
@@ -337,11 +337,13 @@ class PhenyxTools {
 
                 	if (str_contains($filePath, '/plugins/' . $plugin . '/translations/')) {
                     	$isoTest = str_replace('/includes/plugins/' . $plugin . '/translations/', '', $filePath);
+						$test2 = str_replace('/'.$file->getFilename(), '', $isoTest);
                     	$isoTest = str_replace('.php', '', $isoTest);
-
-                    	if (!in_array($isoTest, $iso_langs, true)) {
-							$skipFile = true;
-                    	}
+						if (!in_array($test2, $iso_langs)) {
+							if (!in_array($isoTest, $iso_langs)) {
+								$skipFile = true;
+                    		}
+						}
 
                     	break;
                 	}
@@ -1425,7 +1427,25 @@ class PhenyxTools {
 		return $filesPlugins;
 	}
 
+	/**
+	 * @deprecated Refactor 2026-05 — l'agrégation pré-page des traductions n'est
+	 * plus utile : Translate.php charge maintenant les fichiers de chaque plugin
+	 * à la demande avec un cache mémoire process-wide. La méthode est conservée
+	 * en no-op pour ne pas casser un éventuel appelant externe (modules tiers).
+	 *
+	 * L'ancien corps (~300 lignes d'agrégation + écriture de fichiers .php) a
+	 * été retiré ici — voir l'historique git pour la version complète.
+	 *
+	 * À supprimer définitivement quand on aura confirmé qu'aucun module externe
+	 * ne l'appelle (recherche full-tree sur "mergeLanguages" + audit de quelques
+	 * mois en prod sans incident).
+	 */
 	public function mergeLanguages() {
+
+		return true;
+	}
+
+	protected function _legacy_mergeLanguages_DO_NOT_USE() {
 
 		$iso = $this->context->language->iso_code;
 		$_plugins = $this->getPlugins();

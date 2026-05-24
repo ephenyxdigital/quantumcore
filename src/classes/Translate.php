@@ -55,7 +55,7 @@ class Translate {
             }
         }
         if (!isset($this->context->language)) {
-            $this->context->language = Tools::jsonDecode(Tools::jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT')))); 
+            $this->context->language = new Language($this->context->phenyxConfig->get('EPH_LANG_DEFAULT')); 
         }
         if(!isset($this->context->theme)) {
             $this->context->theme = new Theme((int) $this->context->company->id_theme);
@@ -136,8 +136,131 @@ class Translate {
         return static::$instance;
     }
 
-    
-    
+    /* ---------------------------------------------------------------------
+     * Helpers internes — refactor 2026-05 : factorisation du lookup plugin
+     * et du post-process commun aux 5 méthodes getXxxTranslation().
+     *
+     * loadPluginTranslations() remplace les 5 blocs include+merge dupliqués
+     * et met les fichiers en cache mémoire pour éviter de re-stat le disque
+     * à chaque appel l() / la(). Voir ARCHITECTURE_TRANSLATE.md.
+     * ------------------------------------------------------------------- */
+
+    /** @var array Cache process-wide : [pluginName|domain|iso] => dictionnaire */
+    protected static $pluginCache = [];
+
+    /** Mapping domaine logique → variable globale utilisée par les fichiers de traduction. */
+    protected static $domainVars = [
+        'admin' => '_LANGADM',
+        'class' => '_LANGCLASS',
+        'front' => '_LANGFRONT',
+        'mail'  => '_LANGMAIL',
+        'pdf'   => '_LANGPDF',
+    ];
+
+    /**
+     * Charge (et met en cache) les traductions d'un plugin pour un domaine donné.
+     * Cherche dans _EPH_PLUGIN_DIR_ puis _EPH_SPECIFIC_PLUGIN_DIR_ et fusionne.
+     *
+     * @param string $pluginName  ex: 'ph_ecommerce'
+     * @param string $domain      'admin' | 'class' | 'front' | 'mail' | 'pdf'
+     * @param string $iso         code ISO de la langue (ex: 'fr')
+     * @return array              dictionnaire des traductions du plugin
+     */
+    protected function loadPluginTranslations($pluginName, $domain, $iso) {
+
+        $cacheKey = $pluginName . '|' . $domain . '|' . $iso;
+
+        if (isset(self::$pluginCache[$cacheKey])) {
+            return self::$pluginCache[$cacheKey];
+        }
+
+        if (!isset(self::$domainVars[$domain])) {
+            return self::$pluginCache[$cacheKey] = [];
+        }
+
+        $varName = self::$domainVars[$domain];
+        $candidates = [
+            _EPH_PLUGIN_DIR_          . $pluginName . '/translations/' . $iso . '/' . $domain . '.php',
+            _EPH_SPECIFIC_PLUGIN_DIR_ . $pluginName . '/translations/' . $iso . '/' . $domain . '.php',
+        ];
+
+        $merged = [];
+
+        foreach ($candidates as $file) {
+
+            if (file_exists($file)) {
+                // Reset systématique pour éviter la contamination d'un include précédent (Fix #16)
+                $$varName = [];
+                include $file;
+
+                if (is_array($$varName)) {
+                    $merged = array_merge($merged, $$varName);
+                }
+
+            }
+
+        }
+
+        return self::$pluginCache[$cacheKey] = $merged;
+    }
+
+    /**
+     * Normalisation commune des chaînes en entrée des fonctions de traduction
+     * (échappements et apostrophes typographiques).
+     */
+    protected function normalizeString($string) {
+
+        if (!is_string($string)) {
+            return $string;
+        }
+
+        if (str_contains($string, "\'")) {
+            $string = str_replace("\'", "'", $string);
+        }
+
+        if (str_contains($string, "\‘")) {
+            $string = str_replace("\‘", "'", $string);
+        }
+
+        if (str_contains($string, "‘")) {
+            $string = str_replace("‘", "'", $string);
+        }
+
+        return $string;
+    }
+
+    /**
+     * Post-traitement HTML : htmlspecialchars + quote escape + sprintf + (add|strip)slashes.
+     * Utilisé par getAdminTranslation / getFrontTranslation / getClassTranslation.
+     */
+    protected function postProcessHtml($str, $addslashes, $htmlentities, $sprintf) {
+
+        if ($htmlentities) {
+            $str = htmlspecialchars($str, ENT_QUOTES, 'utf-8');
+        }
+
+        $str = str_replace('"', '&quot;', $str);
+
+        if ($sprintf !== null) {
+            $str = $this->checkAndReplaceArgs($str, $sprintf);
+        }
+
+        return ($addslashes ? addslashes($str) : stripslashes($str));
+    }
+
+    /**
+     * Post-traitement minimal : juste sprintf si besoin.
+     * Utilisé par getPdfTranslation / getMailsTranslation.
+     */
+    protected function postProcessPlain($str, $sprintf) {
+
+        if ($sprintf !== null) {
+            $str = $this->checkAndReplaceArgs($str, $sprintf);
+        }
+
+        return $str;
+    }
+
     public function fileExists() {
 
 		$var = '_LANG';
@@ -159,20 +282,27 @@ class Translate {
 		return $$var;
 	}
 
-    public function getAdminTranslation($string, $class = 'Phenyx', $addslashes = false, $htmlentities = true, $sprintf = null) {
+    public function getAdminTranslation($string, $class = 'Phenyx', $plugin = null, $addslashes = false, $htmlentities = true, $sprintf = null) {
 
+        $string = $this->normalizeString($string);
         $iso = $this->context->language->iso_code;
-        if (str_contains($string, "\'")) {
-            $string = str_replace("\'", "'", $string);
-        }
-        if (str_contains($string, "\‘")) {
-            $string = str_replace("\‘", "'", $string);
-        }
-        if (str_contains($string, "‘")) {
-            $string = str_replace("‘", "'", $string);
-        }
 
         $key = md5($string);
+        $defaultKey = $class . $key;
+        $str = null;
+
+        $_LANGADMS = [];
+
+        global $_LANGADM, $_LANGOVADM;
+
+        // Lookup plugin (chemin rapide) — voir loadPluginTranslations()
+        if ($plugin !== null) {
+            $plugMap = $this->loadPluginTranslations($plugin, 'admin', $iso);
+            if (isset($plugMap[$defaultKey])) {
+                return $this->postProcessHtml($plugMap[$defaultKey], $addslashes, $htmlentities, $sprintf);
+            }
+            // pas trouvé dans le plugin : on retombe sur le lookup global ci-dessous
+        }
 
         if (isset($this->context->translations->langadmin)) {
 
@@ -253,31 +383,32 @@ class Translate {
 
         }
 
-        if ($htmlentities) {
-            $str = htmlspecialchars($str, ENT_QUOTES, 'utf-8');
-        }
-
-        $str = str_replace('"', '&quot;', $str);
-
-        if ($sprintf !== null) {
-            $str = $this->checkAndReplaceArgs($str, $sprintf);
-        }
-
-        return ($addslashes ? addslashes($str) : stripslashes($str));
+        return $this->postProcessHtml($str, $addslashes, $htmlentities, $sprintf);
     }
 
-    public function getFrontTranslation($string, $class, $addslashes = false, $htmlentities = true, $sprintf = null) {
-        
-        $string = str_replace('"', '`', $string);
-        $iso = $this->context->language->iso_code;
-        if (str_contains($string, "\'")) {
-            $string = str_replace("\'", "'", $string);
-        }
-        if (str_contains($string, "\‘")) {
-            $string = str_replace("\‘", "'", $string);
-        }
-        $key = md5($string);
+    public function getFrontTranslation($string, $class, $plugin = null, $addslashes = false, $htmlentities = true, $sprintf = null) {
 
+        // Spécifique au front : on remplace les double-quotes par des backticks
+        // avant tout (impacte le calcul du md5 ci-dessous).
+        $string = str_replace('"', '`', $string);
+        $string = $this->normalizeString($string);
+        $iso = $this->context->language->iso_code;
+
+        $key = md5($string);
+        $defaultKey = $class . $key;
+        $str = null;
+
+        $_LANGFRONTS = [];
+
+        global $_LANGFRONT, $_LANGOVFRONT;
+
+        // Lookup plugin (chemin rapide)
+        if ($plugin !== null) {
+            $plugMap = $this->loadPluginTranslations($plugin, 'front', $iso);
+            if (isset($plugMap[$defaultKey])) {
+                return $this->postProcessHtml($plugMap[$defaultKey], $addslashes, $htmlentities, $sprintf);
+            }
+        }
 
         if (isset($this->context->translations->langfront)) {
 
@@ -289,7 +420,7 @@ class Translate {
 
         } else {
 
-            global $_LANGFRONTS, $_LANGFRONT, $_LANGOVFRONT;
+            
 
             if (empty($_LANGFRONTS)) {
                 $_LANGFRONTS = [];
@@ -325,34 +456,34 @@ class Translate {
 
         }
 
-        if ($htmlentities) {
-            $str = htmlspecialchars($str, ENT_QUOTES, 'utf-8');
-        }
-
-        $str = str_replace('"', '&quot;', $str);
-
-        if ($sprintf !== null) {
-            $str = $this->checkAndReplaceArgs($str, $sprintf);
-        }
-
-        return ($addslashes ? addslashes($str) : stripslashes($str));
+        return $this->postProcessHtml($str, $addslashes, $htmlentities, $sprintf);
     }
 
-    public function getClassTranslation($string, $class, $addslashes = false, $htmlentities = true, $sprintf = null, $context = null) {
+    public function getClassTranslation($string, $class, $plugin = null, $addslashes = false, $htmlentities = true, $sprintf = null, $context = null) {
 
         if (is_null($string)) {
             return $string;
         }
 
-        
-        if (str_contains($string, "\'")) {
-            $string = str_replace("\'", "'", $string);
-        }
-        if (str_contains($string, "\‘")) {
-            $string = str_replace("\‘", "'", $string);
-        }
+        $string = $this->normalizeString($string);
+
+        $_LANGCLASSS = [];
+
+        global $_LANGCLASS, $_LANGOVCLASS;
+
         $key = md5($string);
         $iso = $this->context->language->iso_code;
+        $defaultKey = $class . $key;
+        $str = null;
+
+        // Lookup plugin (chemin rapide)
+        if ($plugin !== null) {
+            $plugMap = $this->loadPluginTranslations($plugin, 'class', $iso);
+            if (isset($plugMap[$defaultKey])) {
+                return $this->postProcessHtml($plugMap[$defaultKey], $addslashes, $htmlentities, $sprintf);
+            }
+        }
+
         if (!isset($this->context->translations)) {
             $this->context->translations = new Translate($iso, $this->context->company);
         }
@@ -369,7 +500,7 @@ class Translate {
 
         } else {
 
-            global $_LANGCLASSS, $_LANGCLASS, $_LANGOVCLASS;
+            
 
             if (empty($_LANGCLASSS == null)) {
                 $_LANGCLASSS = [];
@@ -407,24 +538,13 @@ class Translate {
 
         }
 
-        // Fix #14 (defensive net): make sure no path can ever return an empty
-        // or non-string $str. If the lookup chain produced something unusable,
-        // fall back to the original source string (the user's explicit ask).
+        // Fix #14 (defensive net) : si la chaîne de lookup n'a rien produit
+        // d'utilisable, on retombe sur la source originale.
         if (!is_string($str) || $str === '') {
             $str = $string;
         }
 
-        if ($htmlentities) {
-            $str = htmlspecialchars($str, ENT_QUOTES, 'utf-8');
-        }
-
-        $str = str_replace('"', '&quot;', $str);
-
-        if ($sprintf !== null) {
-            $str = $this->checkAndReplaceArgs($str, $sprintf);
-        }
-
-        return ($addslashes ? addslashes($str) : stripslashes($str));
+        return $this->postProcessHtml($str, $addslashes, $htmlentities, $sprintf);
     }
 
     public function getPluginTranslation($plugin, $string, $source, $sprintf = null, $js = false, $context = null) {
@@ -571,27 +691,38 @@ class Translate {
         
     }
     
-    public function getPdfTranslation($string, $file, $sprintf = null, $context = null) {
+    public function getPdfTranslation($string, $file, $sprintf = null, $plugin = null, $context = null) {
 
-        
-        if (str_contains($string, "\'")) {
-            $string = str_replace("\'", "'", $string);
-        }
-        if (str_contains($string, "\‘")) {
-            $string = str_replace("\‘", "'", $string);
-        }
+        $string = $this->normalizeString($string);
+
+        $_LANGPDFS = [];
+        global $_LANGPDF;
+
         $key = md5($string);
         $iso = $this->context->language->iso_code;
+        $defaultKey = $file . $key;
+        $str = null;
+
+        // Lookup plugin (chemin rapide)
+        if ($plugin !== null) {
+            $plugMap = $this->loadPluginTranslations($plugin, 'pdf', $iso);
+            if (isset($plugMap[$defaultKey])) {
+                return $this->postProcessPlain($plugMap[$defaultKey], $sprintf);
+            }
+        }
 
         if (!isset($this->context->translations)) {
              $this->context->translations = new Translate($iso, $this->context->company);
         }
 
         if (isset($this->context->translations->langpdf)) {
-            $str = (array_key_exists($file . $key, $this->context->translations->langpdf) ? $this->context->translations->langpdf[$file . $key] : $string);
+			
+			if(array_key_exists($defaultKey, $this->context->translations->langpdf)) {
+				$str = $this->context->translations->langpdf[$defaultKey];
+			}
         } else {
 
-            global $_LANGPDFS, $_LANGPDF;
+            
 
             if (empty($_LANGPDFS)) {
                 $_LANGPDFS = [];
@@ -619,42 +750,56 @@ class Translate {
                 return str_replace('"', '&quot;', $string);
             }
 
-            $str = (array_key_exists($file . $key, $_LANGPDFS) ? $_LANGPDFS[$file . $key] : $string);
+            if (array_key_exists($defaultKey, $_LANGPDFS)) {
+                $str = $_LANGPDFS[$defaultKey];
+            }
+
         }
 
-        if ($sprintf !== null) {
-            $str = $this->checkAndReplaceArgs($str, $sprintf);
+        if (is_null($str)) {
+            $str = $string;
         }
 
-        return $str;
+        return $this->postProcessPlain($str, $sprintf);
     }
 
-    public function getMailsTranslation($string, $file, $sprintf = null, $context = null) {
-        
-        if (str_contains($string, "\'")) {
-            $string = str_replace("\'", "'", $string);
-        }
-        if (str_contains($string, "\‘")) {
-            $string = str_replace("\‘", "'", $string);
-        }
+    public function getMailsTranslation($string, $file, $sprintf = null, $plugin = null, $context = null) {
+
+        $string = $this->normalizeString($string);
         $key = md5($string);
         $iso = $this->context->language->iso_code;
 
         if (!isset($this->context->translations)) {
             $this->context->translations = new Translate($iso, $this->context->company);
         }
+        $_LANGMAILS = [];
+
+        global $_LANGMAIL;
+
+        $defaultKey = $file . $key;
+        $str = null;
+
+        // Lookup plugin (chemin rapide)
+        if ($plugin !== null) {
+            $plugMap = $this->loadPluginTranslations($plugin, 'mail', $iso);
+            if (isset($plugMap[$defaultKey])) {
+                return $this->postProcessPlain($plugMap[$defaultKey], $sprintf);
+            }
+        }
 
         if (isset($this->context->translations->langmail)) {
-            $str = (array_key_exists($file . $key, $this->context->translations->langmail) ? $this->context->translations->langmail[$file . $key] : $string);
+
+            if (array_key_exists($defaultKey, $this->context->translations->langmail)) {
+                $str = $this->context->translations->langmail[$defaultKey];
+            }
+
         } else {
-            $_LANGMAILS = [];
-            global $_LANGMAIL;
 
             $i18NFile = _EPH_TRANSLATIONS_DIR_ . $iso . '/mail.php';
             $this->context->_hook->exec('actionMailsTranslate', ['iso' => $iso]);
 
             if (!include ($i18NFile)) {
-                $this->l(sprintf('Cannot include PDF translation language file : %s', $i18NFile));
+                $this->l(sprintf('Cannot include mail translation language file : %s', $i18NFile));
             }
 
             $_LANGMAILS = !empty($_LANGMAIL) ? $_LANGMAILS + $_LANGMAIL : $_LANGMAIL;
@@ -663,14 +808,17 @@ class Translate {
                 return str_replace('"', '&quot;', $string);
             }
 
-            $str = (array_key_exists($file . $key, $_LANGMAILS) ? $_LANGMAILS[$file . $key] : $string);
+            if (array_key_exists($defaultKey, $_LANGMAILS)) {
+                $str = $_LANGMAILS[$defaultKey];
+            }
+
         }
 
-        if ($sprintf !== null) {
-            $str = $this->checkAndReplaceArgs($str, $sprintf);
+        if (is_null($str)) {
+            $str = $string;
         }
 
-        return $str;
+        return $this->postProcessPlain($str, $sprintf);
     }
 
     public function checkAndReplaceArgs($string, $args) {

@@ -186,6 +186,8 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
     public $_session;
     
     public $_langs;
+	
+	public $plugin_name = null;
 
     public function getExtraVars() {
         
@@ -2301,7 +2303,7 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
         return $success;
     }
 
-    public function l($string, $idLang = null, $context = null) {
+    public function l($string,  $idLang = null, $context = null) {
 
         $class = get_class($this);
 
@@ -2309,7 +2311,7 @@ abstract class PhenyxObjectModel implements Core_Foundation_Database_EntityInter
             $class = substr($class, 0, -4);
         }
         if(isset($this->context->translations)) {
-            return $this->context->translations->getClassTranslation($string, $class);
+            return $this->context->translations->getClassTranslation($string, $class, $this->plugin_name);
         }
         return $string;
 

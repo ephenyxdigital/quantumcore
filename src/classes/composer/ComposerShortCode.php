@@ -97,20 +97,28 @@ abstract class ComposerShortCode extends ComposerShortCodeAbstract {
 
 	/**
 	 * Find html template for shortcode output.
+	 *
+	 * @return string|false Chemin absolu du template si trouve, false sinon.
+	 *                     Ne retourne plus null implicitement (compat PHP 8.1+).
 	 */
 	protected function findShortcodeTemplate() {
 
-		if (!empty($this->settings['html_template']) && is_file($this->settings('html_template'))) {
+		// settings() est un getter qui retourne null si la cle n'existe pas ; on l'utilise
+		// uniformement (avant : mix d'acces tableau + appel methode).
+		$html_template = $this->settings('html_template');
+		if (is_string($html_template) && $html_template !== '' && is_file($html_template)) {
 
-			return $this->setTemplate($this->settings['html_template']);
+			return $this->setTemplate($html_template);
 		}
 
 		$file_name = $this->getFilename() . '.php';
 		$override_template = $this->context->_hook->exec('actionOverrideComposerTemplate', ['file_name' => $file_name]);
 
-		if (is_file($override_template)) {
+		// Le hook retourne null si aucun module n'override le template.
+		// PHP 8.1+ deprecie is_file(null), donc on garde explicitement contre les non-strings.
+		if (is_string($override_template) && $override_template !== '' && is_file($override_template)) {
 
-			$result = $this->setTemplate($override_template);
+			$this->setTemplate($override_template);
 			return $this->html_template;
 		}
 
@@ -119,13 +127,15 @@ abstract class ComposerShortCode extends ComposerShortCodeAbstract {
 
 		if (is_file($user_template)) {
 
-			$result = $this->setTemplate($user_template);
+			$this->setTemplate($user_template);
 
 			return $this->html_template;
-		} else {
-
-			$this->html_template = false;
 		}
+
+		// Aucun template trouve : on retourne false explicitement (au lieu d'un null
+		// implicite qui faisait planter is_file() en aval avec PHP 8.1+).
+		$this->html_template = false;
+		return false;
 
 	}
 
@@ -139,7 +149,8 @@ abstract class ComposerShortCode extends ComposerShortCodeAbstract {
 		$output = '';
 		$html_template = $this->findShortcodeTemplate();
 
-		if (is_file($html_template)) {
+		// findShortcodeTemplate() peut retourner null/false. Garde explicite pour PHP 8.1+.
+		if (is_string($html_template) && $html_template !== '' && is_file($html_template)) {
 
 			ob_start();
 			include $html_template;
