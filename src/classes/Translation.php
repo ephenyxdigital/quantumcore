@@ -276,7 +276,7 @@ class Translation extends PhenyxObjectModel {
      *
      * @return string|false La traduction, ou false si non trouvée
      */
-    public function getExistingTranslation($iso_code, $origin) {
+    public function getExistingTranslation($iso_code, $origin, $file = null) {
 
         $cacheKey = 'getExistingTranslation_' . $iso_code . '_' . md5($origin);
         $cached   = $this->context->_session->get($cacheKey);

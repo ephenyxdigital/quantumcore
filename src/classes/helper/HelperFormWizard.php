@@ -197,14 +197,7 @@ class HelperFormWizard extends HelperForm {
                         	}
 
                         	break;
-                    	case 'date':
-
-                        	if ($date) {
-                            	$this->context->controller->addJqueryUI('ui.datepicker');
-                            	$date = false;
-                        	}
-
-                        	break;
+                    	
                     	case 'textarea':
 
                         	if ($tinymce) {

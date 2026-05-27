@@ -1389,7 +1389,7 @@ abstract class PhenyxController {
 
         $this->addHeaderJS([
             _EPH_JS_DIR_ . 'jquery/jquery-' . _EPH_JQUERY_VERSION_ . '.min.js',
-			_EPH_JS_DIR_ . 'jquery/jquery-migrate-3.6.0.min.js',
+			_EPH_JS_DIR_ . 'jquery/jquery-migrate-4.0.2.js',
             _EPH_JS_DIR_ . 'jquery-ui/jquery-ui.min.js',
             _EPH_JS_DIR_ . 'tools.js',
 
@@ -1804,14 +1804,14 @@ abstract class PhenyxController {
 
     }
 
-    public function addJqueryUI($component, $theme = 'base', $checkDependencies = true) {
+    public function addJqueryUI($component, $theme = 'base') {
 
         if (!is_array($component)) {
             $component = [$component];
         }
 
         foreach ($component as $ui) {
-            $uiPath = $this->context->media->getJqueryUIPath($ui, $theme, $checkDependencies);
+            $uiPath = $this->context->media->getJqueryUIPath($ui, $theme);
             $this->addCSS($uiPath['css'], 'all', false);
             $this->addJS($uiPath['js'], false);
         }

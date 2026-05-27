@@ -30,46 +30,7 @@ class Media {
 
     public $context;
 
-    // @codingStandardsIgnoreStart
-    public static $jquery_ui_dependencies = [
-        'ui.core'           => ['fileName' => 'jquery.ui.core.min.js', 'dependencies' => [], 'theme' => true],
-        'ui.widget'         => ['fileName' => 'jquery.ui.widget.min.js', 'dependencies' => [], 'theme' => false],
-        'ui.mouse'          => ['fileName' => 'jquery.ui.mouse.min.js', 'dependencies' => ['ui.core'], 'theme' => false],
-        'ui.position'       => ['fileName' => 'jquery.ui.position.min.js', 'dependencies' => [], 'theme' => false],
-        'ui.draggable'      => ['fileName' => 'jquery.ui.draggable.min.js', 'dependencies' => ['ui.core', 'ui.mouse'], 'theme' => false],
-        'ui.droppable'      => ['fileName' => 'jquery.ui.droppable.min.js', 'dependencies' => ['ui.core', 'ui.mouse', 'ui.draggable'], 'theme' => false],
-        'ui.resizable'      => ['fileName' => 'jquery.ui.resizable.min.js', 'dependencies' => ['ui.core', 'ui.mouse'], 'theme' => true],
-        'ui.selectable'     => ['fileName' => 'jquery.ui.selectable.min.js', 'dependencies' => ['ui.core', 'ui.mouse'], 'theme' => true],
-        'ui.sortable'       => ['fileName' => 'jquery.ui.sortable.min.js', 'dependencies' => ['ui.core', 'ui.mouse'], 'theme' => true],
-        'ui.autocomplete'   => ['fileName' => 'jquery.ui.autocomplete.min.js', 'dependencies' => ['ui.core', 'ui.position', 'ui.menu'], 'theme' => true],
-        'ui.button'         => ['fileName' => 'jquery.ui.button.min.js', 'dependencies' => ['ui.core'], 'theme' => true],
-        'ui.dialog'         => ['fileName' => 'jquery.ui.dialog.min.js', 'dependencies' => ['ui.core', 'ui.position', 'ui.button'], 'theme' => true],
-        'ui.menu'           => ['fileName' => 'jquery.ui.menu.min.js', 'dependencies' => ['ui.core', 'ui.position'], 'theme' => true],
-        'ui.slider'         => ['fileName' => 'jquery.ui.slider.min.js', 'dependencies' => ['ui.core', 'ui.mouse'], 'theme' => true],
-        'ui.spinner'        => ['fileName' => 'jquery.ui.spinner.min.js', 'dependencies' => ['ui.core', 'ui.button'], 'theme' => true],
-        'ui.tabs'           => ['fileName' => 'jquery.ui.tabs.min.js', 'dependencies' => ['ui.core'], 'theme' => true],
-        'ui.datepicker'     => ['fileName' => 'jquery.ui.datepicker.min.js', 'dependencies' => ['ui.core'], 'theme' => true],
-        'ui.progressbar'    => ['fileName' => 'jquery.ui.progressbar.min.js', 'dependencies' => ['ui.core'], 'theme' => true],
-        'ui.tooltip'        => ['fileName' => 'jquery.ui.tooltip.min.js', 'dependencies' => ['ui.core', 'ui.position', 'effects.core'], 'theme' => true],
-        'ui.accordion'      => ['fileName' => 'jquery.ui.accordion.min.js', 'dependencies' => ['ui.core', 'effects.core'], 'theme' => true],
-        'effects.core'      => ['fileName' => 'jquery.effects.core.min.js', 'dependencies' => [], 'theme' => false],
-        'effects.blind'     => ['fileName' => 'jquery.effects.blind.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-        'effects.bounce'    => ['fileName' => 'jquery.effects.bounce.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-        'effects.clip'      => ['fileName' => 'jquery.effects.clip.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-        'effects.drop'      => ['fileName' => 'jquery.effects.drop.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-        'effects.explode'   => ['fileName' => 'jquery.effects.explode.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-        'effects.fade'      => ['fileName' => 'jquery.effects.fade.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-        'effects.fold'      => ['fileName' => 'jquery.effects.fold.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-        'effects.highlight' => ['fileName' => 'jquery.effects.highlight.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-        'effects.pulsate'   => ['fileName' => 'jquery.effects.pulsate.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-        'effects.scale'     => ['fileName' => 'jquery.effects.scale.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-        'effects.shake'     => ['fileName' => 'jquery.effects.shake.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-        'effects.slide'     => ['fileName' => 'jquery.effects.slide.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-        'effects.transfer'  => ['fileName' => 'jquery.effects.transfer.min.js', 'dependencies' => ['effects.core'], 'theme' => false],
-    ];
-    /**
-     * @var string pattern used in replaceByAbsoluteURL
-     */
+   
     public static $pattern_callback = '#(url\((?![\'"]?(?:data:|//|https?:))(?:\'|")?)([^\)\'"]*)(?=[\'"]?\))#s';
     /**
      * @var string pattern used in packJSinHTML
@@ -401,7 +362,7 @@ class Media {
         return $mediaUri;
     }
 
-    public function getJqueryUIPath($component, $theme, $checkDependencies) {
+    public function getJqueryUIPath($component, $theme) {
 
         $uiPath = ['js' => [], 'css' => []];
         $folder = _EPH_JS_DIR_ . 'jquery/ui';
@@ -409,43 +370,7 @@ class Media {
         $urlData = parse_url($folder . $file);
         $fileUri = _EPH_ROOT_DIR_ . Tools::str_replace_once(__EPH_BASE_URI__, DIRECTORY_SEPARATOR, $urlData['path']);
         $uiTmp = [];
-        // @codingStandardsIgnoreStart
-
-        if (isset(Media::$jquery_ui_dependencies[$component]) && Media::$jquery_ui_dependencies[$component]['theme'] && $checkDependencies) {
-
-            $compCss = $this->getCSSPath($folder . _EPH_THEMES_DIR_ . $theme . '/jquery.' . $component . '.css');
-
-            // Fix #10: !empty($compCss) || $compCss is redundant. Simplified.
-            if (!empty($compCss)) {
-                $uiPath['css'] = array_merge($uiPath['css'], $compCss);
-            }
-
-        }
-
-        if ($checkDependencies && array_key_exists($component, static::$jquery_ui_dependencies)) {
-
-            foreach (static::$jquery_ui_dependencies[$component]['dependencies'] as $dependency) {
-                $uiTmp[] = $this->getJqueryUIPath($dependency, $theme, false);
-
-                // Fix #9: $depCss was only set when 'theme' == true but could be
-                // read from a previous iteration when 'theme' was false. Reset to
-                // null at the start of each iteration to prevent stale reads.
-                $depCss = null;
-
-                if (static::$jquery_ui_dependencies[$dependency]['theme']) {
-                    $depCss = $this->getCSSPath($folder . _EPH_THEMES_DIR_ . $theme . '/jquery.' . $dependency . '.css');
-                }
-
-                // Fix #10: !empty($depCss) || $depCss is redundant — if !empty() is
-                // false then $depCss itself is also falsy. Simplified to !empty().
-                if (!empty($depCss)) {
-                    $uiPath['css'] = array_merge($uiPath['css'], $depCss);
-                }
-
-            }
-
-        }
-
+       
         if (@filemtime($fileUri)) {
 
             if (!empty($uiTmp)) {
