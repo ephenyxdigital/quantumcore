@@ -286,41 +286,22 @@ abstract class Db {
 
     public static function getCrmInstance($dbUser, $dbPasswd, $dbName, $dServer = _DB_SERVER_, $master = true) {
 
-        static $id = 0;
+        // FIX : le cache était indexé par une clé fixe ($idServer = 0). La 1re connexion
+        // CRM ouverte dans la requête était donc réutilisée pour TOUTES les suivantes, en
+        // ignorant $dbName/$dServer. Comme Adapter_EntityMapper::load() appelle cette
+        // méthode avec les valeurs par défaut (_DB_NAME_ = base principale), la connexion
+        // vers la base principale était mise en cache en premier, puis renvoyée à la place
+        // de 'phenyx_traduction' lors des écritures de traductions.
+        // On indexe désormais le cache par (serveur|base|user) : chaque cible a sa connexion.
+        $key = $dServer . '|' . $dbName . '|' . $dbUser;
 
-        // This MUST not be declared with the class members because some defines (like _DB_SERVER_) may not exist yet (the constructor can be called directly with params)
-
-        static::$_crm_servers = [
-            ['server' => $dServer, 'user' => $dbUser, 'password' => $dbPasswd, 'database' => $dbName], /* MySQL Master server */
-        ];
-
-        if (!$master) {
-            static::loadSlaveServers();
-        }
-
-        $totalServers = count(static::$_crm_servers);
-
-        if ($master || $totalServers == 1) {
-            $idServer = 0;
-        } else {
-            $id++;
-            $idServer = ($totalServers > 2 && ($id % $totalServers) != 0) ? $id % $totalServers : 1;
-        }
-
-        if (!isset(static::$crmInstance[$idServer])) {
+        if (!isset(static::$crmInstance[$key])) {
             $class = static::getClass();
-            static::$crmInstance[$idServer] = new $class(
-                static::$_crm_servers[$idServer]['server'],
-                static::$_crm_servers[$idServer]['user'],
-                static::$_crm_servers[$idServer]['password'],
-                static::$_crm_servers[$idServer]['database']
-            );
-            $connection = static::$crmInstance[$idServer];
-
-            $connection->setTimeZone(Tools::getTimeZone());
+            static::$crmInstance[$key] = new $class($dServer, $dbUser, $dbPasswd, $dbName);
+            static::$crmInstance[$key]->setTimeZone(Tools::getTimeZone());
         }
 
-        return static::$crmInstance[$idServer];
+        return static::$crmInstance[$key];
     }
 
     /**

@@ -36,6 +36,8 @@ class PhenyxLogger extends PhenyxObjectModel {
     public $date_upd;
 
     public $employee;
+	
+	public $context;
     
     /**
      * @see ObjectModel::$definition
@@ -60,6 +62,26 @@ class PhenyxLogger extends PhenyxObjectModel {
     public function __construct($id = null, $idLang = null) {
 
         parent::__construct($id, $idLang);
+		
+		$this->context = Context::getContext();
+		
+		if (!isset($this->context->phenyxConfig)) {
+            $this->context->phenyxConfig = Configuration::getInstance();            
+        }
+		
+		if (!isset($this->context->company)) {
+            $this->context->company = Company::initialize();
+        }
+		if (!isset($this->context->_tools)) {
+            $this->context->_tools = PhenyxTool::getInstance();
+        }
+		if (!isset($this->context->language)) {
+            $this->context->language = $this->context->_tools->jsonDecode($this->context->_tools->jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'))));
+        }
+		
+		if (!isset($this->context->translations)) {
+            $this->context->translations = new Translate($this->context->language->iso_code, $this->context->company);
+        }
 
         if ($this->id) {
             $this->employee = '';
@@ -142,7 +164,7 @@ class PhenyxLogger extends PhenyxObjectModel {
                 'lastname'  => 'Hunger',
             ]);
             $mailer->sender =  [
-                'name'  => sprintf($this->l("Administrative department of %s"), $this->context->phenyxConfig->get('EPH_SHOP_NAME')),
+                'name'  => sprintf($this->l('Administrative department of %s'), $this->context->phenyxConfig->get('EPH_SHOP_NAME')),
                 'email' => $this->context->phenyxConfig->get('EPH_SHOP_EMAIL'),
             ];
 
@@ -214,15 +236,16 @@ class PhenyxLogger extends PhenyxObjectModel {
 
     public static function eraseAllLogs() {
 		
-		$employees = new PhenyxCollection("User");		
-		$employees->where('is_admin', '=', 1);
+		
         $result = Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'log');
 		if($result) {
+			$employees = new PhenyxCollection("User");		
+			$employees->where('is_admin', '=', '1');
 			foreach($employees as $employee) {
 				 Db::getInstance()->execute(
 					 (new DbQuery())
              		->type('UPDATE')
-            		->from('use_meta')
+            		->from('user_meta')
             		->set('`id_last_log` = 0')
             		->where('`id_user` = '. (int) $employee->id)
         		); 
@@ -253,5 +276,10 @@ class PhenyxLogger extends PhenyxObjectModel {
 
         return self::$is_present[$this->getHash()];
     }
+	
+	public function l($string, $idLang = null, $context = null) {
+
+		return $this->context->translations->getClassTranslation($string, 'PhenyxLogger');
+	}
 
 }

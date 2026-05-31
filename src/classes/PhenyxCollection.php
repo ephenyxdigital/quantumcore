@@ -409,14 +409,13 @@ class PhenyxCollection implements Iterator, ArrayAccess, Countable {
         }
 
         $this->is_hydrated = true;
-
+		
         $alias = $this->generateAlias();
-        if (!empty($this->definition['have_meta'])) {
-            $alias = 'a';
-        }
+		
         //$this->query->select($alias.'.*');
+		
         $this->query->from($this->definition['table'], $alias);
-
+			
         // If multilang, create association to lang table
 
         if (!empty($this->definition['multilang'])) {
@@ -427,12 +426,13 @@ class PhenyxCollection implements Iterator, ArrayAccess, Countable {
             }
 
         }
+		
         
         if (!empty($this->definition['have_meta'])) {
-            $this->query->select('a.*,'.implode(', ', $this->definition['have_meta']['field']));
-            $this->query->leftJoin($this->definition['table'].'_meta', static::META_ALIAS, 'a.`'.$this->definition['primary'] .'` = '.static::META_ALIAS.'.`'.$this->definition['primary'].'`');
+            $this->query->select($alias.'.*,'.implode(', ', $this->definition['have_meta']['field']));
+            $this->query->leftJoin($this->definition['table'].'_meta', static::META_ALIAS, $alias. '.`'.$this->definition['primary'] .'` = '.static::META_ALIAS.'.`'.$this->definition['primary'].'`');
         }
-
+		
         // Add join clause
 
         foreach ($this->join_list as $data) {
@@ -465,9 +465,8 @@ class PhenyxCollection implements Iterator, ArrayAccess, Countable {
         if ($displayQuery) {
             echo $this->query . '<br />';
         }
-       
-
-        $this->results = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($this->query);
+		
+		$this->results = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS($this->query);
 
         if ($this->results && is_array($this->results)) {
             $this->results = PhenyxObjectModel::hydrateCollection($this->classname, $this->results, $this->id_lang);
@@ -487,7 +486,11 @@ class PhenyxCollection implements Iterator, ArrayAccess, Countable {
     public function rewind() {
 
         $this->getAll();
-        $this->results = array_merge($this->results);
+		if(is_array($this->results)) {
+			$this->results = array_merge($this->results);
+		} else {
+			$this->results = [0];
+		}        
         $this->iterator = 0;
         $this->total = count($this->results);
     }

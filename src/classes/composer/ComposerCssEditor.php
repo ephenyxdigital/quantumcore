@@ -112,7 +112,7 @@ class ComposerCssEditor extends Composer {
 		$vc_manager = ephenyx_manager();
 		$output = '<option value="">' . $this->l('Theme defaults') . '</option>';
 		$styles = [
-			$this->l("Cover")     => 'cover',
+			$this->l('Cover')     => 'cover',
 			$this->l('Contain')   => 'contain',
 			$this->l('No Repeat') => 'no-repeat',
 			$this->l('Repeat')    => 'repeat',

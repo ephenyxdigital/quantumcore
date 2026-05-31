@@ -926,7 +926,7 @@ class Composer {
             'params'   => [
                 [
                     "type"       => "dropdown",
-                    "heading"    => $this->l("Executed Hook"),
+                    "heading"    => $this->l('Executed Hook'),
                     "param_name" => "execute_hook",
                     "value"      => $hooks,
                 ], [

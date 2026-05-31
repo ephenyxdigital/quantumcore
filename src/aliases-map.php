@@ -158,7 +158,6 @@ return [
     'Meta' => 'EphenyxDigital\\QuantumCore\\Meta',
     'MongoDb' => 'EphenyxDigital\\QuantumCore\\MongoDb',
     'MySQL' => 'EphenyxDigital\\QuantumCore\\MySQL',
-    'NewTranslate' => 'EphenyxDigital\\QuantumCore\\NewTranslate',
     'Page' => 'EphenyxDigital\\QuantumCore\\Page',
     'PageType' => 'EphenyxDigital\\QuantumCore\\PageType',
     'ParamContextMenu' => 'EphenyxDigital\\QuantumCore\\ParamContextMenu',

@@ -35,6 +35,14 @@ class Adapter_EntityMapper {
         $cacheId = 'objectmodel_' . $entityDefs['classname'] . '_' . (int) $id . '_' . (int) $idLang;
 
         if (!$shouldCacheObjects || !CacheApi::isStored($cacheId)) {
+
+            // Base principale → getInstance() ; base distincte (CRM) explicitement fournie
+            // → getCrmInstance(). Évite que getCrmInstance ne mette en cache la base
+            // principale et n'écrase les écritures CRM ultérieures (bug du cache de connexion).
+            $db = ($dServer === _DB_SERVER_ && $dbName === _DB_NAME_ && $dbUser === _DB_USER_)
+                ? Db::getInstance()
+                : Db::getCrmInstance($dbUser, $dbPasswd, $dbName, $dServer);
+
             $sql = new DbQuery($dbPrefix);
             $sql->from($entityDefs['table'], 'a');
             $sql->where('a.`' . bqSQL($entityDefs['primary']) . '` = ' . (int) $id);
@@ -51,7 +59,7 @@ class Adapter_EntityMapper {
 
             }
             
-            if ($objectData = Db::getCrmInstance($dbUser, $dbPasswd, $dbName, $dServer)->getRow($sql)) {
+            if ($objectData = $db->getRow($sql)) {
 
                 if (!$idLang && isset($entityDefs['multilang']) && $entityDefs['multilang']) {
                     $sql = (new DbQuery($dbPrefix))
@@ -59,7 +67,7 @@ class Adapter_EntityMapper {
                         ->from($entityDefs['table'] . '_lang')
                         ->where('`' . $entityDefs['primary'] . '` = ' . (int) $id);
 
-                    if ($objectDatasLang = Db::getCrmInstance($dbUser, $dbPasswd, $dbName, $dServer)->executeS($sql)) {
+                    if ($objectDatasLang = $db->executeS($sql)) {
 
                         foreach ($objectDatasLang as $row) {
 
@@ -89,7 +97,7 @@ class Adapter_EntityMapper {
                         ->select('*')
                         ->from($entityDefs['table'] . '_meta')
                         ->where('`' . $entityDefs['primary'] . '` = ' . (int) $id);
-                    if ($objectDatasMeta = Db::getCrmInstance($dbUser, $dbPasswd, $dbName, $dServer)->executeS($sql)) {
+                    if ($objectDatasMeta = $db->executeS($sql)) {
 
                         foreach ($objectDatasMeta as $row) {
 

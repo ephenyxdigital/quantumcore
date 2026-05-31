@@ -5720,8 +5720,8 @@ FileETag none
         try {
             $translation->add();
         } catch (exception $e) {
-            PhenyxLogger::addLog($this->l('getGoogleTranslation', 'Tools', false, false), 1, null, 'Tools', $e->getMessage(), true, 0);
-        }
+            PhenyxLogger::addLog('getGoogleTranslation', 1, null, 'Tools', $e->getMessage(), true, 0);
+		}
         
         $return = [
             'translation' => $result['text'],

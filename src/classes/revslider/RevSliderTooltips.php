@@ -27,7 +27,7 @@ class RevSliderTooltips {
 			'docs'      => $this->l('Docs', 'revslider'),
 			'next_tip'  => $this->l('Next Tip'),
 			'got_it'    => $this->l('Got It'),
-			'hide_tips' => $this->l("Don't show tooltips again"),
+			'hide_tips' => $this->l('Don't show tooltips again'),
 
 		];
 

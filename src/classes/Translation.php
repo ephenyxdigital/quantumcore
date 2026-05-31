@@ -33,6 +33,20 @@ class Translation extends PhenyxObjectModel {
     protected static $instance = null;
 
     // -------------------------------------------------------------------------
+    // Cache MÉMOIRE (par requête) — remplace le cache session qui écrivait sur
+    // disque et le saturait. Réinitialisé après chaque add()/update().
+    // -------------------------------------------------------------------------
+
+    /** @var array|null Toutes les traductions, indexées par iso_code */
+    protected static $cacheGlobal = null;
+
+    /** @var array Traductions indexées : [iso_code => ['origine' => 'trad', ...]] */
+    protected static $cacheByIso = [];
+
+    /** @var array Traductions unitaires : [cacheKey => 'trad'] */
+    protected static $cacheExpr = [];
+
+    // -------------------------------------------------------------------------
     // Connexion BDD CRM (credentials issus du .env via defines_inc.php)
     // -------------------------------------------------------------------------
 
@@ -133,6 +147,7 @@ class Translation extends PhenyxObjectModel {
         if ($id) {
             $this->id      = (int) $id;
             $entityMapper  = Adapter_ServiceLocator::get('Adapter_EntityMapper');
+            // Base LOCALE : on ne passe plus les credentials CRM distants.
             $entityMapper->load(
                 $this->id, null, $this, $this->def, false,
                 $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
@@ -180,38 +195,50 @@ class Translation extends PhenyxObjectModel {
      *
      * Ajoute automatiquement date_upd et invalide les caches après insertion.
      */
-    public function add($autoDate = false, $nullValues = false) {
-
-        $this->date_upd = date('Y-m-d H:i:s');
-
-        $result = parent::add($autoDate, $nullValues);
-
-        if ($result) {
-            $this->invalidateTranslationCache();
-            static::resetInstance();
+    	
+	public function add($autoDate = false, $nullValues = false) {
+		
+		$this->date_upd = date('Y-m-d H:i:s');
+				
+        $fields = $this->getFields();
+		
+        if (!$result = Db::getCrmInstance(
+                $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
+            )->insert($this->def['table'], $fields, $nullValues)) {
+			
+            return false;
         }
+
+        $this->id = Db::getCrmInstance(
+                $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
+            )->Insert_ID();
+		
+        if (!$result) {
+            return false;
+        }
+		$this->invalidateTranslationCache();
+        static::resetInstance();
+
+        
 
         return $result;
     }
+	
+	public function update($nullValues = false) {
 
-    /**
-     * {@inheritdoc}
-     *
-     * Met à jour date_upd et invalide les caches après mise à jour.
-     */
-    public function update($nullValues = false) {
+       $this->date_upd = date('Y-m-d H:i:s');        
 
-        $this->date_upd = date('Y-m-d H:i:s');
-
-        $result = parent::update($nullValues);
-
-        if ($result) {
-            $this->invalidateTranslationCache();
-            static::resetInstance();
+        if (!$result = Db::getCrmInstance(
+                $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
+            )->update($this->def['table'], $this->getFields(), '`' . pSQL($this->def['primary']) . '` = ' . (int) $this->id, 0, $nullValues)) {
+            return false;
         }
-
+		$this->invalidateTranslationCache();
+        static::resetInstance();
+       
         return $result;
     }
+
 
     // -------------------------------------------------------------------------
     // Lecture des traductions
@@ -236,10 +263,8 @@ class Translation extends PhenyxObjectModel {
      */
     public function getGlobalTranslations($isos = null) {
 
-        $cached = $this->context->_session->get('getGlobalTranslations');
-
-        if (!empty($cached) && is_array($cached)) {
-            return $cached;
+        if (is_array(static::$cacheGlobal)) {
+            return static::$cacheGlobal;
         }
 
         if (is_null($isos)) {
@@ -250,19 +275,27 @@ class Translation extends PhenyxObjectModel {
 
         $translations = [];
 
-        foreach ($languages as $lang) {
-            $iso = trim($lang['iso_code']);
-            $translations[$iso] = Db::getCrmInstance(
-                $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
-            )->executeS(
-                (new DbQuery())
-                    ->select('*')
-                    ->from('translation')
-                    ->where('`iso_code` = \'' . pSQL($iso) . '\'')
-            );
+        try {
+            foreach ($languages as $lang) {
+                $iso = trim($lang['iso_code']);
+                $translations[$iso] = Db::getCrmInstance(
+                    $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
+                )->executeS(
+                    (new DbQuery())
+                        ->select('*')
+                        ->from('translation')
+                        ->where('`iso_code` = \'' . pSQL($iso) . '\'')
+                );
+            }
+        } catch (\Throwable $e) {
+            // Base de traduction injoignable : on dégrade proprement (site affiché,
+            // textes non traduits) au lieu de provoquer un fatal.
+            error_log('[Translation] base indisponible (getGlobalTranslations): ' . $e->getMessage());
+            static::$cacheGlobal = [];
+            return [];
         }
 
-        $this->context->_session->set('getGlobalTranslations', $translations);
+        static::$cacheGlobal = $translations;
 
         return $translations;
     }
@@ -278,25 +311,29 @@ class Translation extends PhenyxObjectModel {
      */
     public function getExistingTranslation($iso_code, $origin, $file = null) {
 
-        $cacheKey = 'getExistingTranslation_' . $iso_code . '_' . md5($origin);
-        $cached   = $this->context->_session->get($cacheKey);
+        $cacheKey = $iso_code . '_' . md5($origin);
 
-        if ($cached !== null && is_string($cached)) {
-            return $cached;
+        if (isset(static::$cacheExpr[$cacheKey])) {
+            return static::$cacheExpr[$cacheKey];
         }
 
-        $translation = Db::getCrmInstance(
-            $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
-        )->getValue(
-            (new DbQuery())
-                ->select('`translation`')
-                ->from('translation')
-                ->where('`iso_code` = \'' . pSQL(trim($iso_code)) . '\'')
-                ->where('`origin` = \'' . pSQL(trim($origin)) . '\'')
-        );
+        try {
+            $translation = Db::getCrmInstance(
+                    $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
+                )->getValue(
+                (new DbQuery())
+                    ->select('`translation`')
+                    ->from('translation')
+                    ->where('`iso_code` = \'' . pSQL(trim($iso_code)) . '\'')
+                    ->where('`origin` = \'' . pSQL(trim($origin)) . '\'')
+            );
+        } catch (\Throwable $e) {
+            error_log('[Translation] base indisponible (getExistingTranslation): ' . $e->getMessage());
+            return false;
+        }
 
         if ($translation !== false) {
-            $this->context->_session->set($cacheKey, $translation);
+            static::$cacheExpr[$cacheKey] = $translation;
         }
 
         return $translation;
@@ -310,17 +347,23 @@ class Translation extends PhenyxObjectModel {
      *
      * @return int|null L'id_translation ou null si non trouvé
      */
-    public function getExistingObjectTranslation($iso_code, $origin) {
-
-        $id_translation = Db::getCrmInstance(
-            $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
-        )->getValue(
-            (new DbQuery())
+    public function getExistingObjectTranslation($iso_code, $origin, $file_name = null) {
+ 		
+        try {
+            $id_translation = Db::getCrmInstance(
+                    $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
+                )->getValue(
+                (new DbQuery())
                 ->select('`id_translation`')
                 ->from('translation')
                 ->where('`iso_code` = \'' . pSQL(trim($iso_code)) . '\'')
                 ->where('`origin` = \'' . pSQL(trim($origin)) . '\'')
-        );
+                ->where(!is_null($file_name) ? '`file_name` = \'' . pSQL(trim($file_name)) . '\'' : 1)
+            );
+        } catch (\Throwable $e) {
+            error_log('[Translation] base indisponible (getExistingObjectTranslation): ' . $e->getMessage());
+            return null;
+        }
 
         if (Validate::isUnsignedId($id_translation)) {
             return (int) $id_translation;
@@ -340,21 +383,24 @@ class Translation extends PhenyxObjectModel {
      */
     public function getExistingTranslationByIso($iso_code) {
 
-        $cacheKey = 'getExistingTranslationByIso_' . $iso_code;
-        $cached   = $this->context->_session->get($cacheKey);
-
-        if (!empty($cached) && is_array($cached)) {
-            return $cached;
+        if (isset(static::$cacheByIso[$iso_code])) {
+            return static::$cacheByIso[$iso_code];
         }
 
-        $results = Db::getCrmInstance(
-            $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
-        )->executeS(
-            (new DbQuery())
-                ->select('*')
-                ->from('translation')
-                ->where('`iso_code` = \'' . pSQL(trim($iso_code)) . '\'')
-        );
+        try {
+            $results = Db::getCrmInstance(
+                    $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
+                )->executeS(
+                (new DbQuery())
+                    ->select('*')
+                    ->from('translation')
+                    ->where('`iso_code` = \'' . pSQL(trim($iso_code)) . '\'')
+            );
+        } catch (\Throwable $e) {
+            error_log('[Translation] base indisponible (getExistingTranslationByIso): ' . $e->getMessage());
+            static::$cacheByIso[$iso_code] = [];
+            return [];
+        }
 
         $indexed = [];
 
@@ -362,7 +408,7 @@ class Translation extends PhenyxObjectModel {
             $indexed[$result['origin']] = $result['translation'];
         }
 
-        $this->context->_session->set($cacheKey, $indexed);
+        static::$cacheByIso[$iso_code] = $indexed;
 
         return $indexed;
     }
@@ -446,14 +492,10 @@ class Translation extends PhenyxObjectModel {
      */
     protected function invalidateTranslationCache() {
 
-        // Cache global (toutes langues)
-        $this->context->_session->remove('getGlobalTranslations');
-
-        // Cache par iso_code
-        if (!empty($this->iso_code)) {
-            $this->context->_session->remove('getExistingTranslationByIso_' . $this->iso_code);
-            $this->context->_session->remove('getExistingTranslation_' . $this->iso_code . '_' . md5($this->origin));
-        }
+        // Vidage du cache mémoire (par requête)
+        static::$cacheGlobal = null;
+        static::$cacheByIso  = [];
+        static::$cacheExpr   = [];
 
         // Reconstruire le cache global dans le contexte
         $this->context->translations = $this->getGlobalTranslations();

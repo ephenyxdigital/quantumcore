@@ -74,6 +74,12 @@ class CacheApcu extends CacheApi implements CacheApiInterface {
 	 */
 	public function getData($key, $ttl = null) {
 
+		// Garde-fou : si l'extension APCu n'est pas chargée (ex. après un
+		// changement de version PHP), on ne plante pas — on retombe sur la DB.
+		if (!function_exists('apcu_fetch')) {
+			return null;
+		}
+
 		$key = $this->prefix . strtr($key, ':/', '-_');
 
 		$value = apcu_fetch($key);
@@ -85,6 +91,10 @@ class CacheApcu extends CacheApi implements CacheApiInterface {
 	 * {@inheritDoc}
 	 */
 	public function putData($key, $value, $ttl = null) {
+
+		if (!function_exists('apcu_store')) {
+			return false;
+		}
 
 		$key = $this->prefix . strtr($key, ':/', '-_');
 		return apcu_store($key, $value, $ttl !== null ? $ttl : $this->ttl);

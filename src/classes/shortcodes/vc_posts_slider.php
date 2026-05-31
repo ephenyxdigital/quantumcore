@@ -218,7 +218,7 @@ if (!empty($my_query)) {
 if ($teasers) {
 	$teasers = $slides_wrap_start . $teasers . $slides_wrap_end;
 } else {
-	$teasers = $this->l("Nothing found.");
+	$teasers = $this->l('Nothing found.');
 }
 
 $css_class = 'wpb_gallery wpb_posts_slider wpb_content_element' . $el_class;

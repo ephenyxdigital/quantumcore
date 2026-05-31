@@ -14,6 +14,7 @@ use User;
 use VersionController;
 
 
+
 /**
  * Class License
  *
@@ -45,7 +46,9 @@ use VersionController;
  */
 
 use Defuse\Crypto\Crypto;
-use \Curl\Curl;
+// Aliasé en PhpCurl : le nom court "Curl" entre en collision avec l'alias
+// EphenyxDigital\QuantumCore\Curl généré par aliases.php (fatal au chargement).
+use Curl\Curl as PhpCurl;
 
 class License extends PhenyxObjectModel {
 
@@ -829,7 +832,7 @@ class License extends PhenyxObjectModel {
             'crypto_key'  => $this->cryp_key,
         ], $params);
 
-        $curl = new Curl();
+        $curl = new PhpCurl();
         $curl->setDefaultJsonDecoder($assoc = true);
         $curl->setHeader('Content-Type', 'application/json');
         $curl->setTimeout($timeout);
@@ -1155,7 +1158,11 @@ class License extends PhenyxObjectModel {
 
     public function executeCronAction($cronAction) {
 
-        return $this->callApi($cronAction);
+        // Déclenchement de cron : fire-and-forget. On lance l'exécution distante sans
+        // attendre qu'elle se termine (un cron peut durer plusieurs minutes). Le site
+        // client continue de traiter le cron après la fermeture de connexion ; côté
+        // maître, un timeout court est normal et ne doit pas être loggué comme une erreur.
+        return $this->callApi($cronAction, [], 5, true);
     }
 
     // =========================================================================
@@ -1327,7 +1334,7 @@ class License extends PhenyxObjectModel {
         }
 
         // Appel sans authentification — intentionnel pour ce point d'entrée public
-        $curl = new Curl();
+        $curl = new PhpCurl();
         $curl->setDefaultJsonDecoder($assoc = true);
         $curl->setHeader('Content-Type', 'application/json');
         $curl->setTimeout(30);

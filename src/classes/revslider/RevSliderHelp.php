@@ -6,16 +6,35 @@ use Context;
 use Layers;
 
 class RevSliderHelp {
+	
+	public $context;
+	
+	public function __construct() {
+
+		$this->context = Context::getContext();
+		
+		if (!isset($this->context->phenyxConfig)) {
+            $this->context->phenyxConfig = Configuration::getInstance();            
+        }
+		
+		if (!isset($this->context->company)) {
+            $this->context->company = Company::initialize();
+        }
+		if (!isset($this->context->_tools)) {
+            $this->context->_tools = PhenyxTool::getInstance();
+        }
+		if (!isset($this->context->language)) {
+            $this->context->language = $this->context->_tools->jsonDecode($this->context->_tools->jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'))));
+        }
+		
+		if (!isset($this->context->translations)) {
+            $this->context->translations = new Translate($this->context->language->iso_code, $this->context->company);
+        }
+	}
 
 	public function l($string, $idLang = null, $context = null) {
 
-		$class = get_class($this);
-
-		if (strtolower(substr($class, -4)) == 'core') {
-			$class = substr($class, 0, -4);
-		}
-
-		return Context::getContext()->translations->getClassTranslation($string, $class);
+		return $this->context->translations->getClassTranslation($string, 'RevSliderHelp');
 	}
 
 	public function getIndex() {
@@ -40,7 +59,7 @@ class RevSliderHelp {
 			'options'           => $this->l('Options'),
 			'faqs'              => $this->l('FAQs'),
 			'options'           => $this->l('Options'),
-			'search'            => $this->l('Search Keywords, e.g. "Background"'),
+			'search'            => $this->l('Search Keywords, e.g. Background'),
 			'instructions'      => $this->l('Hover over any option to learn more'),
 			'selectresult'      => $this->l('Select a Search Result'),
 		];
@@ -66,146 +85,146 @@ class RevSliderHelp {
 			'general_how_to'  => [
 				'responsive_setup' => [
 					'activate_responsive_viewports' => [
-						$t  => $this->l("Activate Responsive Viewports"),
+						$t  => $this->l('Activate Responsive Viewports'),
 						$h  => 'faq',
 						$k  => ["respon", "responsive", "viewport", "viewports", "responsive viewports", "breakpoints", "break points", "desktop", "notebook", "laptop", "mobile", "phone", "iphone", "smartphone", "smart phone"],
-						$d  => $this->l("Enable multiple stage sizes for custom set responsive content"),
+						$d  => $this->l('Enable multiple stage sizes for custom set responsive content'),
 						$a  => $fu . "responsive-content/",
 						$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_custom_n"],
 					],
 					'responsive_grid_sizes'         => [
-						$t  => $this->l("Responsive Grid Sizes"),
+						$t  => $this->l('Responsive Grid Sizes'),
 						$h  => 'faq',
 						$k  => ["respon", "responsive", "viewport", "grid sizes", "desktop", "notebook", "laptop", "mobile", "phone", "iphone", "smartphone", "smart phone"],
-						$d  => $this->l("Define custom grid widths and heights per device/viewport"),
+						$d  => $this->l('Define custom grid widths and heights per device/viewport'),
 						$a  => $fu . "responsive-content/#breakpoints",
 						$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_size_width_d"],
 					],
 					'content_size_position'         => [
-						$t  => $this->l("Content Size/Position"),
+						$t  => $this->l('Content Size/Position'),
 						$h  => 'faq',
 						$k  => ["respon", "responsive", "content", "size", "position", "desktop", "notebook", "laptop", "mobile", "phone", "iphone", "smartphone", "smart phone"],
-						$d  => $this->l("Modify font size and layer position per device"),
+						$d  => $this->l('Modify font size and layer position per device'),
 						$a  => $fu . "incorrect-size-or-position/",
 						$hl => [$dp => ['layerselected'], $m => "#plugin_layers_trigger, #gst_layer_2", $st => '#form_layerposition_basic', $f => "#layer_pos_x"],
 					],
 					'layers_responsive_behavior'    => [
-						$t  => $this->l("Layers Responsive Behavior"),
+						$t  => $this->l('Layers Responsive Behavior'),
 						$h  => 'doc',
 						$k  => ["respon", "responsive", "layer", "layers", "content", "behavior", "desktop", "notebook", "laptop", "mobile", "phone", "iphone", "smartphone", "smart phone"],
-						$d  => $this->l("Responsive alignment and positioning"),
+						$d  => $this->l('Responsive alignment and positioning'),
 						$a  => $u . "responsive-settings/",
 						$hl => [$dp => ['layerselected'], $m => "#plugin_layers_trigger, #gst_layer_13", $st => '#form_layerposition_basic', $f => "#layer_behavior_intelSize"],
 					],
 					'layers_mobile_visibility'      => [
-						$t  => $this->l("Layers Mobile Visibility"),
+						$t  => $this->l('Layers Mobile Visibility'),
 						$h  => 'doc',
 						$k  => ["respon", "responsive", "layer", "layers", "content", "visibility", "desktop", "notebook", "laptop", "mobile", "phone", "iphone", "smartphone", "smart phone"],
-						$d  => $this->l("Disable slider on mobile, hide layer content below screen size"),
+						$d  => $this->l('Disable slider on mobile, hide layer content below screen size'),
 						$a  => $u . "responsive-settings/#device-visibility",
 						$hl => [$dp => ['layerselected'], $m => "#plugin_layers_trigger, #gst_layer_13", $st => '#form_layercontent_visibility', $f => "*[data-r='visibility.m']"],
 					],
 					'responsive_text_images'        => [
-						$t  => $this->l("Responsive Text/Images"),
+						$t  => $this->l('Responsive Text/Images'),
 						$h  => 'doc',
 						$k  => ["respon", "responsive", "layer", "layers", "text", "image", "images", "desktop", "notebook", "laptop", "mobile", "phone", "iphone", "smartphone", "smart phone"],
-						$d  => $this->l("Adjust the size of text and images for each reponsive viewport"),
+						$d  => $this->l('Adjust the size of text and images for each reponsive viewport'),
 						$a  => $u . "size-position/#responsive",
 						$hl => [$dp => ['layerselected::text||button||image'], $m => "#plugin_layers_trigger, #gst_layer_3", $st => '#form_layerstyle_font', $f => "#layer_font_size_idle"],
 					],
 				],
 				'slide_management' => [
 					'add_new_slide' => [
-						$t  => $this->l("Add New Slide"),
+						$t  => $this->l('Add New Slide'),
 						$h  => 'doc',
 						$k  => ["slide", "slides", "add slide", "new slide", "slide template", "template", "blank slide", "bulk slide", "blank", "bulk"],
-						$d  => $this->l("add/duplicate/delete Slides"),
+						$d  => $this->l('add/duplicate/delete Slides'),
 						$a  => $u . "slide-management/#add-new-slide",
 						$hl => [$dp => ['addslide']],
 					],
 					'slide_order'   => [
-						$t  => $this->l("Change Slide Order"),
+						$t  => $this->l('Change Slide Order'),
 						$h  => 'doc',
 						$k  => ["slide", "slide order", "order", "ordering"],
-						$d  => $this->l("Change the order in which the Slides appear"),
+						$d  => $this->l('Change the order in which the Slides appear'),
 						$a  => $u . "slide-management/#switch-reorder-slides",
 						$hl => [$dp => ['slideorder']],
 					],
 				],
 				'add_edit_content' => [
 					'change_background'        => [
-						$t  => $this->l("Set/Change Slide Background"),
+						$t  => $this->l('Set/Change Slide Background'),
 						$h  => 'doc',
 						$k  => ["slide", "slide settings", "background", "bg", "image", "images", "color", "video", "image background"],
-						$d  => $this->l("Set the Slide's Main background to a color, image or video"),
+						$d  => $this->l('Set the Slide\'s Main background to a color, image or video'),
 						$a  => $u . "slide-background/",
 						$hl => [$m => "#plugin_slide_trigger, #gst_slide_1", $st => '#form_slidebg_source', $f => "#slide_bg_type"],
 					],
 					'change_slider_background' => [
-						$t  => $this->l("Set/Change Plugin Background"),
+						$t  => $this->l('Set/Change Plugin Background'),
 						$h  => 'doc',
 						$k  => ["slide", "slide settings", "background", "bg", "image", "images", "color", "video", "image background"],
-						$d  => $this->l("Set the Plugin's Main background to a color, image or video"),
+						$d  => $this->l('Set the Plugin\'s Main background to a color, image or video'),
 						$a  => $u . "plugin-layout/#plugin-background",
 						$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_decmobg', $f => "#sliderbgcolor"],
 					],
 					'change_layer_background'  => [
-						$t  => $this->l("Set/Change Layer Background"),
+						$t  => $this->l('Set/Change Layer Background'),
 						$h  => 'doc',
 						$k  => ["slide", "slide settings", "background", "bg", "image", "images", "color", "video", "image background"],
-						$d  => $this->l("Set a Layer's Main background to a color, image or video"),
+						$d  => $this->l('Set a Layer\'s Main background to a color, image or video'),
 						$a  => $u . "font-colors-styling/#background",
 						$hl => [$dp => ['layerselected'], $m => '#plugin_layers_trigger, #gst_layer_3', $st => '#form_layerstyle_bg', $f => "#layerBGColor"],
 					],
 					'edit_content'             => [
-						$t  => $this->l("Edit Content Layers"),
+						$t  => $this->l('Edit Content Layers'),
 						$h  => 'doc',
 						$k  => ["edit", "change", "style", "styles", "position", "size", "responsive"],
-						$d  => $this->l("Edit text, images, videos, styles, position and size for your content"),
+						$d  => $this->l('Edit text, images, videos, styles, position and size for your content'),
 						$a  => $u . "layer-content/#edit-set-content",
 						$hl => [$dp => ['layerselected'], $m => '#plugin_layers_trigger, #gst_layer_1', $st => '#form_layer_content', $f => "#ta_layertext, #layer_htmltag, *[data-r='media.videoFromStream'], #layer_mpegaudio_src"],
 					],
 					'add_new_layer'            => [
-						$t  => $this->l("Add New Layer"),
+						$t  => $this->l('Add New Layer'),
 						$h  => 'doc',
 						$k  => ["layer", "layers", "add layer", "new layer", "import layer", "text", "image", "images", "video", "vimeo", "youtube", "you tube", "audio", "icon", "svg", "button", "shape", "row", "group"],
-						$d  => $this->l("Add a variety of content to your Slides"),
+						$d  => $this->l('Add a variety of content to your Slides'),
 						$a  => $u . "layer-content/#add-new-layer",
 						$hl => [$dp => ['addlayer']],
 					],
 					'global_layers'            => [
-						$t  => $this->l("Global Layers"),
+						$t  => $this->l('Global Layers'),
 						$h  => 'doc',
 						$k  => ["global", "static", "global layers", "static layers", "layers", "always visible", "always show"],
-						$d  => $this->l("Add/Edit content that's meant to always be visible"),
+						$d  => $this->l('Add/Edit content that\'s meant to always be visible'),
 						$a  => $u . "global-layers/",
 						$hl => [$dp => ['staticlayers']],
 					],
 				],
 				'animations'       => [
 					'slide_animations' => [
-						$t  => $this->l("Slide Animations"),
+						$t  => $this->l('Slide Animations'),
 						$h  => 'doc',
 						$k  => ["animation", "animations", "transition", "transitions", "slide animation", "slide animations", "slide transition", "slide transitions"],
-						$d  => $this->l("60+ pre-built animations, animation duration, easing"),
+						$d  => $this->l('60+ pre-built animations, animation duration, easing'),
 						$a  => $u . "slide-animation/",
 						$hl => [$m => '#plugin_slide_trigger, #gst_slide_2', $st => '#form_slidebg_transition', $f => ".added_slide_transition.selected"],
 					],
 					'layer_animations' => [
-						$t  => $this->l("Layer Animations"),
+						$t  => $this->l('Layer Animations'),
 						$h  => 'doc',
 						$k  => ["animation", "animations", "transition", "transitions", "layer animation", "layer animations", "layer transition", "layer transitions"],
-						$d  => $this->l("Start/End animation timing and easing"),
+						$d  => $this->l('Start/End animation timing and easing'),
 						$a  => $u . "layer-animations/",
 						$hl => [$dp => ['layerselected'], $m => '#plugin_layers_trigger, #gst_layer_4', $st => '#form_animation_sframes', $f => ".frame_list_id"],
 					],
 				],
 				'navigation_links' => [
 					'enable_navigation' => [
-						$t  => $this->l("Enable/Disable Navigation"),
+						$t  => $this->l('Enable/Disable Navigation'),
 						$h  => 'doc',
 						$k  => ["navigation", "add navigation", "enable navigation", "remove navigation", "disable navigation", "thumbs", "thumbnails", "tabs", "arrows", "bullets", "touch"],
-						$d  => $this->l("Learn how to add/remove navigation elements to control the Slider"),
+						$d  => $this->l('Learn how to add/remove navigation elements to control the Slider'),
 						$a  => $u . "navigation-arrows/",
 						$hl => [
 							$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -215,28 +234,28 @@ class RevSliderHelp {
 						],
 					],
 					'links'             => [
-						$t  => $this->l("Add/Remove Links"),
+						$t  => $this->l('Add/Remove Links'),
 						$h  => 'doc',
 						$k  => ["link", "links", "add link", "add links", "remove link", "remove links", "delete link", "delete links", "hyperlink", "external link"],
-						$d  => $this->l("Add/Remove links to additional slides, other web pages/posts or external websites"),
+						$d  => $this->l('Add/Remove links to additional slides, other web pages/posts or external websites'),
 						$a  => $u . "simple-link/",
 						$hl => [$m => '#plugin_slide_trigger, #gst_slide_4', $st => '#form_slidegeneral_linkseo', $f => "#sl_seo_set"],
 					],
 				],
 				'addon_extentions' => [
 					'activate_enable' => [
-						$t  => $this->l("Active/Enable Addons"),
+						$t  => $this->l('Active/Enable Addons'),
 						$h  => 'doc',
 						$k  => ["addon", "addons", "extentions", "enable addon", "enable addons", "activate addon", "activate addons"],
-						$d  => $this->l("Learn how to activate an AddOn for the Slider"),
+						$d  => $this->l('Learn how to activate an AddOn for the Slider'),
 						$a  => $u . "enable-addons/",
 						$hl => [$m => '#plugin_settings_trigger, #gst_sl_9', 'modal' => 'addons'],
 					],
 					'how_to_use'      => [
-						$t => $this->l("How To Use"),
+						$t => $this->l('How To Use'),
 						$h => 'doc',
 						$k => ["addon", "addons", "extentions", "addon settings"],
-						$d => $this->l("AddOn Settings will be located in the Slider, Slide or Layer settings depending on the AddOns functionality"),
+						$d => $this->l('AddOn Settings will be located in the Slider, Slide or Layer settings depending on the AddOns functionality'),
 						$a => $u . "addon-guides/",
 					],
 				],
@@ -245,26 +264,26 @@ class RevSliderHelp {
 				'slider_settings'     => [
 					'gst_sl_1'  => [
 						$t          => [
-							$t  => $this->l("Slider Title"),
+							$t  => $this->l('Slider Title'),
 							$h  => "title",
 							$k  => ["slider", "title", "name", "naming"],
-							$d  => $this->l("Set the title of the Slider for admin/editing purposes"),
+							$d  => $this->l('Set the title of the Slider for admin/editing purposes'),
 							$a  => $u . "plugin-title-shortcode/",
 							$hl => [$m => '#plugin_settings_trigger, #gst_sl_1', $st => '#form_plugin_title', $f => "#sr_title"],
 						],
 						'alias'     => [
-							$t  => $this->l("Slider Alias"),
+							$t  => $this->l('Slider Alias'),
 							$h  => "alias",
 							$k  => ["slider", "alias", "shortcode"],
-							$d  => $this->l("The slider's alias is used to define a unique shortcode"),
+							$d  => $this->l('The slider\'s alias is used to define a unique shortcode'),
 							$a  => $u . "plugin-title-shortcode/",
 							$hl => [$m => '#plugin_settings_trigger, #gst_sl_1', $st => '#form_plugin_title', $f => "#sr_alias"],
 						],
 						'shortcode' => [
-							$t  => $this->l("Slider Shortcode"),
+							$t  => $this->l('Slider Shortcode'),
 							$h  => "shortcode",
 							$k  => ["slider", "shortcode", "slider shortcode"],
-							$d  => $this->l("Place the shortcode on the page or post where you want to show this plugin"),
+							$d  => $this->l('Place the shortcode on the page or post where you want to show this plugin'),
 							$a  => $u . "plugin-title-shortcode/",
 							$hl => [$m => '#plugin_settings_trigger, #gst_sl_1', $st => '#form_plugin_title', $f => "#sr_shortcode"],
 						],
@@ -273,135 +292,135 @@ class RevSliderHelp {
 						'type'                   => [
 							'standard' => [
 								$di => "slider_layout_type_standard",
-								$t  => $this->l("Standard Slider"),
+								$t  => $this->l('Standard Slider'),
 								$h  => "type.standard",
 								$k  => ["slider", "slider layout", "layout", "type", "scene", "hero", "carousel"],
-								$d  => $this->l("A Slider that can have multiple slides with navigation"),
+								$d  => $this->l('A Slider that can have multiple slides with navigation'),
 								$a  => $u . "plugin-layout/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_sliderlayout', $f => "input[name=slidertype][value=standard]"],
 							],
 							'hero'     => [
-								$t  => $this->l("Hero Scene"),
+								$t  => $this->l('Hero Scene'),
 								$h  => "type.hero",
 								$k  => ["slider", "slider layout", "layout", "type", "scene", "hero", "carousel"],
-								$d  => $this->l("A single-slide Slider with no navigation"),
+								$d  => $this->l('A single-slide Slider with no navigation'),
 								$a  => $u . "plugin-layout//",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_sliderlayout', $f => "input[name=slidertype][value=hero]"],
 							],
 							'carousel' => [
 								$di => "slider_layout_type_carousel",
-								$t  => $this->l("Carousel"),
+								$t  => $this->l('Carousel'),
 								$h  => "type.carousel",
 								$k  => ["slider", "slider layout", "layout", "type", "scene", "hero", "carousel"],
-								$d  => $this->l("Display the Slider as a traditional Carousel"),
+								$d  => $this->l('Display the Slider as a traditional Carousel'),
 								$a  => $u . "plugin-layout/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_sliderlayout', $f => "input[name=slidertype][value=carousel]"],
 							],
 						],
 						'sizing'                 => [
 							'auto'                    => [
-								$t  => $this->l("Auto"),
+								$t  => $this->l('Auto'),
 								$h  => "layouttype.auto",
 								$k  => ["slider", "slider sizing", "responsive", "respon", "sizing", "auto"],
-								$d  => $this->l("Size will adapt to the same size as the web page's content"),
+								$d  => $this->l('Size will adapt to the same size as the web page\'s content'),
 								$a  => $u . "plugin-layout/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_sliderlayout', $f => "input[name=sliderlayouttype][value=auto]"],
 							],
 							'fullwidth'               => [
-								$t  => $this->l("Full Width"),
+								$t  => $this->l('Full Width'),
 								$h  => "layouttype.fullwidth",
 								$k  => ["slider", "slider sizing", "responsive", "respon", "sizing", "full width", "full-width", "fullwidth"],
-								$d  => $this->l("Display the Slider 100% width across the page"),
+								$d  => $this->l('Display the Slider 100% width across the page'),
 								$a  => $u . "plugin-layout/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_sliderlayout', $f => "input[name=sliderlayouttype][value=fullwidth]"],
 							],
 							'fullscreen'              => [
 								$di => "slider_layouttype_fullscreen",
-								$t  => $this->l("Full Screen"),
+								$t  => $this->l('Full Screen'),
 								$h  => "layouttype.fullscreen",
 								$k  => ["slider", "slider sizing", "responsive", "respon", "sizing", "full screen", "full-screen", "fullscreen"],
-								$d  => $this->l("Display the Slider at 100% width and height"),
+								$d  => $this->l('Display the Slider at 100% width and height'),
 								$a  => $u . "plugin-layout/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_sliderlayout', $f => "input[name=sliderlayouttype][value=fullscreen]"],
 							],
 							'advanced'                => [
 								'max_width'            => [
-									$t  => $this->l("Max Width"),
+									$t  => $this->l('Max Width'),
 									$h  => "size.maxWidth",
 									$k  => ["max", "max width", "sizing", "layout"],
-									$d  => $this->l("Optional maximum width for the Slider"),
+									$d  => $this->l('Optional maximum width for the Slider'),
 									$a  => $u . "plugin-layout/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_adv', $f => "#sr_size_maxwidth"],
 								],
 								'min_height'           => [
-									$t  => $this->l("Min Height"),
+									$t  => $this->l('Min Height'),
 									$h  => "size.minHeight",
 									$k  => ["min", "min height", "sizing", "layout"],
-									$d  => $this->l("Optional minimum height for the Slider"),
+									$d  => $this->l('Optional minimum height for the Slider'),
 									$a  => $u . "plugin-layout/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_adv', $f => "#sr_size_minheight"],
 								],
 								'max_height'           => [
-									$t  => $this->l("Max Height"),
+									$t  => $this->l('Max Height'),
 									$h  => "size.maxHeight",
 									$k  => ["max", "max height", "sizing", "layout"],
-									$d  => $this->l("Optional maximum height for the Slider"),
+									$d  => $this->l('Optional maximum height for the Slider'),
 									$a  => $u . "plugin-layout/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_adv', $f => "#sr_size_maxheight"],
 								],
 								'breakpoint_heights'   => [
-									$t  => $this->l("Keep Breakpoint Heights"),
+									$t  => $this->l('Keep Breakpoint Heights'),
 									$h  => "size.keepBPHeight",
 									$k  => ["breakpoints", "height", "heights", "breakpoint", "responsive"],
-									$d  => $this->l("If enabled the Slider's height will always equal the viewport's breakpoint height"),
+									$d  => $this->l('If enabled the Slider\'s height will always equal the viewport\'s breakpoint height'),
 									$a  => $u . "plugin-layout/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_adv', $f => "#sr_breakpoint_heights"],
 								],
 								'aspect_ratio'         => [
-									$t  => $this->l("Respect Aspect Ratio"),
+									$t  => $this->l('Respect Aspect Ratio'),
 									$h  => "size.respectAspectRatio",
 									$k  => ["ratio", "aspect", "aspect ratio", "lock"],
-									$d  => $this->l("Activates a responsive height for the Slider"),
+									$d  => $this->l('Activates a responsive height for the Slider'),
 									$a  => $u . "plugin-layout/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_adv', $f => "#sr_respectAR"],
 								],
 								'grid_equals_plugin'   => [
-									$t  => $this->l("Grid = Plugin"),
+									$t  => $this->l('Grid = Plugin'),
 									$h  => "size.layersAlignOnPlugin",
 									$k  => ["ratio", "aspect", "aspect ratio", "grid", "plugin"],
-									$d  => $this->l("The default align behavior for Layers.  If enabled, Layers will be aligned to the entire Plugin and if disabled Layers will align to the device breakpoint grid area."),
+									$d  => $this->l('The default align behavior for Layers.  If enabled, Layers will be aligned to the entire Plugin and if disabled Layers will align to the device breakpoint grid area.'),
 									$a  => $u . "plugin-layout/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_adv', $f => "#sr_layersAlignOnPlugin"],
 								],
 								'force_overflow'       => [
-									$t  => $this->l("Force Overflow"),
+									$t  => $this->l('Force Overflow'),
 									$h  => "size.forceOverflow",
 									$k  => ["ratio", "aspect", "aspect ratio", "overflow"],
-									$d  => $this->l("Allow for content to be visible outside the Slider's bounding box"),
+									$d  => $this->l('Allow for content to be visible outside the Slider\'s bounding box'),
 									$a  => $u . "plugin-layout/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_adv', $f => "#sr_forceOvVi"],
 								],
 								'fixed_top'            => [
-									$t  => $this->l("Fixed on Top"),
+									$t  => $this->l('Fixed on Top'),
 									$h  => "layout.position.fixedOnTop",
 									$k  => ["ratio", "aspect", "aspect ratio", "overflow"],
-									$d  => $this->l("The plugin will be positioned at the top of the screen at all times.  Useful for creating sticky menus."),
+									$d  => $this->l('The plugin will be positioned at the top of the screen at all times.  Useful for creating sticky menus.'),
 									$a  => $u . "plugin-layout/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_adv', $f => '*[data-r="layout.position.fixedOnTop"]'],
 								],
 								'theperspective'       => [
-									$t  => $this->l("Global 3D Perspective"),
+									$t  => $this->l('Global 3D Perspective'),
 									$h  => "general.perspectiveType",
 									$k  => ["perspective", "isometric", "3D", "3d"],
-									$d  => $this->l("Defines the Perspective by the 3D rendering of layers. This can be set globally (3D Uniset) for better and easier handling or individuel (3D Individual) on each single layer frames. We recommend to do this globally.  The Special option Isometric will set the perspective to 0 automatically"),
+									$d  => $this->l('Defines the Perspective by the 3D rendering of layers. This can be set globally (3D Uniset) for better and easier handling or individuel (3D Individual) on each single layer frames. We recommend to do this globally.  The Special option Isometric will set the perspective to 0 automatically'),
 									$a  => $u . "plugin-layout/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_adv', $f => '*[data-r="layout.general.perspectiveType"]'],
 								],
 								'theperspective_value' => [
-									$t  => $this->l("Global 3D Layer Perspective"),
+									$t  => $this->l('Global 3D Layer Perspective'),
 									$h  => "general.perspective",
 									$k  => ["perspective", "isometric", "3D", "3d", "layer perspective"],
-									$d  => $this->l("Defines the Perspective by the 3D rendering of layers globally."),
+									$d  => $this->l('Defines the Perspective by the 3D rendering of layers globally.'),
 									$a  => $u . "plugin-layout/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_adv', $f => '*[data-r="layout.general.perspective"]'],
 								],
@@ -409,36 +428,36 @@ class RevSliderHelp {
 							],
 							'slider_wrapper_position' => [
 								'align'         => [
-									$t  => $this->l("Slider Alignment"),
+									$t  => $this->l('Slider Alignment'),
 									$h  => "layout.position.align",
 									$k  => ["align", "slider align", "position", "slider position", "wrapper"],
-									$d  => $this->l("Align the Slider to the left, center or right inside its parent container"),
+									$d  => $this->l('Align the Slider to the left, center or right inside its parent container'),
 									$a  => $u . "plugin-general-settings/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slidergeneral_general_sr_position', $f => "*[name='slider_pos_in_wrapper']{first}"],
 								],
 								'margin_top'    => [
-									$t  => $this->l("Margin Top"),
+									$t  => $this->l('Margin Top'),
 									$h  => "layout.position.marginTop",
 									$k  => ["margin", "margin top", "top margin", "slider margin"],
-									$d  => $this->l("Apply a top margin to the Slider (px)"),
+									$d  => $this->l('Apply a top margin to the Slider (px)'),
 									$a  => $u . "plugin-general-settings/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slidergeneral_general_sr_position', $f => "#sr_pos_marg_top"],
 								],
 								'margin_bottom' => [
-									$t  => $this->l("Margin Bottom"),
+									$t  => $this->l('Margin Bottom'),
 									$h  => "layout.position.marginBottom",
 									$k  => ["margin", "margin bottom", "bottom margin", "slider margin"],
-									$d  => $this->l("Apply a bottom margin to the Slider (px)"),
+									$d  => $this->l('Apply a bottom margin to the Slider (px)'),
 									$a  => $u . "plugin-general-settings/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slidergeneral_general_sr_position', $f => "#sr_pos_marg_bottom"],
 								],
 							],
 							'full_screen_offset'      => [
 								'offset_container'   => [
-									$t  => $this->l("Offset Container"),
+									$t  => $this->l('Offset Container'),
 									$h  => "size.fullScreenOffsetContainer",
 									$k  => ["fullscreen", "offset", "offset container", "decrease"],
-									$d  => $this->l("Useful for allocating space for a page's menu or footer.  Accepts a jQuery selector such as '.menu' or 'footer'."),
+									$d  => $this->l('Useful for allocating space for a page\'s menu or footer.  Accepts a jQuery selector such as \'.menu\' or \'footer\'.'),
 									$a  => $u . "plugin-layout/",
 									$hl => [
 										$dp => [[$p => 'settings.layouttype', $v => 'fullscreen', $o => 'slider_layouttype_fullscreen']],
@@ -448,10 +467,10 @@ class RevSliderHelp {
 									],
 								],
 								'offset_value'       => [
-									$t  => $this->l("Offset px/%"),
+									$t  => $this->l('Offset px/%'),
 									$h  => "size.fullScreenOffset",
 									$k  => ["fullscreen", "offset", "offset container", "decrease"],
-									$d  => $this->l("Useful for allocating space for a page's menu or footer.  Enter a px or % value."),
+									$d  => $this->l('Useful for allocating space for a page\'s menu or footer.  Enter a px or % value.'),
 									$a  => $u . "plugin-layout/",
 									$hl => [
 										$dp => [[$p => 'settings.layouttype', $v => 'fullscreen', $o => 'slider_layouttype_fullscreen']],
@@ -461,10 +480,10 @@ class RevSliderHelp {
 									],
 								],
 								'no_force_fullwidth' => [
-									$t  => $this->l("Don't Force Fullwidth"),
+									$t  => $this->l('Don\'t Force Fullwidth'),
 									$h  => "size.disableForceFullWidth",
 									$k  => ["full width", "fullwidth", "force"],
-									$d  => $this->l("If enabled, the Plugin's width will remain the same as its immediate parent container"),
+									$d  => $this->l('If enabled, the Plugin\'s width will remain the same as its immediate parent container'),
 									$a  => $u . "plugin-layout/",
 									$hl => [
 										$dp => [[$p => 'settings.layouttype', $v => 'fullscreen', $o => 'slider_layouttype_fullscreen']],
@@ -478,104 +497,104 @@ class RevSliderHelp {
 						'responsive_breakpoints' => [
 							'desktop' => [
 								'enable' => [
-									$t  => $this->l("Desktop Viewport"),
+									$t  => $this->l('Desktop Viewport'),
 									$h  => "size.custom.d",
 									$k  => [],
-									$d  => $this->l("The default viewport.  This option will always be enabled"),
+									$d  => $this->l('The default viewport.  This option will always be enabled'),
 									$a  => $u . "plugin-layout/#breakpoints",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "*[data-helpkey='size.custom.d']"],
 								],
 								'width'  => [
-									$t  => $this->l("Desktop Width"),
+									$t  => $this->l('Desktop Width'),
 									$h  => "size.width.d",
 									$k  => ["respon", "responsive", "slider size", "slider width", "desktop", "desktop width", "viewport", "view", "grid", "grid width", "grid size"],
-									$d  => $this->l("The responsive grid width (in pixels) for the Desktop viewport"),
+									$d  => $this->l('The responsive grid width (in pixels) for the Desktop viewport'),
 									$a  => $u . "plugin-layout/#breakpoints",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_size_width_d"],
 								],
 								'height' => [
-									$t  => $this->l("Desktop Height"),
+									$t  => $this->l('Desktop Height'),
 									$h  => "size.height.d",
 									$k  => ["respon", "responsive", "slider size", "slider height", "desktop", "desktop height", "viewport", "view", "grid", "grid height", "grid size"],
-									$d  => $this->l("The responsive grid height (in pixels) for the Desktop viewport"),
+									$d  => $this->l('The responsive grid height (in pixels) for the Desktop viewport'),
 									$a  => $u . "plugin-layout/#breakpoints",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_size_height_d"],
 								],
 							],
 							'laptop'  => [
 								'enable' => [
-									$t  => $this->l("Laptop Viewport"),
+									$t  => $this->l('Laptop Viewport'),
 									$h  => "size.custom.n",
 									$k  => ["respon", "responsive", "slider size", "notebook", "laptop", "viewport", "view", "grid", "grid size"],
-									$d  => $this->l("Enable the Laptop responsive viewport"),
+									$d  => $this->l('Enable the Laptop responsive viewport'),
 									$a  => $u . "plugin-layout/#breakpoints",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_custom_n"],
 								],
 								'width'  => [
-									$t  => $this->l("Laptop Width"),
+									$t  => $this->l('Laptop Width'),
 									$h  => "size.width.n",
 									$k  => ["respon", "responsive", "slider size", "slider width", "notebook", "notebook width", "laptop", "laptop width", "viewport", "view", "grid", "grid width", "grid size"],
-									$d  => $this->l("The responsive grid width (in pixels) for the Laptop viewport"),
+									$d  => $this->l('The responsive grid width (in pixels) for the Laptop viewport'),
 									$a  => $u . "plugin-layout/#breakpoints",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_size_width_n"],
 								],
 								'height' => [
-									$t  => $this->l("Laptop Height"),
+									$t  => $this->l('Laptop Height'),
 									$h  => "size.height.n",
 									$k  => ["respon", "responsive", "slider size", "slider height", "notebook", "notebook height", "laptop", "laptop height", "viewport", "view", "grid", "grid height", "grid size"],
-									$d  => $this->l("The responsive grid height (in pixels) for the Laptop viewport"),
+									$d  => $this->l('The responsive grid height (in pixels) for the Laptop viewport'),
 									$a  => $u . "plugin-layout/#breakpoints",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_size_height_n"],
 								],
 							],
 							'tablet'  => [
 								'enable' => [
-									$t  => $this->l("Tablet Viewport"),
+									$t  => $this->l('Tablet Viewport'),
 									$h  => "size.custom.t",
 									$k  => ["respon", "responsive", "slider size", "tablet", "ipad", "viewport", "view", "grid", "grid size"],
-									$d  => $this->l("Enable the Tablet responsive viewport"),
+									$d  => $this->l('Enable the Tablet responsive viewport'),
 									$a  => $u . "plugin-layout/#breakpoints",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_custom_t"],
 								],
 								'width'  => [
-									$t  => $this->l("Tablet Width"),
+									$t  => $this->l('Tablet Width'),
 									$h  => "size.width.t",
 									$k  => ["respon", "responsive", "slider size", "slider width", "ipad", "tablet", "tablet width", "viewport", "view", "grid", "grid width", "grid size"],
-									$d  => $this->l("The responsive grid width (in pixels) for the Tablet viewport"),
+									$d  => $this->l('The responsive grid width (in pixels) for the Tablet viewport'),
 									$a  => $u . "plugin-layout/#breakpoints",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_size_width_t"],
 								],
 								'height' => [
-									$t  => $this->l("Tablet Height"),
+									$t  => $this->l('Tablet Height'),
 									$h  => "size.height.t",
 									$k  => ["respon", "responsive", "slider size", "slider height", "ipad", "tablet", "tablet height", "viewport", "view", "grid", "grid height", "grid size"],
-									$d  => $this->l("The responsive grid height (in pixels) for the Tablet viewport"),
+									$d  => $this->l('The responsive grid height (in pixels) for the Tablet viewport'),
 									$a  => $u . "plugin-layout/#breakpoints",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_size_height_t"],
 								],
 							],
 							'phone'   => [
 								'enable' => [
-									$t  => $this->l("Phone Viewport"),
+									$t  => $this->l('Phone Viewport'),
 									$h  => "size.custom.m",
 									$k  => ["respon", "responsive", "slider size", "phone", "iphone", "viewport", "view", "grid", "grid size"],
-									$d  => $this->l("Enable the Phone responsive viewport"),
+									$d  => $this->l('Enable the Phone responsive viewport'),
 									$a  => $u . "plugin-layout/#breakpoints",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_custom_m"],
 								],
 								'width'  => [
-									$t  => $this->l("Tablet Width"),
+									$t  => $this->l('Tablet Width'),
 									$h  => "size.width.m",
 									$k  => ["respon", "responsive", "slider size", "slider width", "iphone", "iphone width", "phone", "phone width", "smart", "smartphone", "smartphone width", "smart phone", "smart phone width", "viewport", "view", "grid", "grid width", "grid size"],
-									$d  => $this->l("The responsive grid width (in pixels) for the Tablet viewport"),
+									$d  => $this->l('The responsive grid width (in pixels) for the Tablet viewport'),
 									$a  => $u . "plugin-layout/#breakpoints",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_size_width_m"],
 								],
 								'height' => [
-									$t  => $this->l("Tablet Height"),
+									$t  => $this->l('Tablet Height'),
 									$h  => "size.height.m",
 									$k  => ["respon", "responsive", "slider size", "slider height", "iphone", "iphone height", "phone", "phone height", "smart", "smartphone", "smartphone height", "smart phone", "smart phone height", "viewport", "view", "grid", "grid height", "grid size"],
-									$d  => $this->l("The responsive grid height (in pixels) for the Tablet viewport"),
+									$d  => $this->l('The responsive grid height (in pixels) for the Tablet viewport'),
 									$a  => $u . "plugin-layout/#breakpoints",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_bpoints', $f => "#sr_size_height_m"],
 								],
@@ -585,18 +604,18 @@ class RevSliderHelp {
 							'image'    => [
 								'enable'   => [
 									$di => "slider_layout_bg_useimage",
-									$t  => $this->l("Use Image"),
+									$t  => $this->l('Use Image'),
 									$h  => "layout.bg.useImage",
 									$k  => ["image", "images", "background", "bg", "bg image", "background image", "image background"],
-									$d  => $this->l("Set a global background image for the Slider"),
+									$d  => $this->l('Set a global background image for the Slider'),
 									$a  => $u . "plugin-layout/#plugin-background",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_decmobg', $f => "#sr_usebgimage"],
 								],
 								'url'      => [
-									$t  => $this->l("Image URL"),
+									$t  => $this->l('Image URL'),
 									$h  => "layout.bg.image",
 									$k  => ["image", "images", "background", "bg", "bg image", "background image", "url", "image background"],
-									$d  => $this->l("Enter an image url or select/upload an image from the Media or Object Library to be used as the Slider's global background image"),
+									$d  => $this->l('Enter an image url or select/upload an image from the Media or Object Library to be used as the Slider\'s global background image'),
 									$a  => $u . "plugin-layout/#plugin-background",
 									$hl => [
 										$dp => [[$p => 'settings.layout.bg.useImage', $v => true, $o => 'slider_layout_bg_useimage']],
@@ -606,10 +625,10 @@ class RevSliderHelp {
 									],
 								],
 								'position' => [
-									$t  => $this->l("BG Position"),
+									$t  => $this->l('BG Position'),
 									$h  => "layout.bg.position",
 									$k  => ["image", "images", "background", "bg", "bg image", "background position"],
-									$d  => $this->l("The CSS background-position for the Slider's global background image"),
+									$d  => $this->l('The CSS background-position for the Slider\'s global background image'),
 									$a  => $u . "plugin-layout/#plugin-background",
 									$hl => [
 										$dp => [[$p => 'settings.layout.bg.useImage', $v => true, $o => 'slider_layout_bg_useimage']],
@@ -619,10 +638,10 @@ class RevSliderHelp {
 									],
 								],
 								'fit'      => [
-									$t  => $this->l("Image Fit"),
+									$t  => $this->l('Image Fit'),
 									$h  => "layout.bg.fit",
 									$k  => ["background size", "fit", "image fit", "cover", "contain"],
-									$d  => $this->l("The css background-size value for the Slider's global background image"),
+									$d  => $this->l('The css background-size value for the Slider\'s global background image'),
 									$a  => $u . "plugin-layout/#plugin-background",
 									$hl => [
 										$dp => [[$p => 'settings.layout.bg.useImage', $v => true, $o => 'slider_layout_bg_useimage']],
@@ -632,10 +651,10 @@ class RevSliderHelp {
 									],
 								],
 								'repeat'   => [
-									$t  => $this->l("BG Repeat"),
+									$t  => $this->l('BG Repeat'),
 									$h  => "layout.bg.repeat",
 									$k  => ["background repeat", "repeat"],
-									$d  => $this->l("The css background-repeat value for the Slider's global background image"),
+									$d  => $this->l('The css background-repeat value for the Slider\'s global background image'),
 									$a  => $u . "plugin-layout/#plugin-background",
 									$hl => [
 										$dp => [[$p => 'settings.layout.bg.useImage', $v => true, $o => 'slider_layout_bg_useimage']],
@@ -646,36 +665,36 @@ class RevSliderHelp {
 								],
 							],
 							'bg_color' => [
-								$t  => $this->l("Plugin BG Color"),
+								$t  => $this->l('Plugin BG Color'),
 								$h  => "layout.bg.color",
 								$k  => ["bg", "background", "background color", "global background", "global background color", "slider background", "slider bg"],
-								$d  => $this->l("Set a global background color for the Slider"),
+								$d  => $this->l('Set a global background color for the Slider'),
 								$a  => $u . "plugin-layout/#plugin-background",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_decmobg', $f => "#sliderbgcolor"],
 							],
 						],
 						'border_overlay_shadow'  => [
 							'overlay' => [
-								$t  => $this->l("Overlay"),
+								$t  => $this->l('Overlay'),
 								$h  => "layout.bg.dottedOverlay",
 								$k  => ["overlay", "dotted", "dotted overlay"],
-								$d  => $this->l("Add an mesh-style overlay to the Slider"),
+								$d  => $this->l('Add an mesh-style overlay to the Slider'),
 								$a  => $u . "plugin-layout/#border-overlay-shadow",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_decboovsh', $f => "#sr_overlay"],
 							],
 							'shadow'  => [
-								$t  => $this->l("Shadow"),
+								$t  => $this->l('Shadow'),
 								$h  => "layout.bg.shadow",
 								$k  => ["shadow", "box-shadow", "slider shadow"],
-								$d  => $this->l("Choose an optional shadow to add to the Slider"),
+								$d  => $this->l('Choose an optional shadow to add to the Slider'),
 								$a  => $u . "plugin-layout/#border-overlay-shadow",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_decboovsh', $f => "#sr_shadow"],
 							],
 							'border'  => [
-								$t  => $this->l("Gap (Border)"),
+								$t  => $this->l('Gap (Border)'),
 								$h  => "layout.bg.padding",
 								$k  => ["border", "padding"],
-								$d  => $this->l("Add extra spacing around the Slider"),
+								$d  => $this->l('Add extra spacing around the Slider'),
 								$a  => $u . "plugin-layout/#border-overlay-shadow",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_2", $st => '#form_slider_layout_decboovsh', $f => "#sr_layout_padding"],
 							],
@@ -684,82 +703,82 @@ class RevSliderHelp {
 					'gst_sl_4'  => [
 						'source'              => [
 							'custom'      => [
-								$t  => $this->l("Custom Content"),
+								$t  => $this->l('Custom Content'),
 								$h  => "sourcetype.gallery",
 								$k  => ["gallery", "source", "custom"],
-								$d  => $this->l("Add your own custom text/images/video to the Slider"),
+								$d  => $this->l('Add your own custom text/images/video to the Slider'),
 								$a  => $u . "plugin-content/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_4", $st => '#form_slider_content_content', $f => "*[name='slider_sourcetype'][value='gallery']"],
 							],
 							'post'        => [
 								$di => "slider_sourcetype_post",
-								$t  => $this->l("Post Based"),
+								$t  => $this->l('Post Based'),
 								$h  => "sourcetype.post",
 								$k  => ["post", "post based", "source"],
-								$d  => $this->l("Populate the Slider with your WordPress post content"),
+								$d  => $this->l('Populate the Slider with your WordPress post content'),
 								$a  => $u . "post-based-sliders/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_4", $st => '#form_slider_content_content', $f => "*[name='slider_sourcetype'][value='post']"],
 							],
 							'woocommerce' => [
 								$di => "slider_sourcetype_woo",
-								$t  => $this->l("WooCommerce"),
+								$t  => $this->l('WooCommerce'),
 								$h  => "sourcetype.woo",
 								$k  => ["post", "woo", "woocommerce", "woo commerce", "source", "product", "products", "woocommerce products"],
-								$d  => $this->l("Populate the Slider with your WooCommerce Products"),
+								$d  => $this->l('Populate the Slider with your WooCommerce Products'),
 								$a  => $u . "plugin-content/#woocommerce",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_4", $st => '#form_slider_content_content', $f => "*[name='slider_sourcetype'][value='woo']"],
 							],
 							'flickr'      => [
 								$di => "slider_sourcetype_flickr",
-								$t  => $this->l("Flickr"),
+								$t  => $this->l('Flickr'),
 								$h  => "sourcetype.flickr",
 								$k  => ["source", "flickr", "gallery", "stream"],
-								$d  => $this->l("Populate the Slider with your Flickr Content"),
+								$d  => $this->l('Populate the Slider with your Flickr Content'),
 								$a  => $u . "plugin-content/#flickr",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_4", $st => '#form_slider_content_content', $f => "*[name='slider_sourcetype'][value='flickr']"],
 							],
 							'instagram'   => [
 								$di => "slider_sourcetype_instagram",
-								$t  => $this->l("Instagram"),
+								$t  => $this->l('Instagram'),
 								$h  => "sourcetype.instagram",
 								$k  => ["source", "instagram", "gallery", "stream"],
-								$d  => $this->l("Populate the Slider with Instagram Images"),
+								$d  => $this->l('Populate the Slider with Instagram Images'),
 								$a  => $u . "plugin-content/#instagram",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_4", $st => '#form_slider_content_content', $f => "*[name='slider_sourcetype'][value='instagram']"],
 							],
 							'twitter'     => [
 								$di => "slider_sourcetype_twitter",
-								$t  => $this->l("Twitter"),
+								$t  => $this->l('Twitter'),
 								$h  => "sourcetype.twitter",
 								$k  => ["twitter", "source", "tweet", "stream"],
-								$d  => $this->l("Populate the Slider from a Twitter account"),
+								$d  => $this->l('Populate the Slider from a Twitter account'),
 								$a  => $u . "plugin-content/#twitter",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_4", $st => '#form_slider_content_content', $f => "*[name='slider_sourcetype'][value='twitter']"],
 							],
 							'facebook'    => [
 								$di => "slider_sourcetype_facebook",
-								$t  => $this->l("Facebook"),
+								$t  => $this->l('Facebook'),
 								$h  => "sourcetype.facebook",
 								$k  => ["source", "facebook", "face", "stream"],
-								$d  => $this->l("Populate the Slider from a Facebook album or timeline"),
+								$d  => $this->l('Populate the Slider from a Facebook album or timeline'),
 								$a  => $u . "plugin-content/#facebook",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_4", $st => '#form_slider_content_content', $f => "*[name='slider_sourcetype'][value='facebook']"],
 							],
 							'youtube'     => [
 								$di => "slider_sourcetype_youtube",
-								$t  => $this->l("YouTube"),
+								$t  => $this->l('YouTube'),
 								$h  => "sourcetype.youtube",
 								$k  => ["video", "youtube", "you tube", "source", "stream"],
-								$d  => $this->l("Populate the Slider with a YouTube Channel or Playlist"),
+								$d  => $this->l('Populate the Slider with a YouTube Channel or Playlist'),
 								$a  => $u . "plugin-content/#youtube",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_4", $st => '#form_slider_content_content', $f => "*[name='slider_sourcetype'][value='youtube']"],
 							],
 							'vimeo'       => [
 								$di => "slider_sourcetype_vimeo",
-								$t  => $this->l("Vimeo"),
+								$t  => $this->l('Vimeo'),
 								$h  => "sourcetype.vimeo",
 								$k  => ["video", "vimeo", "stream"],
-								$d  => $this->l("Populate the Slider with a Vimeo account's content"),
+								$d  => $this->l('Populate the Slider with a Vimeo account\'s content'),
 								$a  => $u . "plugin-content/#vimeo",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_4", $st => '#form_slider_content_content', $f => "*[name='slider_sourcetype'][value='vimeo']"],
 							],
@@ -767,10 +786,10 @@ class RevSliderHelp {
 						'post_options'        => [
 							'type'                      => [
 								$di => "settings_source_post_subtype",
-								$t  => $this->l("Post Options Type"),
+								$t  => $this->l('Post Options Type'),
 								$h  => "source.post.subType",
 								$k  => ["post", "posts", "post-based", "post type", "specific post", "current post"],
-								$d  => $this->l("Choose 'Post' to pull in a range of posts, 'Specific Post' to pull in posts by ID, or 'Current Post' to populate the Slider with the current post's content"),
+								$d  => $this->l('Choose \'Post\' to pull in a range of posts, \'Specific Post\' to pull in posts by ID, or \'Current Post\' to populate the Slider with the current post\'s content'),
 								$a  => $u . "post-based-sliders/",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'post', $o => 'slider_sourcetype_post']],
@@ -780,10 +799,10 @@ class RevSliderHelp {
 								],
 							],
 							'fetch_by'                  => [
-								$t  => $this->l("Fetch By"),
+								$t  => $this->l('Fetch By'),
 								$h  => "source.post.fetchType",
 								$k  => ["post", "posts", "categories", "tags", "related", "popular", "recent"],
-								$d  => $this->l("Choose which type of posts should be pulled into the Slider"),
+								$d  => $this->l('Choose which type of posts should be pulled into the Slider'),
 								$a  => $u . "post-based-sliders/",
 								$hl => [
 									$dp => [
@@ -796,10 +815,10 @@ class RevSliderHelp {
 								],
 							],
 							'post_types'                => [
-								$t  => $this->l("Post Types"),
+								$t  => $this->l('Post Types'),
 								$h  => "source.post.types",
 								$k  => ["woo", "post", "posts", "post types", "custom post type", "custom post types"],
-								$d  => $this->l("Choose which Post Types to include in the Slider"),
+								$d  => $this->l('Choose which Post Types to include in the Slider'),
 								$a  => $u . "post-based-sliders/",
 								$hl => [
 									$dp => [
@@ -812,10 +831,10 @@ class RevSliderHelp {
 								],
 							],
 							'categories'                => [
-								$t  => $this->l("Post Categories"),
+								$t  => $this->l('Post Categories'),
 								$h  => "source.post.category",
 								$k  => ["woo", "post", "posts", "categories", "post categories", "tags"],
-								$d  => $this->l("Choose which Post Categories to include in the Slider"),
+								$d  => $this->l('Choose which Post Categories to include in the Slider'),
 								$a  => $u . "post-based-sliders/",
 								$hl => [
 									$dp => [
@@ -828,10 +847,10 @@ class RevSliderHelp {
 								],
 							],
 							'specific_posts'            => [
-								$t  => $this->l("Specific Posts"),
+								$t  => $this->l('Specific Posts'),
 								$h  => "source.post.list",
 								$k  => ["post", "posts", "specific posts", "specific", "post id", "post ids"],
-								$d  => $this->l("Enter a list of Post ID's to include in the Slider, or select 'Popular/Recent' to populate the list automatically"),
+								$d  => $this->l('Enter a list of Post ID\'s to include in the Slider, or select \'Popular/Recent\' to populate the list automatically'),
 								$a  => $u . "post-based-sliders/",
 								$hl => [
 									$dp => [
@@ -845,10 +864,10 @@ class RevSliderHelp {
 							],
 							'post_sorting_and_settings' => [
 								'sort_by'        => [
-									$t  => $this->l("Sort Posts By"),
+									$t  => $this->l('Sort Posts By'),
 									$h  => "source.post.sortBy",
 									$k  => ["post", "posts", "sort", "sorting", "post sorting", ""],
-									$d  => $this->l("Choose the order in which the posts should appear in the Slider"),
+									$d  => $this->l('Choose the order in which the posts should appear in the Slider'),
 									$a  => $u . "plugin-content/#post-based",
 									$hl => [
 										$dp => [
@@ -861,10 +880,10 @@ class RevSliderHelp {
 									],
 								],
 								'sort_direction' => [
-									$t  => $this->l("Sort Direction"),
+									$t  => $this->l('Sort Direction'),
 									$h  => "source.post.sortDirection",
 									$k  => ["post", "posts", "sort", "sorting", "post sorting", "sort direction"],
-									$d  => $this->l("Sort the posts in ascending or descending order"),
+									$d  => $this->l('Sort the posts in ascending or descending order'),
 									$a  => $u . "plugin-content/#post-based",
 									$hl => [
 										$dp => [
@@ -877,10 +896,10 @@ class RevSliderHelp {
 									],
 								],
 								'max_posts'      => [
-									$t  => $this->l("Max Posts"),
+									$t  => $this->l('Max Posts'),
 									$h  => "source.post.maxPosts",
 									$k  => ["post", "posts", "max posts", "max number", "max"],
-									$d  => $this->l("Choose the maximum number of Posts that should be included in the Slider"),
+									$d  => $this->l('Choose the maximum number of Posts that should be included in the Slider'),
 									$a  => $u . "plugin-content/#post-based",
 									$hl => [
 										$dp => [
@@ -893,10 +912,10 @@ class RevSliderHelp {
 									],
 								],
 								'excerpt_limit'  => [
-									$t  => $this->l("Limit Excerpt"),
+									$t  => $this->l('Limit Excerpt'),
 									$h  => "source.post.excerptLimit",
 									$k  => ["post", "posts", "excerpt", "post excerpt", "limit excerpt"],
-									$d  => $this->l("Se a character limit  if the post's excerpt is included in the Slide"),
+									$d  => $this->l('Se a character limit  if the post\'s excerpt is included in the Slide'),
 									$a  => $u . "plugin-content/#post-based",
 									$hl => [
 										$dp => [
@@ -912,10 +931,10 @@ class RevSliderHelp {
 						],
 						'woocommerce_filters' => [
 							'regular_price_from' => [
-								$t  => $this->l("Reg. Price From"),
+								$t  => $this->l('Reg. Price From'),
 								$h  => "source.woo.regPriceFrom",
 								$k  => ["woo", "woocommerce", "woo commerce", "filters", "price", "regular price", "product", "products"],
-								$d  => $this->l("Pull in products with this minimum price"),
+								$d  => $this->l('Pull in products with this minimum price'),
 								$a  => $u . "plugin-content/#woocommerce",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'woo', $o => 'slider_sourcetype_woo']],
@@ -925,10 +944,10 @@ class RevSliderHelp {
 								],
 							],
 							'regular_price_to'   => [
-								$t  => $this->l("Reg. Price To"),
+								$t  => $this->l('Reg. Price To'),
 								$h  => "source.woo.regPriceTo",
 								$k  => ["woo", "woocommerce", "woo commerce", "filters", "price", "regular price", "product", "products"],
-								$d  => $this->l("Pull in products with a regular price equal to or below this number"),
+								$d  => $this->l('Pull in products with a regular price equal to or below this number'),
 								$a  => $u . "plugin-content/#woocommerce",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'woo', $o => 'slider_sourcetype_woo']],
@@ -938,10 +957,10 @@ class RevSliderHelp {
 								],
 							],
 							'sale_price_from'    => [
-								$t  => $this->l("Sale Price From"),
+								$t  => $this->l('Sale Price From'),
 								$h  => "source.woo.salePriceFrom",
 								$k  => ["woo", "woocommerce", "woo commerce", "filters", "sale", "price", "sale price", "product", "products"],
-								$d  => $this->l("Pull in products with this minimum sale price"),
+								$d  => $this->l('Pull in products with this minimum sale price'),
 								$a  => $u . "plugin-content/#woocommerce",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'woo', $o => 'slider_sourcetype_woo']],
@@ -951,10 +970,10 @@ class RevSliderHelp {
 								],
 							],
 							'sale_price_to'      => [
-								$t  => $this->l("Sale Price To"),
+								$t  => $this->l('Sale Price To'),
 								$h  => "source.woo.salePriceTo",
 								$k  => ["woo", "woocommerce", "woo commerce", "filters", "sale", "price", "sale price", "product", "products"],
-								$d  => $this->l("Pull in products with a sale price equal to or below this number"),
+								$d  => $this->l('Pull in products with a sale price equal to or below this number'),
 								$a  => $u . "plugin-content/#woocommerce",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'woo', $o => 'slider_sourcetype_woo']],
@@ -964,10 +983,10 @@ class RevSliderHelp {
 								],
 							],
 							'in_stock_only'      => [
-								$t  => $this->l("In Stock Only"),
+								$t  => $this->l('In Stock Only'),
 								$h  => "source.woo.inStockOnly",
 								$k  => ["woo", "woocommerce", "woo commerce", "in stock", "in stock only"],
-								$d  => $this->l("Only pull in products that are marked as 'In Stock'"),
+								$d  => $this->l('Only pull in products that are marked as \'In Stock\''),
 								$a  => $u . "plugin-content/#woocommerce",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'woo', $o => 'slider_sourcetype_woo']],
@@ -977,10 +996,10 @@ class RevSliderHelp {
 								],
 							],
 							'featured_only'      => [
-								$t  => $this->l("Featured Only"),
+								$t  => $this->l('Featured Only'),
 								$h  => "source.woo.featuredOnly",
 								$k  => ["woo", "woocommerce", "woo commerce", "featured", "featured products"],
-								$d  => $this->l("Only pull in products that are marked as 'Featured'"),
+								$d  => $this->l('Only pull in products that are marked as \'Featured\''),
 								$a  => $u . "plugin-content/#woocommerce",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'woo', $o => 'slider_sourcetype_woo']],
@@ -992,10 +1011,10 @@ class RevSliderHelp {
 						],
 						'flickr_settings'     => [
 							'num_slides'  => [
-								$t  => $this->l("Total Slides"),
+								$t  => $this->l('Total Slides'),
 								$h  => "source.flickr.count",
 								$k  => ["flickr", "gallery"],
-								$d  => $this->l("Choose how many Slides should be created from the Flickr source"),
+								$d  => $this->l('Choose how many Slides should be created from the Flickr source'),
 								$a  => $u . "plugin-content/#flickr",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'flickr', $o => 'slider_sourcetype_flickr']],
@@ -1005,10 +1024,10 @@ class RevSliderHelp {
 								],
 							],
 							'cache'       => [
-								$t  => $this->l("API Cache"),
+								$t  => $this->l('API Cache'),
 								$h  => "source.flickr.transient",
 								$k  => ["flickr", "gallery", "cache"],
-								$d  => $this->l("Cache the Flickr API results for faster loading"),
+								$d  => $this->l('Cache the Flickr API results for faster loading'),
 								$a  => $u . "plugin-content/#flickr",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'flickr', $o => 'slider_sourcetype_flickr']],
@@ -1018,10 +1037,10 @@ class RevSliderHelp {
 								],
 							],
 							'api_key'     => [
-								$t  => $this->l("API Key"),
+								$t  => $this->l('API Key'),
 								$h  => "source.flickr.apiKey",
 								$k  => ["flickr", "gallery", "api", "api key"],
-								$d  => $this->l("Enter your Flickr API key.  <a href='http://weblizar.com/get-flickr-api-key/' target='_blank'>Learn more</a>"),
+								$d  => $this->l('Enter your Flickr API key.  <a href=\'http://weblizar.com/get-flickr-api-key/\' target=\'_blank\'>Learn more</a>'),
 								$a  => $u . "plugin-content/#flickr",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'flickr', $o => 'slider_sourcetype_flickr']],
@@ -1032,10 +1051,10 @@ class RevSliderHelp {
 							],
 							'source'      => [
 								$di => 'slilder_source_flickr_type',
-								$t  => $this->l("API Source"),
+								$t  => $this->l('API Source'),
 								$h  => "source.flickr.type",
 								$k  => ["source", "flickr", "gallery", "api", "api source", "flickr source"],
-								$d  => $this->l("Choose which type of Flickr content should be pulled into the Slider"),
+								$d  => $this->l('Choose which type of Flickr content should be pulled into the Slider'),
 								$a  => $u . "plugin-content/#flickr",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'flickr', $o => 'slider_sourcetype_flickr']],
@@ -1045,10 +1064,10 @@ class RevSliderHelp {
 								],
 							],
 							'user_url'    => [
-								$t  => $this->l("User URL"),
+								$t  => $this->l('User URL'),
 								$h  => "source.flickr.userURL",
 								$k  => ["flickr", "gallery", "api", "user url"],
-								$d  => $this->l("Enter your Flickr user URL for the API query"),
+								$d  => $this->l('Enter your Flickr user URL for the API query'),
 								$a  => $u . "plugin-content/#flickr",
 								$hl => [
 									$dp => [
@@ -1061,10 +1080,10 @@ class RevSliderHelp {
 								],
 							],
 							'photoset'    => [
-								$t  => $this->l("Photoset"),
+								$t  => $this->l('Photoset'),
 								$h  => "source.flickr.photoSet",
 								$k  => ["flickr", "photoset", "flickr photoset", "flickr photos"],
-								$d  => $this->l("Select the photo album you wish to include from the Flickr account"),
+								$d  => $this->l('Select the photo album you wish to include from the Flickr account'),
 								$a  => $u . "plugin-content/#flickr",
 								$hl => [
 									$dp => [
@@ -1077,10 +1096,10 @@ class RevSliderHelp {
 								],
 							],
 							'gallery_url' => [
-								$t  => $this->l("Gallery URL"),
+								$t  => $this->l('Gallery URL'),
 								$h  => "source.flickr.galleryURL",
 								$k  => ["flickr", "gallery", "gallery url", "flickr gallery url"],
-								$d  => $this->l("Enter the absolute URL of the flickr gallery you wish to include"),
+								$d  => $this->l('Enter the absolute URL of the flickr gallery you wish to include'),
 								$a  => $u . "plugin-content/#flickr",
 								$hl => [
 									$dp => [
@@ -1093,10 +1112,10 @@ class RevSliderHelp {
 								],
 							],
 							'group_url'   => [
-								$t  => $this->l("Group URL"),
+								$t  => $this->l('Group URL'),
 								$h  => "source.flickr.groupURL",
 								$k  => ["flickr", "flickr group", "group", "group url", "flickr group url"],
-								$d  => $this->l("Enter the absolute URL of the flickr group irl you wish to include"),
+								$d  => $this->l('Enter the absolute URL of the flickr group irl you wish to include'),
 								$a  => $u . "plugin-content/#flickr",
 								$hl => [
 									$dp => [
@@ -1111,10 +1130,10 @@ class RevSliderHelp {
 						],
 						'instagram_settings'  => [
 							'num_slides' => [
-								$t  => $this->l("Total Slides"),
+								$t  => $this->l('Total Slides'),
 								$h  => "source.instagram.count",
 								$k  => ["instagram", "gallery"],
-								$d  => $this->l("Choose how many Slides should be created from the Instagram source"),
+								$d  => $this->l('Choose how many Slides should be created from the Instagram source'),
 								$a  => $u . "plugin-content/#instagram",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'instagram', $o => 'slider_sourcetype_instagram']],
@@ -1124,10 +1143,10 @@ class RevSliderHelp {
 								],
 							],
 							'cache'      => [
-								$t  => $this->l("API Cache"),
+								$t  => $this->l('API Cache'),
 								$h  => "source.instagram.transient",
 								$k  => ["instagram", "gallery", "cache"],
-								$d  => $this->l("Cache the Instagram API results for faster loading"),
+								$d  => $this->l('Cache the Instagram API results for faster loading'),
 								$a  => $u . "plugin-content/#instagram",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'instagram', $o => 'slider_sourcetype_instagram']],
@@ -1137,10 +1156,10 @@ class RevSliderHelp {
 								],
 							],
 							'source'     => [
-								$t  => $this->l("API Source"),
+								$t  => $this->l('API Source'),
 								$h  => "source.instagram.type",
 								$k  => ["source", "instagram", "gallery", "api", "api source", "instagram source"],
-								$d  => $this->l("Choose which type of Instagram content should be pulled into the Slider"),
+								$d  => $this->l('Choose which type of Instagram content should be pulled into the Slider'),
 								$a  => $u . "plugin-content/#instagram",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'instagram', $o => 'slider_sourcetype_instagram']],
@@ -1150,10 +1169,10 @@ class RevSliderHelp {
 								],
 							],
 							'user_name'  => [
-								$t  => $this->l("User Name"),
+								$t  => $this->l('User Name'),
 								$h  => "source.instagram.userId",
 								$k  => ["instagram", "gallery", "api", "username", "user name"],
-								$d  => $this->l("Enter your Instagram User Name for the API query"),
+								$d  => $this->l('Enter your Instagram User Name for the API query'),
 								$a  => $u . "plugin-content/#instagram",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'instagram', $o => 'slider_sourcetype_instagram']],
@@ -1165,10 +1184,10 @@ class RevSliderHelp {
 						],
 						'twitter_settings'    => [
 							'num_slides'      => [
-								$t  => $this->l("Total Slides"),
+								$t  => $this->l('Total Slides'),
 								$h  => "source.twitter.count",
 								$k  => ["twitter"],
-								$d  => $this->l("Choose how many Slides should be created from the Twitter source"),
+								$d  => $this->l('Choose how many Slides should be created from the Twitter source'),
 								$a  => $u . "plugin-content/#twitter",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'twitter', $o => 'slider_sourcetype_twitter']],
@@ -1178,10 +1197,10 @@ class RevSliderHelp {
 								],
 							],
 							'cache'           => [
-								$t  => $this->l("API Cache"),
+								$t  => $this->l('API Cache'),
 								$h  => "source.twitter.transient",
 								$k  => ["twitter", "gallery", "cache"],
-								$d  => $this->l("Cache the Twitter API results for faster loading"),
+								$d  => $this->l('Cache the Twitter API results for faster loading'),
 								$a  => $u . "plugin-content/#twitter",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'twitter', $o => 'slider_sourcetype_twitter']],
@@ -1191,10 +1210,10 @@ class RevSliderHelp {
 								],
 							],
 							'user_name'       => [
-								$t  => $this->l("User Handle"),
+								$t  => $this->l('User Handle'),
 								$h  => "source.twitter.userId",
 								$k  => ["twitter", "api", "userid", "user id"],
-								$d  => $this->l("Enter your Twitter User Name/Handle for the API query"),
+								$d  => $this->l('Enter your Twitter User Name/Handle for the API query'),
 								$a  => $u . "plugin-content/#twitter",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'twitter', $o => 'slider_sourcetype_twitter']],
@@ -1204,10 +1223,10 @@ class RevSliderHelp {
 								],
 							],
 							'text_tweets'     => [
-								$t  => $this->l("Text Tweets"),
+								$t  => $this->l('Text Tweets'),
 								$h  => "source.twitter.imageOnly",
 								$k  => ["twitter", "tweets", "text tweets"],
-								$d  => $this->l("Include text-only Tweets (tweets that do not contain an image)"),
+								$d  => $this->l('Include text-only Tweets (tweets that do not contain an image)'),
 								$a  => $u . "plugin-content/#twitter",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'twitter', $o => 'slider_sourcetype_twitter']],
@@ -1217,10 +1236,10 @@ class RevSliderHelp {
 								],
 							],
 							'retweets'        => [
-								$t  => $this->l("Re-Tweets"),
+								$t  => $this->l('Re-Tweets'),
 								$h  => "source.twitter.includeRetweets",
 								$k  => ["twitter", "tweets", "retweets", "re-tweets"],
-								$d  => $this->l("Include both tweets and re-tweets in the Slider"),
+								$d  => $this->l('Include both tweets and re-tweets in the Slider'),
 								$a  => $u . "plugin-content/#twitter",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'twitter', $o => 'slider_sourcetype_twitter']],
@@ -1230,10 +1249,10 @@ class RevSliderHelp {
 								],
 							],
 							'replies'         => [
-								$t  => $this->l("Replies"),
+								$t  => $this->l('Replies'),
 								$h  => "source.twitter.excludeReplies",
 								$k  => ["twitter", "tweets", "replies"],
-								$d  => $this->l("Include both tweets and replies in the Slider"),
+								$d  => $this->l('Include both tweets and replies in the Slider'),
 								$a  => $u . "plugin-content/#twitter",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'twitter', $o => 'slider_sourcetype_twitter']],
@@ -1243,10 +1262,10 @@ class RevSliderHelp {
 								],
 							],
 							'consumer_key'    => [
-								$t  => $this->l("Consumer Key"),
+								$t  => $this->l('Consumer Key'),
 								$h  => "source.twitter.consumerKey",
 								$k  => ["twitter", "api key", "consumer", "consumer key"],
-								$d  => $this->l("Your <a href='https://dev.twitter.com/apps' target='_blank'>Twitter App's</a> Consumer Key"),
+								$d  => $this->l('Your <a href=\'https://dev.twitter.com/apps\' target=\'_blank\'>Twitter App\'s</a> Consumer Key'),
 								$a  => $u . "plugin-content/#twitter",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'twitter', $o => 'slider_sourcetype_twitter']],
@@ -1256,10 +1275,10 @@ class RevSliderHelp {
 								],
 							],
 							'consumer_secret' => [
-								$t  => $this->l("Consumer Secret"),
+								$t  => $this->l('Consumer Secret'),
 								$h  => "source.twitter.consumerSecret",
 								$k  => ["twitter", "api key", "consumer", "consumer secret", "secret"],
-								$d  => $this->l("Your <a href='https://dev.twitter.com/apps' target='_blank'>Twitter App's</a> Consumer Secret"),
+								$d  => $this->l('Your <a href=\'https://dev.twitter.com/apps\' target=\'_blank\'>Twitter App\'s</a> Consumer Secret'),
 								$a  => $u . "plugin-content/#twitter",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'twitter', $o => 'slider_sourcetype_twitter']],
@@ -1269,10 +1288,10 @@ class RevSliderHelp {
 								],
 							],
 							'access_token'    => [
-								$t  => $this->l("Access Token"),
+								$t  => $this->l('Access Token'),
 								$h  => "source.twitter.accessToken",
 								$k  => ["twitter", "api key", "access token", "token"],
-								$d  => $this->l("Your <a href='https://dev.twitter.com/apps' target='_blank'>Twitter App's</a> Access Token"),
+								$d  => $this->l('Your <a href=\'https://dev.twitter.com/apps\' target=\'_blank\'>Twitter App\'s</a> Access Token'),
 								$a  => $u . "plugin-content/#twitter",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'twitter', $o => 'slider_sourcetype_twitter']],
@@ -1282,10 +1301,10 @@ class RevSliderHelp {
 								],
 							],
 							'access_secret'   => [
-								$t  => $this->l("Access Secret"),
+								$t  => $this->l('Access Secret'),
 								$h  => "source.twitter.accessSecret",
 								$k  => ["twitter", "api key", "access secret. secret"],
-								$d  => $this->l("Your <a href='https://dev.twitter.com/apps' target='_blank'>Twitter App's</a> Access Secret"),
+								$d  => $this->l('Your <a href=\'https://dev.twitter.com/apps\' target=\'_blank\'>Twitter App\'s</a> Access Secret'),
 								$a  => $u . "plugin-content/#twitter",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'twitter', $o => 'slider_sourcetype_twitter']],
@@ -1297,10 +1316,10 @@ class RevSliderHelp {
 						],
 						'facebook_settings'   => [
 							'num_slides' => [
-								$t  => $this->l("Total Slides"),
+								$t  => $this->l('Total Slides'),
 								$h  => "source.facebook.count",
 								$k  => ["facebook"],
-								$d  => $this->l("Choose how many Slides should be created from the Facebook source"),
+								$d  => $this->l('Choose how many Slides should be created from the Facebook source'),
 								$a  => $u . "plugin-content/#facebook",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'facebook', $o => 'slider_sourcetype_facebook']],
@@ -1310,10 +1329,10 @@ class RevSliderHelp {
 								],
 							],
 							'cache'      => [
-								$t  => $this->l("API Cache"),
+								$t  => $this->l('API Cache'),
 								$h  => "source.facebook.transient",
 								$k  => ["facebook", "gallery", "cache"],
-								$d  => $this->l("Cache the Facebook API results for faster loading"),
+								$d  => $this->l('Cache the Facebook API results for faster loading'),
 								$a  => $u . "plugin-content/#facebook",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'facebook', $o => 'slider_sourcetype_facebook']],
@@ -1323,10 +1342,10 @@ class RevSliderHelp {
 								],
 							],
 							'page_url'   => [
-								$t  => $this->l("Page URL"),
+								$t  => $this->l('Page URL'),
 								$h  => "source.facebook.pageURL",
 								$k  => ["facebook", "page url"],
-								$d  => $this->l("Enter your Facebook Page URL for the API query"),
+								$d  => $this->l('Enter your Facebook Page URL for the API query'),
 								$a  => $u . "plugin-content/#facebook",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'facebook', $o => 'slider_sourcetype_facebook']],
@@ -1337,10 +1356,10 @@ class RevSliderHelp {
 							],
 							'source'     => [
 								$di => "slider_source_facebook_typesource",
-								$t  => $this->l("Source"),
+								$t  => $this->l('Source'),
 								$h  => "source.facebook.typeSource",
 								$k  => ["source", "facebook", "facebook source"],
-								$d  => $this->l("Choose which type of Facebook content should be pulled into the Slider"),
+								$d  => $this->l('Choose which type of Facebook content should be pulled into the Slider'),
 								$a  => $u . "plugin-content/#facebook",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'facebook', $o => 'slider_sourcetype_facebook']],
@@ -1350,10 +1369,10 @@ class RevSliderHelp {
 								],
 							],
 							'album'      => [
-								$t  => $this->l("Album"),
+								$t  => $this->l('Album'),
 								$h  => "source.facebook.album",
 								$k  => ["source", "facebook", "facebook album"],
-								$d  => $this->l("Choose the Facebook Album to be pulled into the Slider"),
+								$d  => $this->l('Choose the Facebook Album to be pulled into the Slider'),
 								$a  => $u . "plugin-content/#facebook",
 								$hl => [
 									$dp => [
@@ -1366,10 +1385,10 @@ class RevSliderHelp {
 								],
 							],
 							'app_id'     => [
-								$t  => $this->l("Access Token"),
+								$t  => $this->l('Access Token'),
 								$h  => "source.facebook.appId",
 								$k  => ["facebook", "app id"],
-								$d  => $this->l("<a href='https://www.themepunch.com/faq/facebook-stream-setup-instructions-access-token/' target='_blank'>Generate</a> a Facebook Access Token with the needed permissions"),
+								$d  => $this->l('<a href=\'https://www.themepunch.com/faq/facebook-stream-setup-instructions-access-token/\' target=\'_blank\'>Generate</a> a Facebook Access Token with the needed permissions'),
 								$a  => $u . "plugin-content/#facebook",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'facebook', $o => 'slider_sourcetype_facebook']],
@@ -1379,10 +1398,10 @@ class RevSliderHelp {
 								],
 							],
 							'app_secret' => [
-								$t  => $this->l("App Secret"),
+								$t  => $this->l('App Secret'),
 								$h  => "source.facebook.appSecret",
 								$k  => ["facebook", "api secret", "app secret. secret"],
-								$d  => $this->l("Your <a href='https://developers.facebook.com/docs/apps/register' target='_blank'>Facebook App's</a> App Secret"),
+								$d  => $this->l('Your <a href=\'https://developers.facebook.com/docs/apps/register\' target=\'_blank\'>Facebook App\'s</a> App Secret'),
 								$a  => $u . "plugin-content/#facebook",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'facebook', $o => 'slider_sourcetype_facebook']],
@@ -1394,10 +1413,10 @@ class RevSliderHelp {
 						],
 						'youtube_settings'    => [
 							'num_slides' => [
-								$t  => $this->l("Total Slides"),
+								$t  => $this->l('Total Slides'),
 								$h  => "source.youtube.count",
 								$k  => ["youtube", "video stream", "youtube stream", "stream"],
-								$d  => $this->l("Choose how many Slides should be created from the YouTube source"),
+								$d  => $this->l('Choose how many Slides should be created from the YouTube source'),
 								$a  => $u . "plugin-content/#youtube",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'youtube', $o => 'slider_sourcetype_youtube']],
@@ -1407,10 +1426,10 @@ class RevSliderHelp {
 								],
 							],
 							'cache'      => [
-								$t  => $this->l("API Cache"),
+								$t  => $this->l('API Cache'),
 								$h  => "source.youtube.transient",
 								$k  => ["youtube", "video stream", "youtube stream", "stream"],
-								$d  => $this->l("Cache the YouTube API results for faster loading"),
+								$d  => $this->l('Cache the YouTube API results for faster loading'),
 								$a  => $u . "plugin-content/#youtube",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'youtube', $o => 'slider_sourcetype_youtube']],
@@ -1420,10 +1439,10 @@ class RevSliderHelp {
 								],
 							],
 							'api_key'    => [
-								$t  => $this->l("API Key"),
+								$t  => $this->l('API Key'),
 								$h  => "source.youtube.api",
 								$k  => ["youtube", "video stream", "youtube stream", "stream", "api key"],
-								$d  => $this->l("Enter your YouTube API key.  <a href='https://developers.google.com/youtube/v3/getting-started#before-you-start' target='_blank'>Learn more</a>"),
+								$d  => $this->l('Enter your YouTube API key.  <a href=\'https://developers.google.com/youtube/v3/getting-started#before-you-start\' target=\'_blank\'>Learn more</a>'),
 								$a  => $u . "plugin-content/#youtube",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'youtube', $o => 'slider_sourcetype_youtube']],
@@ -1433,10 +1452,10 @@ class RevSliderHelp {
 								],
 							],
 							'channel_id' => [
-								$t  => $this->l("Channel ID"),
+								$t  => $this->l('Channel ID'),
 								$h  => "source.youtube.channelId",
 								$k  => ["youtube", "stream", "youtube channel", "channel id"],
-								$d  => $this->l("Enter the channel ID of the YouTube account"),
+								$d  => $this->l('Enter the channel ID of the YouTube account'),
 								$a  => $u . "plugin-content/#youtube",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'youtube', $o => 'slider_sourcetype_youtube']],
@@ -1447,10 +1466,10 @@ class RevSliderHelp {
 							],
 							'source'     => [
 								$di => "slider_source_youtube_source",
-								$t  => $this->l("Source"),
+								$t  => $this->l('Source'),
 								$h  => "source.youtube.typeSource",
 								$k  => ["source", "youtube", "youtube source", "youtube playlist", "youtube channel", "video playlist"],
-								$d  => $this->l("Choose to include videos from a YouTube Playlist or Channel"),
+								$d  => $this->l('Choose to include videos from a YouTube Playlist or Channel'),
 								$a  => $u . "plugin-content/#youtube",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'youtube', $o => 'slider_sourcetype_youtube']],
@@ -1460,10 +1479,10 @@ class RevSliderHelp {
 								],
 							],
 							'playlist'   => [
-								$t  => $this->l("Playlist"),
+								$t  => $this->l('Playlist'),
 								$h  => "source.youtube.playList",
 								$k  => ["youtube", "stream", "youtube source", "playlist", "youtube playlist"],
-								$d  => $this->l("Choose the playlist to pull in from the YouTube account"),
+								$d  => $this->l('Choose the playlist to pull in from the YouTube account'),
 								$a  => $u . "plugin-content/#youtube",
 								$hl => [
 									$dp => [
@@ -1478,10 +1497,10 @@ class RevSliderHelp {
 						],
 						'vimeo_settings'      => [
 							'num_slides'               => [
-								$t  => $this->l("Total Slides"),
+								$t  => $this->l('Total Slides'),
 								$h  => "source.vimeo.count",
 								$k  => ["vimeo"],
-								$d  => $this->l("Choose how many Slides should be created from the Vimeo source"),
+								$d  => $this->l('Choose how many Slides should be created from the Vimeo source'),
 								$a  => $u . "plugin-content/#vimeo",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'vimeo', $o => 'slider_sourcetype_vimeo']],
@@ -1491,10 +1510,10 @@ class RevSliderHelp {
 								],
 							],
 							'cache'                    => [
-								$t  => $this->l("API Cache"),
+								$t  => $this->l('API Cache'),
 								$h  => "source.vimeo.transient",
 								$k  => ["vimeo", "gallery", "cache"],
-								$d  => $this->l("Cache the Vimeo API results for faster loading"),
+								$d  => $this->l('Cache the Vimeo API results for faster loading'),
 								$a  => $u . "plugin-content/#vimeo",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'vimeo', $o => 'slider_sourcetype_vimeo']],
@@ -1504,10 +1523,10 @@ class RevSliderHelp {
 								],
 							],
 							'source'                   => [
-								$t  => $this->l("Page URL"),
+								$t  => $this->l('Page URL'),
 								$h  => "source.vimeo.typeSource",
 								$k  => ["source", "vimeo", "vimeo source"],
-								$d  => $this->l("Choose which type of Vimeo content should be pulled into the Slider"),
+								$d  => $this->l('Choose which type of Vimeo content should be pulled into the Slider'),
 								$a  => $u . "plugin-content/#vimeo",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'vimeo', $o => 'slider_sourcetype_vimeo']],
@@ -1517,10 +1536,10 @@ class RevSliderHelp {
 								],
 							],
 							'user_album_group_channel' => [
-								$t  => $this->l("User/Album/Group/Channel"),
+								$t  => $this->l('User/Album/Group/Channel'),
 								$h  => "source.vimeo.userName, source.vimeo.albumId, source.vimeo.groupName, source.vimeo.channelName",
 								$k  => ["vimeo", "vimeo user", "vimeo username", "vimeo user name", "vimeo album", "vimeo group", "vimeo channel"],
-								$d  => $this->l("Enter the username, album ID, group name or channel name of the Vimeo account to use as the stream"),
+								$d  => $this->l('Enter the username, album ID, group name or channel name of the Vimeo account to use as the stream'),
 								$a  => $u . "plugin-content/#vimeo",
 								$hl => [
 									$dp => [[$p => 'settings.sourcetype', $v => 'vimeo', $o => 'slider_sourcetype_vimeo']],
@@ -1533,133 +1552,133 @@ class RevSliderHelp {
 					],
 					'gst_sl_5'  => [
 						'slider_id'         => [
-							$t  => $this->l("Slider ID"),
+							$t  => $this->l('Slider ID'),
 							$h  => "id",
 							$k  => ["slider id", "id", "default", "defaults"],
-							$d  => $this->l("Add an optional ID for the Slider.  Will be applied to the Slider's outer HTML wrapper element"),
+							$d  => $this->l('Add an optional ID for the Slider.  Will be applied to the Slider\'s outer HTML wrapper element'),
 							$a  => $u . "plugin-defaults/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults', $f => "#sr_sliderid"],
 						],
 						'slider_classes'    => [
-							$t  => $this->l("Slider Classes"),
+							$t  => $this->l('Slider Classes'),
 							$h  => "class",
 							$k  => ["slider class", "class", "classes", "slider classes"],
-							$d  => $this->l("Add an optional ID for the Slider.  Will be applied to the Slider's outer HTML wrapper element"),
+							$d  => $this->l('Add an optional ID for the Slider.  Will be applied to the Slider\'s outer HTML wrapper element'),
 							$a  => $u . "plugin-defaults/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults', $f => "#sr_sliderclass"],
 						],
 						'wrapper_classes'   => [
-							$t  => $this->l("Wrapper Classes"),
+							$t  => $this->l('Wrapper Classes'),
 							$h  => "wrapperclass",
 							$k  => ["wrapper class", "class", "classes", "wrapper classes"],
-							$d  => $this->l("Add an optional ID for the Slider.  Will be applied to the Slider's outer HTML wrapper element"),
+							$d  => $this->l('Add an optional ID for the Slider.  Will be applied to the Slider\'s outer HTML wrapper element'),
 							$a  => $u . "plugin-defaults/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults', $f => "#sr_wrapperclass"],
 						],
 						'slide_duration'    => [
-							$t  => $this->l("Slide Duration"),
+							$t  => $this->l('Slide Duration'),
 							$h  => "def.delay",
 							$k  => ["slide duration", "duration", "time", "timeline", "default", "defaults"],
-							$d  => $this->l("The default duration to apply for each Slide before they change"),
+							$d  => $this->l('The default duration to apply for each Slide before they change'),
 							$a  => $u . "plugin-defaults/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults', $f => "#sr_def_delay"],
 						],
 						'init_delay'        => [
-							$t  => $this->l("Initialization Delay"),
+							$t  => $this->l('Initialization Delay'),
 							$h  => "general.slideshow.initDelay",
 							$k  => ["init", "initialization", "delay", "initialization delay", "default", "defaults"],
-							$d  => $this->l("Add an optional delay before the Slider officially loads"),
+							$d  => $this->l('Add an optional delay before the Slider officially loads'),
 							$a  => $u . "plugin-defaults/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults', $f => "#sr_sshow_initdelay"],
 						],
 						'layers_selectable' => [
-							$t  => $this->l("Layers Selectable"),
+							$t  => $this->l('Layers Selectable'),
 							$h  => "general.layerSelection",
 							$k  => ["layers", "layers selectable", "selectable", "default", "defaults"],
-							$d  => $this->l("Choose if Layers should be user-selectable by default"),
+							$d  => $this->l('Choose if Layers should be user-selectable by default'),
 							$a  => $u . "plugin-defaults/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults', $f => "#sr_layersselectable"],
 						],
 						'transition'        => [
-							$t  => $this->l("Transition"),
+							$t  => $this->l('Transition'),
 							$h  => "def.transition",
 							$k  => ["default transition", "transition", "default", "defaults"],
-							$d  => $this->l("The default transition to be applied to newly created Slides"),
+							$d  => $this->l('The default transition to be applied to newly created Slides'),
 							$a  => $u . "plugin-defaults/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults_animation', $f => "#sr_def_slide_transition"],
 						],
 						'duration'          => [
-							$t  => $this->l("Transition Duration"),
+							$t  => $this->l('Transition Duration'),
 							$h  => "def.transitionDuration",
 							$k  => ["default duration", "duration", "default", "defaults"],
-							$d  => $this->l("The default transition duration to be applied to newly created Slides"),
+							$d  => $this->l('The default transition duration to be applied to newly created Slides'),
 							$a  => $u . "plugin-defaults/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults_animation', $f => "#sr_def_tduration"],
 						],
 						'image_settings'    => [
 							'image_size' => [
-								$t  => $this->l("Default Image Size"),
+								$t  => $this->l('Default Image Size'),
 								$h  => "def.background.imageSourceType",
 								$k  => ["image size", "image source", "default", "defaults"],
-								$d  => $this->l("The default WordPress Image size to be used for the Slide's main  background images"),
+								$d  => $this->l('The default WordPress Image size to be used for the Slide\'s main  background images'),
 								$a  => $u . "plugin-defaults/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults_imagesettings', $f => "#sr_def_image_source_type"],
 							],
 							'position'   => [
-								$t  => $this->l("Default BG Position"),
+								$t  => $this->l('Default BG Position'),
 								$h  => "def.background.position",
 								$k  => ["image", "images", "background", "bg", "bg image", "background position", "default", "defaults"],
-								$d  => $this->l("The default CSS background-position for the Slide's main background image"),
+								$d  => $this->l('The default CSS background-position for the Slide\'s main background image'),
 								$a  => $u . "plugin-defaults/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults_imagesettings', $f => "#slider_def_img__bg_position_center-center"],
 							],
 							'fit'        => [
-								$t  => $this->l("Default Image Fit"),
+								$t  => $this->l('Default Image Fit'),
 								$h  => "def.background.fit",
 								$k  => ["background size", "fit", "image fit", "cover", "contain", "default", "defaults"],
-								$d  => $this->l("The default css background-size value for the Slide's main background image"),
+								$d  => $this->l('The default css background-size value for the Slide\'s main background image'),
 								$a  => $u . "plugin-defaults/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults_imagesettings', $f => "#sr_defbgimage_fit"],
 							],
 							'repeat'     => [
-								$t  => $this->l("Default BG Repeat"),
+								$t  => $this->l('Default BG Repeat'),
 								$h  => "def.background.repeat",
 								$k  => ["background repeat", "repeat", "default", "defaults"],
-								$d  => $this->l("The default css background-repeat value for the Slide's main background image"),
+								$d  => $this->l('The default css background-repeat value for the Slide\'s main background image'),
 								$a  => $u . "plugin-defaults/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults_imagesettings', $f => "#sr_defbgimage_repeat"],
 							],
 						],
 						'layer_defaults'    => [
 							'intelligent_inheriting'    => [
-								$t  => $this->l("Intelligent Inheriting"),
+								$t  => $this->l('Intelligent Inheriting'),
 								$h  => "def.intelligentInherit",
 								$k  => ["responsive", "intelligent inheriting", "responsive behavior"],
-								$d  => $this->l("Automatically resize/reposition new Layers for each device viewport inside the editor"),
+								$d  => $this->l('Automatically resize/reposition new Layers for each device viewport inside the editor'),
 								$a  => $u . "plugin-defaults/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_layersettings', $f => "#sr_layer_intelligentinherit"],
 							],
 							'responsive_between_device' => [
-								$t  => $this->l("Responsive Between Devices"),
+								$t  => $this->l('Responsive Between Devices'),
 								$h  => "def.autoResponsive",
 								$k  => ["responsive", "resize", "resize layers", "resize layer", "layer resizing", "layer sizing", "responsive sizes", "responsive sizing"],
-								$d  => $this->l("Automatically resize Layers for each responsive device viewport"),
+								$d  => $this->l('Automatically resize Layers for each responsive device viewport'),
 								$a  => $u . "plugin-defaults/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_layersettings', $f => "#sr_layer_autoResponsive"],
 							],
 							'responsive_offset'         => [
-								$t  => $this->l("Responsive Offsets"),
+								$t  => $this->l('Responsive Offsets'),
 								$h  => "def.responsiveOffset",
 								$k  => ["responsive", "responsive offset", "responsive offsets"],
-								$d  => $this->l("Automatically adjust the positioning for Layers for each responsive device viewport"),
+								$d  => $this->l('Automatically adjust the positioning for Layers for each responsive device viewport'),
 								$a  => $u . "plugin-defaults/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_layersettings', $f => "#sr_layer_responsiveOffset"],
 							],
 							'responsive_children'       => [
-								$t  => $this->l("Responsive Children"),
+								$t  => $this->l('Responsive Children'),
 								$h  => "def.responsiveChilds",
 								$k  => ["responsive", "responsive children"],
-								$d  => $this->l("Choose to resize the Layer's inner HTML elements if the Layer includes custom HTML"),
+								$d  => $this->l('Choose to resize the Layer\'s inner HTML elements if the Layer includes custom HTML'),
 								$a  => $u . "plugin-defaults/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_layersettings', $f => "#sr_layer_responsiveChilds"],
 							],
@@ -1667,18 +1686,18 @@ class RevSliderHelp {
 						'pan_zoom'          => [
 							'enable'        => [
 								$di => "slider_defaults_panzoom",
-								$t  => $this->l("Enable PanZoom"),
+								$t  => $this->l('Enable PanZoom'),
 								$h  => "def.panZoom.set",
 								$k  => ["panzoom", "pan zoom"],
-								$d  => $this->l("Enable the PanZoom effect by default for newly created Slides"),
+								$d  => $this->l('Enable the PanZoom effect by default for newly created Slides'),
 								$a  => $u . "plugin-defaults/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_5", $st => '#form_slidergeneral_defaults_kbsettings', $f => "#sr_def_panzoom"],
 							],
 							'easing'        => [
-								$t  => $this->l("Easing"),
+								$t  => $this->l('Easing'),
 								$h  => "def.panZoom.ease",
 								$k  => ["panzoom", "pan zoom", "easing", "pan zoom easing", "panzoom easing"],
-								$d  => $this->l("The default easing equation.  <a href='https://greensock.com/ease-visualizer' target=_'blank'>View visualization</a>"),
+								$d  => $this->l('The default easing equation.  <a href=\'https://greensock.com/ease-visualizer\' target=_\'blank\'>View visualization</a>'),
 								$a  => $u . "plugin-defaults/",
 								$hl => [
 									$dp => [[$p => 'settings.def.panZoom.set', $v => true, $o => 'slider_defaults_panzoom']],
@@ -1686,10 +1705,10 @@ class RevSliderHelp {
 								],
 							],
 							'duration'      => [
-								$t  => $this->l("Duration"),
+								$t  => $this->l('Duration'),
 								$h  => "def.panZoom.duration",
 								$k  => ["panzoom", "pan zoom", "duration", "pan zoom duration", "panzoom duration"],
-								$d  => $this->l("The default easing duration in milliseconds"),
+								$d  => $this->l('The default easing duration in milliseconds'),
 								$a  => $u . "plugin-defaults/",
 								$hl => [
 									$dp => [[$p => 'settings.def.panZoom.set', $v => true, $o => 'slider_defaults_panzoom']],
@@ -1698,10 +1717,10 @@ class RevSliderHelp {
 							],
 							'zoom'          => [
 								'fit_start' => [
-									$t  => $this->l("Zoom Start Percentage"),
+									$t  => $this->l('Zoom Start Percentage'),
 									$h  => "def.panZoom.fitStart",
 									$k  => ["panzoom", "pan zoom", "zoom", "pan zoom zoom", "panzoom zoom"],
-									$d  => $this->l("The default starting zoom percentage"),
+									$d  => $this->l('The default starting zoom percentage'),
 									$a  => $u . "plugin-defaults/",
 									$hl => [
 										$dp => [[$p => 'settings.def.panZoom.set', $v => true, $o => 'slider_defaults_panzoom']],
@@ -1709,10 +1728,10 @@ class RevSliderHelp {
 									],
 								],
 								'fit_end'   => [
-									$t  => $this->l("Zoom End Percentage"),
+									$t  => $this->l('Zoom End Percentage'),
 									$h  => "def.panZoom.fitEnd",
 									$k  => ["panzoom", "pan zoom", "zoom", "pan zoom zoom", "panzoom zoom"],
-									$d  => $this->l("The default ending zoom percentage"),
+									$d  => $this->l('The default ending zoom percentage'),
 									$a  => $u . "plugin-defaults/",
 									$hl => [
 										$dp => [[$p => 'settings.def.panZoom.set', $v => true, $o => 'slider_defaults_panzoom']],
@@ -1722,10 +1741,10 @@ class RevSliderHelp {
 							],
 							'movement'      => [
 								'x_start' => [
-									$t  => $this->l("Start Position X"),
+									$t  => $this->l('Start Position X'),
 									$h  => "def.panZoom.xStart",
 									$k  => ["panzoom", "pan zoom", "position", "pan zoom position", "panzoom position"],
-									$d  => $this->l("The default starting x position for the PanZoom movement"),
+									$d  => $this->l('The default starting x position for the PanZoom movement'),
 									$a  => $u . "plugin-defaults/",
 									$hl => [
 										$dp => [[$p => 'settings.def.panZoom.set', $v => true, $o => 'slider_defaults_panzoom']],
@@ -1733,10 +1752,10 @@ class RevSliderHelp {
 									],
 								],
 								'x_end'   => [
-									$t  => $this->l("End Position X"),
+									$t  => $this->l('End Position X'),
 									$h  => "def.panZoom.xEnd",
 									$k  => ["panzoom", "pan zoom", "position", "pan zoom position", "panzoom position"],
-									$d  => $this->l("The default end x position for the PanZoom movement"),
+									$d  => $this->l('The default end x position for the PanZoom movement'),
 									$a  => $u . "plugin-defaults/",
 									$hl => [
 										$dp => [[$p => 'settings.def.panZoom.set', $v => true, $o => 'slider_defaults_panzoom']],
@@ -1744,10 +1763,10 @@ class RevSliderHelp {
 									],
 								],
 								'y_start' => [
-									$t  => $this->l("Start Position Y"),
+									$t  => $this->l('Start Position Y'),
 									$h  => "def.panZoom.yStart",
 									$k  => ["panzoom", "pan zoom", "position", "pan zoom position", "panzoom position"],
-									$d  => $this->l("The default starting y position for the PanZoom movement"),
+									$d  => $this->l('The default starting y position for the PanZoom movement'),
 									$a  => $u . "plugin-defaults/",
 									$hl => [
 										$dp => [[$p => 'settings.def.panZoom.set', $v => true, $o => 'slider_defaults_panzoom']],
@@ -1755,10 +1774,10 @@ class RevSliderHelp {
 									],
 								],
 								'y_end'   => [
-									$t  => $this->l("End Position Y"),
+									$t  => $this->l('End Position Y'),
 									$h  => "def.panZoom.yEnd",
 									$k  => ["panzoom", "pan zoom", "position", "pan zoom position", "panzoom position"],
-									$d  => $this->l("The default ending y position for the PanZoom movement"),
+									$d  => $this->l('The default ending y position for the PanZoom movement'),
 									$a  => $u . "plugin-defaults/",
 									$hl => [
 										$dp => [[$p => 'settings.def.panZoom.set', $v => true, $o => 'slider_defaults_panzoom']],
@@ -1768,10 +1787,10 @@ class RevSliderHelp {
 							],
 							'rotation_blur' => [
 								'rotate_start' => [
-									$t  => $this->l("Rotate Start"),
+									$t  => $this->l('Rotate Start'),
 									$h  => "def.panZoom.rotateStart",
 									$k  => ["panzoom", "pan zoom", "rotate", "pan zoom rotate", "panzoom rotate", "rotation", "pan zoom rotation"],
-									$d  => $this->l("The default starting rotation for the PanZoom effect (deg)"),
+									$d  => $this->l('The default starting rotation for the PanZoom effect (deg)'),
 									$a  => $u . "plugin-defaults/",
 									$hl => [
 										$dp => [[$p => 'settings.def.panZoom.set', $v => true, $o => 'slider_defaults_panzoom']],
@@ -1779,10 +1798,10 @@ class RevSliderHelp {
 									],
 								],
 								'rotate_end'   => [
-									$t  => $this->l("Rotate End"),
+									$t  => $this->l('Rotate End'),
 									$h  => "def.panZoom.rotateEnd",
 									$k  => ["panzoom", "pan zoom", "rotate", "pan zoom rotate", "panzoom rotate", "rotation", "pan zoom rotation"],
-									$d  => $this->l("The default ending rotation for the PanZoom effect (deg)"),
+									$d  => $this->l('The default ending rotation for the PanZoom effect (deg)'),
 									$a  => $u . "plugin-defaults/",
 									$hl => [
 										$dp => [[$p => 'settings.def.panZoom.set', $v => true, $o => 'slider_defaults_panzoom']],
@@ -1790,10 +1809,10 @@ class RevSliderHelp {
 									],
 								],
 								'blur_start'   => [
-									$t  => $this->l("Blur Start"),
+									$t  => $this->l('Blur Start'),
 									$h  => "def.panZoom.blurStart",
 									$k  => ["panzoom", "pan zoom", "rotate", "pan zoom blur", "panzoom blur", "blur", "image blur"],
-									$d  => $this->l("The default starting image blur for the PanZoom effect (px)"),
+									$d  => $this->l('The default starting image blur for the PanZoom effect (px)'),
 									$a  => $u . "plugin-defaults/",
 									$hl => [
 										$dp => [[$p => 'settings.def.panZoom.set', $v => true, $o => 'slider_defaults_panzoom']],
@@ -1801,10 +1820,10 @@ class RevSliderHelp {
 									],
 								],
 								'blur_end'     => [
-									$t  => $this->l("Blur End"),
+									$t  => $this->l('Blur End'),
 									$h  => "def.panZoom.blurEnd",
 									$k  => ["panzoom", "pan zoom", "rotate", "pan zoom blur", "panzoom blur", "blur", "image blur"],
-									$d  => $this->l("The default ending image blur for the PanZoom effect (px)"),
+									$d  => $this->l('The default ending image blur for the PanZoom effect (px)'),
 									$a  => $u . "plugin-defaults/",
 									$hl => [
 										$dp => [[$p => 'settings.def.panZoom.set', $v => true, $o => 'slider_defaults_panzoom']],
@@ -1818,18 +1837,18 @@ class RevSliderHelp {
 						'viewport_stop'            => [
 							'enable'               => [
 								$di => "slider_general_slideshow_viewport",
-								$t  => $this->l("Enable Viewport Stop"),
+								$t  => $this->l('Enable Viewport Stop'),
 								$h  => "general.slideshow.viewPort",
 								$k  => ["viewport", "slider viewport", "stop", "viewport stop"],
-								$d  => $this->l("Only initialize the Slider when the Slider is inside the page's view"),
+								$d  => $this->l('Only initialize the Slider when the Slider is inside the page\'s view'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_6", $st => '#form_slidergeneral_general_viewport', $f => "#sr_viewport"],
 							],
 							'wait_pause'           => [
-								$t  => $this->l("Wait/Pause"),
+								$t  => $this->l('Wait/Pause'),
 								$h  => "general.slideshow.viewPortStart",
 								$k  => ["viewport", "slider viewport", "wait", "pause", "viewport wait", "viewport pause"],
-								$d  => $this->l("'wait' to initialize the Slider when its inside the viewport, or 'pause' the Slider's progress until its inside the viewport"),
+								$d  => $this->l('\'wait\' to initialize the Slider when its inside the viewport, or \'pause\' the Slider\'s progress until its inside the viewport'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.slideshow.viewPort', $v => true, $o => 'slider_general_slideshow_viewport']],
@@ -1839,10 +1858,10 @@ class RevSliderHelp {
 								],
 							],
 							'viewport_area'        => [
-								$t  => $this->l("Area %"),
+								$t  => $this->l('Area %'),
 								$h  => "general.slideshow.viewPortArea.#size#.v",
 								$k  => ["viewport", "slider viewport", "wait", "pause", "viewport wait", "viewport pause", "area", "viewport area"],
-								$d  => $this->l("Initialize/Pause the Slider when its inside this percentage of the page's viewport"),
+								$d  => $this->l('Initialize/Pause the Slider when its inside this percentage of the page\'s viewport'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.slideshow.viewPort', $v => true, $o => 'slider_general_slideshow_viewport']],
@@ -1852,10 +1871,10 @@ class RevSliderHelp {
 								],
 							],
 							'preset_slider_height' => [
-								$t  => $this->l("Preset Slider Height"),
+								$t  => $this->l('Preset Slider Height'),
 								$h  => "general.slideshow.presetSliderHeight",
 								$k  => ["slider space", "preset slider height", "viewport"],
-								$d  => $this->l("Allocate space on the page for the Slider to prevent page content jumps when the Slider loads"),
+								$d  => $this->l('Allocate space on the page for the Slider to prevent page content jumps when the Slider loads'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.slideshow.viewPort', $v => true, $o => 'slider_general_slideshow_viewport']],
@@ -1868,18 +1887,18 @@ class RevSliderHelp {
 						'slideshow'                => [
 							'auto_rotate'      => [
 								$di => 'slideshow_auto_rotate',
-								$t  => $this->l("Auto Rotate Slideshow"),
+								$t  => $this->l('Auto Rotate Slideshow'),
 								$h  => "general.slideshow.slideShow",
 								$k  => ["stop", "pause", "stop slider", "pause slider", "progress"],
-								$d  => $this->l("Enable autoplay for the Slider to automatically change between slides"),
+								$d  => $this->l('Enable autoplay for the Slider to automatically change between slides'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_6", $st => '#form_slidergeneral_general', $f => "#sr_slideshowonoff"],
 							],
 							'stop_on_hover'    => [
-								$t  => $this->l("Stop on Hover"),
+								$t  => $this->l('Stop on Hover'),
 								$h  => "general.slideshow.stopOnHover",
 								$k  => ["hover", "autoplay", "slider progress", "stop on", "stop on hover", "stop slider", "pause", "pause slider", "pause slideshow"],
-								$d  => $this->l("Pause the Slider's progress when the user hover's their mouse over it"),
+								$d  => $this->l('Pause the Slider\'s progress when the user hover\'s their mouse over it'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.slideshow.slideShow', $v => true, $o => 'slideshow_auto_rotate']],
@@ -1889,10 +1908,10 @@ class RevSliderHelp {
 								],
 							],
 							'loop_single'      => [
-								$t  => $this->l("Loop Single Slide"),
+								$t  => $this->l('Loop Single Slide'),
 								$h  => "general.slideshow.loopSingle",
 								$k  => ["loop", "loop slide", "single", "single slide", "loop single slide"],
-								$d  => $this->l("Continuously loop a Slide's animations when the Slider contains only one slide"),
+								$d  => $this->l('Continuously loop a Slide\'s animations when the Slider contains only one slide'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.slideshow.slideShow', $v => true, $o => 'slideshow_auto_rotate']],
@@ -1903,10 +1922,10 @@ class RevSliderHelp {
 							],
 							'stop_slider'      => [
 								$di => "slider_general_slideshow_stopslider",
-								$t  => $this->l("Stop Slider Progress"),
+								$t  => $this->l('Stop Slider Progress'),
 								$h  => "general.slideshow.stopSlider",
 								$k  => ["stop", "pause", "stop slider", "pause at", "pause at slide", "autoplay", "auto play"],
-								$d  => $this->l("Chose when the Slider's progress should stop/pause"),
+								$d  => $this->l('Chose when the Slider\'s progress should stop/pause'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.slideshow.slideShow', $v => true, $o => 'slideshow_auto_rotate']],
@@ -1916,10 +1935,10 @@ class RevSliderHelp {
 								],
 							],
 							'stop_after_loops' => [
-								$t  => $this->l("Stop After Loops"),
+								$t  => $this->l('Stop After Loops'),
 								$h  => "general.slideshow.stopAfterLoops",
 								$k  => ["stop", "pause", "stop slider", "pause at", "pause at slide", "autoplay", "auto play", "loop", "looping", "slider loop"],
-								$d  => $this->l("Stop the slider's progress after a set amount of loops"),
+								$d  => $this->l('Stop the slider\'s progress after a set amount of loops'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.slideshow.slideShow', $v => true, $o => 'slideshow_auto_rotate']],
@@ -1929,10 +1948,10 @@ class RevSliderHelp {
 								],
 							],
 							'stop_at_slide'    => [
-								$t  => $this->l("Stop at Slide"),
+								$t  => $this->l('Stop at Slide'),
 								$h  => "general.slideshow.stopAtSlide",
 								$k  => ["stop", "pause", "stop slider", "pause at", "pause at slide", "autoplay", "auto play", "loop", "looping", "slider loop", "stop at", "stop after"],
-								$d  => $this->l("Stop the slider's progress when a certain Slide is viewed"),
+								$d  => $this->l('Stop the slider\'s progress when a certain Slide is viewed'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.slideshow.slideShow', $v => true, $o => 'slideshow_auto_rotate']],
@@ -1942,10 +1961,10 @@ class RevSliderHelp {
 								],
 							],
 							'random_order'     => [
-								$t  => $this->l("Random Order"),
+								$t  => $this->l('Random Order'),
 								$h  => "general.slideshow.shuffle",
 								$k  => ["slide order", "shuffle", "shuffle slides", "random", "randomize", "random slide order", "randomize slides", "randomize slide order"],
-								$d  => $this->l("Randomize the Slide order each time the Slider is viewed"),
+								$d  => $this->l('Randomize the Slide order each time the Slider is viewed'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.slideshow.slideShow', $v => true, $o => 'slideshow_auto_rotate']],
@@ -1955,54 +1974,54 @@ class RevSliderHelp {
 								],
 							],
 							'wait_for_api'     => [
-								$t  => $this->l("Wait for API"),
+								$t  => $this->l('Wait for API'),
 								$h  => "general.slideshow.waitForInit",
 								$k  => ["api", "wait for", "wait for api", "initialization"],
-								$d  => $this->l("Only start the Slider when the JavaScript API's 'revstart()' method is called"),
+								$d  => $this->l('Only start the Slider when the JavaScript API\'s \'revstart()\' method is called'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_6", $st => '#form_slidergeneral_slideshow', $f => "#sr_waitrevapi"],
 							],
 						],
 						'mobile_options'           => [
 							'disable_slider'  => [
-								$t  => $this->l("Disable Slider on Mobile"),
+								$t  => $this->l('Disable Slider on Mobile'),
 								$h  => "general.disableOnMobile",
 								$k  => ["disable slider", "hide on mobile", "mobile"],
-								$d  => $this->l("When the Slider is disabled on mobile it will only be loaded on desktop-based devices"),
+								$d  => $this->l('When the Slider is disabled on mobile it will only be loaded on desktop-based devices'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_6", $st => '#form_slidergeneral_general_disable_mobile', $f => "#sr_gen_disonmob"],
 							],
 							'disable_panzoom' => [
-								$t  => $this->l("Disable PanZoom on Mobile"),
+								$t  => $this->l('Disable PanZoom on Mobile'),
 								$h  => "general.disablePanZoomMobile",
 								$k  => ["disable", "disable panzoom", "disable pan zoom", "panzoom", "pan zoom"],
-								$d  => $this->l("Disable the PanZoom effect for mobile devices"),
+								$d  => $this->l('Disable the PanZoom effect for mobile devices'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_6", $st => '#form_slidergeneral_general_disable_mobile', $f => "#sr_gen_disablePanZoomMobile"],
 							],
 						],
 						'hide_content_under_width' => [
 							'hide_slider_under' => [
-								$t  => $this->l("Hide Slider Under Width"),
+								$t  => $this->l('Hide Slider Under Width'),
 								$h  => "visibility.hideSliderUnderLimit",
 								$k  => ["hide slider", "hide under width", "hide slider under width"],
-								$d  => $this->l("Hide the Slider under a certain window width"),
+								$d  => $this->l('Hide the Slider under a certain window width'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_6", $st => '#form_slidergeneral_general_under_browser_width', $f => "#sr_vis_hideSliderUnderLimit"],
 							],
 							'hide_marked_under' => [
-								$t  => $this->l("Hide Marked Layers"),
+								$t  => $this->l('Hide Marked Layers'),
 								$h  => "visibility.hideSelectedLayersUnderLimit",
 								$k  => ["hide layer", "hide layers", "hide under width", "hide layer under width", "marked", "marked layers"],
-								$d  => $this->l("Individual Layers that are selected to be hidden under a width will be hidden under this number"),
+								$d  => $this->l('Individual Layers that are selected to be hidden under a width will be hidden under this number'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_6", $st => '#form_slidergeneral_general_under_browser_width', $f => "#sr_vis_hideSelectedLayersUnderLimit"],
 							],
 							'hide_all_layers'   => [
-								$t  => $this->l("Hide All Layers Under"),
+								$t  => $this->l('Hide All Layers Under'),
 								$h  => "visibility.hideAllLayersUnderLimit",
 								$k  => ["hide layer", "hide layers", "hide under width", "hide layer under width", "all layers"],
-								$d  => $this->l("Hide all Layers under when the window is below this number"),
+								$d  => $this->l('Hide all Layers under when the window is below this number'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_6", $st => '#form_slidergeneral_general_under_browser_width', $f => "#sr_vis_hideAllLayersUnderLimit"],
 							],
@@ -2010,18 +2029,18 @@ class RevSliderHelp {
 						'first_slide_options'      => [
 							'alternate_slide'             => [
 								$di => "slider_firstslide_alternativefirstslide",
-								$t  => $this->l("Alternate First Slide"),
+								$t  => $this->l('Alternate First Slide'),
 								$h  => "general.firstSlide.alternativeFirstSlideSet",
 								$k  => ["first slide", "alternate", "alternate slide"],
-								$d  => $this->l("Show a specific Slide first when the Slider first loads"),
+								$d  => $this->l('Show a specific Slide first when the Slider first loads'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_6", $st => '#form_slidergeneral_general_first_slide', $f => "#sr_gen_alternativeFirstSlideSet"],
 							],
 							'alternate_slide_number'      => [
-								$t  => $this->l("Slide to Show First"),
+								$t  => $this->l('Slide to Show First'),
 								$h  => "general.firstSlide.alternativeFirstSlide",
 								$k  => ["first slide", "alternate", "alternate slide"],
-								$d  => $this->l("Show slide number 'x' first when the Slider first loads"),
+								$d  => $this->l('Show slide number \'x\' first when the Slider first loads'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.firstSlide.alternativeFirstSlideSet', $v => true, $o => 'slider_firstslide_alternativefirstslide']],
@@ -2032,18 +2051,18 @@ class RevSliderHelp {
 							],
 							'first_slide_transition'      => [
 								$di => "slider_general_firstslidetransition",
-								$t  => $this->l("First Slide Animation"),
+								$t  => $this->l('First Slide Animation'),
 								$h  => "general.firstSlide.set",
 								$k  => ["first slide", "first slide animation", "alternate animation"],
-								$d  => $this->l("Use an alternate transition when for the first slide when the Slider firsts loads"),
+								$d  => $this->l('Use an alternate transition when for the first slide when the Slider firsts loads'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_6", $st => '#form_slidergeneral_general_first_slide', $f => "#sr_gen_fs"],
 							],
 							'first_slide_transition_type' => [
-								$t  => $this->l("First Slide Transition Type"),
+								$t  => $this->l('First Slide Transition Type'),
 								$h  => "general.firstSlide.type",
 								$k  => ["first slide", "first slide animation", "alternate animation", "transition", "first slide transition"],
-								$d  => $this->l("Choose an alternate transition for the first Slide"),
+								$d  => $this->l('Choose an alternate transition for the first Slide'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.firstSlide.set', $v => true, $o => 'slider_general_firstslidetransition']],
@@ -2053,10 +2072,10 @@ class RevSliderHelp {
 								],
 							],
 							'first_slide_duration'        => [
-								$t  => $this->l("First Slide Transition Duration"),
+								$t  => $this->l('First Slide Transition Duration'),
 								$h  => "general.firstSlide.duration",
 								$k  => ["first slide", "first slide duration", "alternate animation", "transition duration", "first slide transition duration"],
-								$d  => $this->l("The duration to be used for the alternate first Slide transition"),
+								$d  => $this->l('The duration to be used for the alternate first Slide transition'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.firstSlide.set', $v => true, $o => 'slider_general_firstslidetransition']],
@@ -2066,10 +2085,10 @@ class RevSliderHelp {
 								],
 							],
 							'slot_amount'                 => [
-								$t  => $this->l("Slot Amount"),
+								$t  => $this->l('Slot Amount'),
 								$h  => "general.firstSlide.slotAmount",
 								$k  => ["slots", "slot amount", "transition slots"],
-								$d  => $this->l("The amount of slots to be used for the alternate first Slide transition.  Applicable to slot-based transitions."),
+								$d  => $this->l('The amount of slots to be used for the alternate first Slide transition.  Applicable to slot-based transitions.'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.general.firstSlide.set', $v => true, $o => 'slider_general_firstslidetransition']],
@@ -2081,18 +2100,18 @@ class RevSliderHelp {
 						],
 						'browser_behavior'         => [
 							'next_slide_on_focus' => [
-								$t  => $this->l("Next Slide on Focus"),
+								$t  => $this->l('Next Slide on Focus'),
 								$h  => "general.nextSlideOnFocus",
 								$k  => ["next on focus", "tab focus", "tab blur", "next slide on focus"],
-								$d  => $this->l("Change slides when the user navigates to a new window or tab and then returns to the page"),
+								$d  => $this->l('Change slides when the user navigates to a new window or tab and then returns to the page'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_6", $st => '#form_slidergeneral_misc', $f => "#sr_gen_nextSlideOnFocus"],
 							],
 							'disable_blur_focus'  => [
-								$t  => $this->l("Disable Blur/Focus behavior"),
+								$t  => $this->l('Disable Blur/Focus behavior'),
 								$h  => "general.disableFocusListener",
 								$k  => ["blur", "focus", "disable blur"],
-								$d  => $this->l("Disable Slider resizing when the user navigates away from the tab/window and returns to the page"),
+								$d  => $this->l('Disable Slider resizing when the user navigates away from the tab/window and returns to the page'),
 								$a  => $u . "plugin-general-settings/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_6", $st => '#form_slidergeneral_misc', $f => "#sr_gen_disableFocusListener"],
 							],
@@ -2101,10 +2120,10 @@ class RevSliderHelp {
 					'gst_sl_3'  => [
 						'layout'    => [
 							'infinity_scroll'  => [
-								$t  => $this->l("Infinity Scroll"),
+								$t  => $this->l('Infinity Scroll'),
 								$h  => "carousel.infinity",
 								$k  => ["carousel", "infinity", "scroll", "infinity scroll"],
-								$d  => $this->l("Slides will continuously appear from either side when the Slides change"),
+								$d  => $this->l('Slides will continuously appear from either side when the Slides change'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2114,10 +2133,10 @@ class RevSliderHelp {
 								],
 							],
 							'layers_visible'   => [
-								$t  => $this->l("Layers Visible"),
+								$t  => $this->l('Layers Visible'),
 								$h  => "carousel.showAllLayers",
 								$k  => ["carousel", "layers visible", "show layers"],
-								$d  => $this->l("Layers from Slides that are visible in the carousel will always be visible by default (Layer animations will be disabled)"),
+								$d  => $this->l('Layers from Slides that are visible in the carousel will always be visible by default (Layer animations will be disabled)'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2127,10 +2146,10 @@ class RevSliderHelp {
 								],
 							],
 							'max_items'        => [
-								$t  => $this->l("Max Visible Slides"),
+								$t  => $this->l('Max Visible Slides'),
 								$h  => "carousel.maxItems",
 								$k  => ["carousel", "max visible", "max visible slides"],
-								$d  => $this->l("The maximum number of Slides that will be visible at any given time.  View the documentation below to learn how to set a minimum."),
+								$d  => $this->l('The maximum number of Slides that will be visible at any given time.  View the documentation below to learn how to set a minimum.'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2140,10 +2159,10 @@ class RevSliderHelp {
 								],
 							],
 							'stretch_slides'   => [
-								$t  => $this->l("Stretch Slides"),
+								$t  => $this->l('Stretch Slides'),
 								$h  => "carousel.stretch",
 								$k  => ["carousel", "stretch", "stretch slides", "full width", "full width slides"],
-								$d  => $this->l("Slides will always appear as full width, resulting in one Slide being visible at a time"),
+								$d  => $this->l('Slides will always appear as full width, resulting in one Slide being visible at a time'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2153,10 +2172,10 @@ class RevSliderHelp {
 								],
 							],
 							'border_radius'    => [
-								$t  => $this->l("Border Radius"),
+								$t  => $this->l('Border Radius'),
 								$h  => "carousel.borderRadius",
 								$k  => ["carousel", "border radius", "carouse border radius"],
-								$d  => $this->l("Add a CSS border-radius to the carousel items (px)"),
+								$d  => $this->l('Add a CSS border-radius to the carousel items (px)'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2166,10 +2185,10 @@ class RevSliderHelp {
 								],
 							],
 							'space'            => [
-								$t  => $this->l("Item Spacing"),
+								$t  => $this->l('Item Spacing'),
 								$h  => "carousel.space",
 								$k  => ["carousel", "carousel spacing", "item spacing", "space", "spacing"],
-								$d  => $this->l("Define the spacing between the carousel items (px)"),
+								$d  => $this->l('Define the spacing between the carousel items (px)'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2179,10 +2198,10 @@ class RevSliderHelp {
 								],
 							],
 							'padding_top'      => [
-								$t  => $this->l("Padding Top"),
+								$t  => $this->l('Padding Top'),
 								$h  => "carousel.paddingTop",
 								$k  => ["carousel", "carousel padding", "carousel padding top", "padding top", "padding"],
-								$d  => $this->l("Define the CSS padding-top for the carousel items (px)"),
+								$d  => $this->l('Define the CSS padding-top for the carousel items (px)'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2192,10 +2211,10 @@ class RevSliderHelp {
 								],
 							],
 							'padding_bottom'   => [
-								$t  => $this->l("Padding Bottom"),
+								$t  => $this->l('Padding Bottom'),
 								$h  => "carousel.paddingBottom",
 								$k  => ["carousel", "carousel padding", "carousel padding bottom", "padding bottom", "padding"],
-								$d  => $this->l("Define the CSS padding-bottom for the carousel items (px)"),
+								$d  => $this->l('Define the CSS padding-bottom for the carousel items (px)'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2205,10 +2224,10 @@ class RevSliderHelp {
 								],
 							],
 							'horizontal_align' => [
-								$t  => $this->l("Horizontal Align"),
+								$t  => $this->l('Horizontal Align'),
 								$h  => "carousel.horizontal",
 								$k  => ["carousel", "carousel align", "carousel horizontal align", "horizontal align", "align"],
-								$d  => $this->l("Decide how the items should be aligned horizontally inside the Slide container"),
+								$d  => $this->l('Decide how the items should be aligned horizontally inside the Slide container'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2218,10 +2237,10 @@ class RevSliderHelp {
 								],
 							],
 							'vertical_align'   => [
-								$t  => $this->l("Vertical Align"),
+								$t  => $this->l('Vertical Align'),
 								$h  => "carousel.vertical",
 								$k  => ["carousel", "carousel align", "carousel vertical align", "vertical align", "align"],
-								$d  => $this->l("Decide how the items should be aligned vertically inside the Slide container"),
+								$d  => $this->l('Decide how the items should be aligned vertically inside the Slide container'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2233,10 +2252,10 @@ class RevSliderHelp {
 						],
 						'animation' => [
 							'easing' => [
-								$t  => $this->l("Easing"),
+								$t  => $this->l('Easing'),
 								$h  => "carousel.ease",
 								$k  => ["carousel", "carousel easing", "carousel transition", "carousel animation", "carousel transition easing", "easing"],
-								$d  => $this->l("The easing equation for when the carousel changes from one Slide to the next"),
+								$d  => $this->l('The easing equation for when the carousel changes from one Slide to the next'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2246,10 +2265,10 @@ class RevSliderHelp {
 								],
 							],
 							'speed'  => [
-								$t  => $this->l("Speed"),
+								$t  => $this->l('Speed'),
 								$h  => "carousel.speed",
 								$k  => ["carousel", "carousel speed", "carousel transition", "carousel animation", "carousel transition speed", "speed"],
-								$d  => $this->l("The speed the items will change form one Slide to the next (in milliseconds)"),
+								$d  => $this->l('The speed the items will change form one Slide to the next (in milliseconds)'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2262,10 +2281,10 @@ class RevSliderHelp {
 						'effects'   => [
 							'fade'             => [
 								$di => "slider_carousel_fadeout",
-								$t  => $this->l("Fade Items"),
+								$t  => $this->l('Fade Items'),
 								$h  => "carousel.fadeOut",
 								$k  => ["carousel", "fade", "carousel fade", "carousel items", "carousel item opacity"],
-								$d  => $this->l("Apply opacity to the non-activate Slides"),
+								$d  => $this->l('Apply opacity to the non-activate Slides'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2275,10 +2294,10 @@ class RevSliderHelp {
 								],
 							],
 							'varying_fade'     => [
-								$t  => $this->l("Varying Fade"),
+								$t  => $this->l('Varying Fade'),
 								$h  => "carousel.varyFade",
 								$k  => ["carousel", "fade", "carousel fade", "carousel items", "carousel item opacity", "varying fade"],
-								$d  => $this->l("Apply varying opacity to the non-activate Slides in staggered order"),
+								$d  => $this->l('Apply varying opacity to the non-activate Slides in staggered order'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [
@@ -2292,10 +2311,10 @@ class RevSliderHelp {
 							],
 							'rotation_enable'  => [
 								$di => "slider_carousel_rotation",
-								$t  => $this->l("Enable 3D Rotation"),
+								$t  => $this->l('Enable 3D Rotation'),
 								$h  => "carousel.rotation",
 								$k  => ["carousel", "rotation", "carousel rotate items", "rotate items", "3d rotation"],
-								$d  => $this->l("Apply a 3D rotation to the non-active items"),
+								$d  => $this->l('Apply a 3D rotation to the non-active items'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2305,10 +2324,10 @@ class RevSliderHelp {
 								],
 							],
 							'degrees'          => [
-								$t  => $this->l("Rotation Degrees"),
+								$t  => $this->l('Rotation Degrees'),
 								$h  => "carousel.maxRotation",
 								$k  => ["carousel", "carousel items", "carousel rotation", "item rotation", "3d rotation", "rotation degrees", "degrees"],
-								$d  => $this->l("The degree value for the 3D rotation applied to the non-active items"),
+								$d  => $this->l('The degree value for the 3D rotation applied to the non-active items'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [
@@ -2321,10 +2340,10 @@ class RevSliderHelp {
 								],
 							],
 							'varying_rotation' => [
-								$t  => $this->l("Varying Rotation"),
+								$t  => $this->l('Varying Rotation'),
 								$h  => "carousel.varyRotate",
 								$k  => ["carousel", "carousel items", "carousel rotation", "item rotation", "3d rotation", "varying rotation"],
-								$d  => $this->l("Apply varying rotations to the non-activate Slides in staggered order"),
+								$d  => $this->l('Apply varying rotations to the non-activate Slides in staggered order'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [
@@ -2338,10 +2357,10 @@ class RevSliderHelp {
 							],
 							'scale'            => [
 								$di => "slider_carousel_scale",
-								$t  => $this->l("Enable Scaling"),
+								$t  => $this->l('Enable Scaling'),
 								$h  => "carousel.scale",
 								$k  => ["carousel", "carousel items", "carousel scale", "item scale", "carousel scaling", "carousel zoom", "zoom"],
-								$d  => $this->l("Zoom the non-active items by a certain percentage"),
+								$d  => $this->l('Zoom the non-active items by a certain percentage'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [[$p => 'settings.type', $v => 'carousel', $o => 'slider_layout_type_carousel']],
@@ -2351,10 +2370,10 @@ class RevSliderHelp {
 								],
 							],
 							'scale_percentage' => [
-								$t  => $this->l("Scale Percentage"),
+								$t  => $this->l('Scale Percentage'),
 								$h  => "carousel.scaleDown",
 								$k  => ["carousel", "carousel items", "carousel scale", "item scale", "carousel scaling", "carousel zoom", "zoom"],
-								$d  => $this->l("Zoom the non-active items by this percentage"),
+								$d  => $this->l('Zoom the non-active items by this percentage'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [
@@ -2367,10 +2386,10 @@ class RevSliderHelp {
 								],
 							],
 							'varying_scale'    => [
-								$t  => $this->l("Varing Scale"),
+								$t  => $this->l('Varing Scale'),
 								$h  => "carousel.varyScale",
 								$k  => ["carousel", "carousel items", "carousel scale", "item scale", "carousel scaling", "carousel zoom", "zoom", "varying scale", "varying zoom"],
-								$d  => $this->l("Apply varying scale/zooms to the non-activate Slides in staggered order"),
+								$d  => $this->l('Apply varying scale/zooms to the non-activate Slides in staggered order'),
 								$a  => $u . "carousel-settings/",
 								$hl => [
 									$dp => [
@@ -2387,18 +2406,18 @@ class RevSliderHelp {
 					'gst_sl_12' => [
 						'enable_spinner' => [
 							$di => 'slider_spinner',
-							$t  => $this->l("Spinner / Preloader"),
+							$t  => $this->l('Spinner / Preloader'),
 							$h  => "layout.spinner.type",
 							$k  => ["spinner", "preloader", "loader"],
-							$d  => $this->l("Display a spinner animation when the Plugin first loads"),
+							$d  => $this->l('Display a spinner animation when the Plugin first loads'),
 							$a  => $u . "plugin-general-settings/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_12", $st => '#form_sliderspinner', $f => "#revealer_spinners"],
 						],
 						'spinner_color'  => [
-							$t  => $this->l("Spinner Color"),
+							$t  => $this->l('Spinner Color'),
 							$h  => "layout.spinner.color",
 							$k  => ["spinner", "preloader", "loader", "spinner color", "preloader color"],
-							$d  => $this->l("The color of the spinner/preloader that shows before the Plugin first loads"),
+							$d  => $this->l('The color of the spinner/preloader that shows before the Plugin first loads'),
 							$a  => $u . "plugin-general-settings/",
 							$hl => [
 								$dp => [[$p => 'settings.layout.spinner.type', $v => '0::1::2::3::4::5', $o => 'slider_spinner']],
@@ -2412,19 +2431,19 @@ class RevSliderHelp {
 						'parallax' => [
 							'enable_effects'    => [
 								$di => "slider_parallax",
-								$t  => $this->l("Enable Parallax/3D Effects"),
+								$t  => $this->l('Enable Parallax/3D Effects'),
 								$h  => "parallax.set",
 								$k  => ["parallax", "3D", "3d", "effects", "effect"],
-								$d  => $this->l("Enable the special effects engine for the Slider"),
+								$d  => $this->l('Enable the special effects engine for the Slider'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_8, #sr_sbased-tab-3 > div", $st => '#form_slidergeneral_effects_parallax', $f => "#sr_effectspddd"],
 							],
 							'enable_3d'         => [
 								$di => "slider_parallax_3d",
-								$t  => $this->l("Enable 3D Effects"),
+								$t  => $this->l('Enable 3D Effects'),
 								$h  => "parallax.setDDD",
 								$k  => ["3d", "effect", "effects", "3d effect"],
-								$d  => $this->l("Enable the Parallax/3D effect engine for the Slider"),
+								$d  => $this->l('Enable the Parallax/3D effect engine for the Slider'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [
 									$dp => [[$p => 'settings.parallax.set', $v => true, $o => 'slider_parallax']],
@@ -2434,10 +2453,10 @@ class RevSliderHelp {
 								],
 							],
 							'disable_mobile'    => [
-								$t  => $this->l("Disable Parallax/3D on Mobile"),
+								$t  => $this->l('Disable Parallax/3D on Mobile'),
 								$h  => "parallax.disableOnMobile",
 								$k  => ["3d", "effect", "effects", "3d effect", "disable", "disable mobile"],
-								$d  => $this->l("Disable the Parallax/3D effects for mobile devices"),
+								$d  => $this->l('Disable the Parallax/3D effects for mobile devices'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [
 									$dp => [[$p => 'settings.parallax.set', $v => true, $o => 'slider_parallax']],
@@ -2449,26 +2468,26 @@ class RevSliderHelp {
 							'mouse_sensibility' => [
 								'triggered_by'    => [
 									$di => "slider_parallax_mouse_type",
-									$t  => $this->l("Triggered By"),
+									$t  => $this->l('Triggered By'),
 									$h  => "parallax.mouse.type",
 									$k  => ["parallax mouse", "parallax scroll", "scroll", "mouse", "mouse move", "triggered", "triggered by"],
-									$d  => $this->l("Choose if the Parallax/3D effects should happen on mouse move, page scroll or both"),
+									$d  => $this->l('Choose if the Parallax/3D effects should happen on mouse move, page scroll or both'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_8, #sr_sbased-tab-3 > div", $st => '#form_slidergeneral_effects_parallax_mous', $f => "#slider_parallax_mouse_sens_event"],
 								],
 								'parallax_origin' => [
-									$t  => $this->l("Parallax Origin"),
+									$t  => $this->l('Parallax Origin'),
 									$h  => "parallax.mouse.origo",
 									$k  => ["parallax origo", "parallax origin, 3D origin"],
-									$d  => $this->l("Choose if the origin point for the effect should be the Layer's center, or based on where the user first hovered their mouse over the element"),
+									$d  => $this->l('Choose if the origin point for the effect should be the Layer\'s center, or based on where the user first hovered their mouse over the element'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [$m => "#plugin_settings_trigger, #gst_sl_8, #sr_sbased-tab-3 > div", $st => '#form_slidergeneral_effects_parallax_mous', $f => "#slider_parallax_mouse_origo"],
 								],
 								'mouse_speed'     => [
-									$t  => $this->l("Mouse Speed"),
+									$t  => $this->l('Mouse Speed'),
 									$h  => "parallax.mouse.speed",
 									$k  => ["mouse speed", "parallax mouse", "parallax mouse speed", "parallax speed"],
-									$d  => $this->l("The sensitivity speed for the Parallax effect(s) on mouse-move"),
+									$d  => $this->l('The sensitivity speed for the Parallax effect(s) on mouse-move'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.parallax.mouse.type', $v => 'mouse::mousescroll', $o => 'slider_parallax_mouse_type']],
@@ -2478,10 +2497,10 @@ class RevSliderHelp {
 									],
 								],
 								'bg_speed'        => [
-									$t  => $this->l("Background Image Speed"),
+									$t  => $this->l('Background Image Speed'),
 									$h  => "parallax.mouse.bgSpeed",
 									$k  => ["bg speed", "parallax background", "parallax background image", "parallax image"],
-									$d  => $this->l("The movement speed for the Slide's main background when the effect(s) occur"),
+									$d  => $this->l('The movement speed for the Slide\'s main background when the effect(s) occur'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.parallax.mouse.type', $v => 'scroll::mousescroll', $o => 'slider_parallax_mouse_type']],
@@ -2491,10 +2510,10 @@ class RevSliderHelp {
 									],
 								],
 								'layers_speed'    => [
-									$t  => $this->l("Layers Speed"),
+									$t  => $this->l('Layers Speed'),
 									$h  => "parallax.mouse.layersSpeed",
 									$k  => ["bg speed", "parallax background", "parallax background layer", "parallax layers"],
-									$d  => $this->l("The movement speed for the Slide's Layers when the effect(s) occur"),
+									$d  => $this->l('The movement speed for the Slide\'s Layers when the effect(s) occur'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.parallax.mouse.type', $v => 'scroll::mousescroll', $o => 'slider_parallax_mouse_type']],
@@ -2506,10 +2525,10 @@ class RevSliderHelp {
 							],
 							'threed_settings'   => [
 								'shadow'          => [
-									$t  => $this->l("3D Shadow"),
+									$t  => $this->l('3D Shadow'),
 									$h  => "parallax.ddd.shadow",
 									$k  => ["3d", "3d effect", "3d shadow", "shadow"],
-									$d  => $this->l("Apply a box-shadow to the 3D element to enhance the effect"),
+									$d  => $this->l('Apply a box-shadow to the 3D element to enhance the effect'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [
@@ -2522,10 +2541,10 @@ class RevSliderHelp {
 									],
 								],
 								'background'      => [
-									$t  => $this->l("Background Enabled"),
+									$t  => $this->l('Background Enabled'),
 									$h  => "parallax.ddd.BGFreeze",
 									$k  => ["3d", "3d effect", "3d background", "3d bg"],
-									$d  => $this->l("Choose if the Slide's main background image should be included for the 3D effect"),
+									$d  => $this->l('Choose if the Slide\'s main background image should be included for the 3D effect'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [
@@ -2538,10 +2557,10 @@ class RevSliderHelp {
 									],
 								],
 								'slider_overflow' => [
-									$t  => $this->l("Slide BG Overflow Hidden"),
+									$t  => $this->l('Slide BG Overflow Hidden'),
 									$h  => "parallax.ddd.overflow",
 									$k  => ["3d", "3d effect", "3d overflow", "3D overflow hidden", "3d background", "3d bg"],
-									$d  => $this->l("Choose if the Slider's main background can bleed outside the Slider's bounding box when skewed in 3D space"),
+									$d  => $this->l('Choose if the Slider\'s main background can bleed outside the Slider\'s bounding box when skewed in 3D space'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [
@@ -2554,10 +2573,10 @@ class RevSliderHelp {
 									],
 								],
 								'layers_overflow' => [
-									$t  => $this->l("Layers Overflow Hidden"),
+									$t  => $this->l('Layers Overflow Hidden'),
 									$h  => "parallax.ddd.layerOverflow",
 									$k  => ["3d", "3d effect", "3d overflow", "3D overflow hidden", "3d layers"],
-									$d  => $this->l("Choose if Slide Layers can bleed outside the Slider's bounding box when skewed in 3D space"),
+									$d  => $this->l('Choose if Slide Layers can bleed outside the Slider\'s bounding box when skewed in 3D space'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [
@@ -2570,10 +2589,10 @@ class RevSliderHelp {
 									],
 								],
 								'threed_crop_fix' => [
-									$t  => $this->l("3D Crop Fix"),
+									$t  => $this->l('3D Crop Fix'),
 									$h  => "parallax.ddd.zCorrection",
 									$k  => ["3d", "3d effect", "3d crop", "3D crop fix"],
-									$d  => $this->l("Applies a translateZ to the 3D elements to help avoid overlapping"),
+									$d  => $this->l('Applies a translateZ to the 3D elements to help avoid overlapping'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [
@@ -2586,10 +2605,10 @@ class RevSliderHelp {
 									],
 								],
 								'bg_3d_depth'     => [
-									$t  => $this->l("BG 3D Depth"),
+									$t  => $this->l('BG 3D Depth'),
 									$h  => "bgparallaxlevel",
 									$k  => ["3d", "3d effect", "3d depth", "bg depth", "bg 3d depth"],
-									$d  => $this->l("The 3D depth level for the Slide's main background"),
+									$d  => $this->l('The 3D depth level for the Slide\'s main background'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [
@@ -2603,10 +2622,10 @@ class RevSliderHelp {
 								],
 							],
 							'depths'            => [
-								$t  => $this->l("Parallax Depths"),
+								$t  => $this->l('Parallax Depths'),
 								$h  => "parallax.levels",
 								$k  => ["parallax", "depth", "parallax depth", "parallax depths"],
-								$d  => $this->l("Define a depth for each of the 15 options, which can then be assigned to any given Layer"),
+								$d  => $this->l('Define a depth for each of the 15 options, which can then be assigned to any given Layer'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [
 									$dp => [[$p => 'settings.parallax.set', $v => true, $o => 'slider_parallax']],
@@ -2619,18 +2638,18 @@ class RevSliderHelp {
 						'timeline' => [
 							'enabled'  => [
 								$di => 'scroll_timeline_enabled',
-								$t  => $this->l("Timeline Scroll Effects"),
+								$t  => $this->l('Timeline Scroll Effects'),
 								$h  => "scrolltimeline.set",
 								$k  => ["timeline", "scroll", "scroll effects", "animation"],
-								$d  => $this->l("The Slide's content will animate into and out of view as the user scrolls the page."),
+								$d  => $this->l('The Slide\'s content will animate into and out of view as the user scrolls the page.'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_8, #sr_sbased-tab-1 > div", $st => '#form_plugin_scroll', $f => "#sr_sbt_ge_enabled"],
 							],
 							'easing'   => [
-								$t  => $this->l("Animation Easing"),
+								$t  => $this->l('Animation Easing'),
 								$h  => "scrolltimeline.ease",
 								$k  => ["timeline", "scroll", "scroll effects", "animation", "easing"],
-								$d  => $this->l("The easing equation to be applied to the animated content as the page scrolls"),
+								$d  => $this->l('The easing equation to be applied to the animated content as the page scrolls'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [
 									$dp => [[$p => 'settings.scrolltimeline.set', $v => true, $o => 'scroll_timeline_enabled']],
@@ -2640,10 +2659,10 @@ class RevSliderHelp {
 								],
 							],
 							'duration' => [
-								$t  => $this->l("Animation Speed"),
+								$t  => $this->l('Animation Speed'),
 								$h  => "scrolltimeline.speed",
 								$k  => ["timeline", "scroll", "scroll effects", "animation", "duration", "speed"],
-								$d  => $this->l("The speed at which the content will animate as the page scrolls (in milliseconds)"),
+								$d  => $this->l('The speed at which the content will animate as the page scrolls (in milliseconds)'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [
 									$dp => [[$p => 'settings.scrolltimeline.set', $v => true, $o => 'scroll_timeline_enabled']],
@@ -2653,10 +2672,10 @@ class RevSliderHelp {
 								],
 							],
 							'use_on'   => [
-								$t  => $this->l("Animate Layers on Scroll"),
+								$t  => $this->l('Animate Layers on Scroll'),
 								$h  => "scrolltimeline.layers",
 								$k  => ["timeline", "scroll", "scroll effects", "animation", "layers"],
-								$d  => $this->l("Animate the Layer's by default on Scroll (can then be turned off per Layer in the Layer settings)"),
+								$d  => $this->l('Animate the Layer\'s by default on Scroll (can then be turned off per Layer in the Layer settings)'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [
 									$dp => [[$p => 'settings.scrolltimeline.set', $v => true, $o => 'scroll_timeline_enabled']],
@@ -2669,18 +2688,18 @@ class RevSliderHelp {
 						'effects'  => [
 							'enabled'    => [
 								$di => 'scroll_effects_enabled',
-								$t  => $this->l("Scroll Effects"),
+								$t  => $this->l('Scroll Effects'),
 								$h  => "scrolleffects.set",
 								$k  => ["scroll", "scroll effects", "fade on scroll", "special effects"],
-								$d  => $this->l("Apply special effects to your content when the page is scrolled"),
+								$d  => $this->l('Apply special effects to your content when the page is scrolled'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [$m => "#plugin_settings_trigger, #gst_sl_8, #sr_sbased-tab-2 > div", $st => '#form_slidergeneral_effects_scroll', $f => "#sr_sbe_ge_enabled"],
 							],
 							'fade'       => [
-								$t  => $this->l("Fade"),
+								$t  => $this->l('Fade'),
 								$h  => "scrolleffects.setFade",
 								$k  => ["scroll", "scroll effects", "fade on scroll", "special effects"],
-								$d  => $this->l("Fade the Slider out when  it scrolls into and out of view"),
+								$d  => $this->l('Fade the Slider out when  it scrolls into and out of view'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [
 									$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2690,10 +2709,10 @@ class RevSliderHelp {
 								],
 							],
 							'grayscale'  => [
-								$t  => $this->l("GrayScale"),
+								$t  => $this->l('GrayScale'),
 								$h  => "scrolleffects.setGrayScale",
 								$k  => ["scroll", "scroll effects", "grayscale on scroll", "special effects", "grayscale"],
-								$d  => $this->l("Apply a black and white filter to the Slider when it scrolls into and out of view"),
+								$d  => $this->l('Apply a black and white filter to the Slider when it scrolls into and out of view'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [
 									$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2704,10 +2723,10 @@ class RevSliderHelp {
 							],
 							'blur'       => [
 								$di => "slider_scrolleffects_blur",
-								$t  => $this->l("Blur"),
+								$t  => $this->l('Blur'),
 								$h  => "scrolleffects.setBlur",
 								$k  => ["scroll", "scroll effects", "blur on scroll", "special effects", "blur"],
-								$d  => $this->l("Apply a blur filter to the Slider when it scrolls into and out of view"),
+								$d  => $this->l('Apply a blur filter to the Slider when it scrolls into and out of view'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [
 									$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2717,10 +2736,10 @@ class RevSliderHelp {
 								],
 							],
 							'blur_value' => [
-								$t  => $this->l("Blur Value"),
+								$t  => $this->l('Blur Value'),
 								$h  => "scrolleffects.maxBlur",
 								$k  => ["scroll", "scroll effects", "blur on scroll", "special effects", "blur"],
-								$d  => $this->l("The blur filter strength for the Blur scroll effect (px)"),
+								$d  => $this->l('The blur filter strength for the Blur scroll effect (px)'),
 								$a  => $u . "parallax-3d-effect/",
 								$hl => [
 									$dp => [
@@ -2734,10 +2753,10 @@ class RevSliderHelp {
 							],
 							'use_on'     => [
 								'layers'                 => [
-									$t  => $this->l("Layers"),
+									$t  => $this->l('Layers'),
 									$h  => "scrolleffects.layers",
 									$k  => ["scroll", "scroll effects", "blur layers", "fade layers"],
-									$d  => $this->l("Apply the effect(s) to all Layers"),
+									$d  => $this->l('Apply the effect(s) to all Layers'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2747,10 +2766,10 @@ class RevSliderHelp {
 									],
 								],
 								'parallax_layers'        => [
-									$t  => $this->l("Parallax Layers"),
+									$t  => $this->l('Parallax Layers'),
 									$h  => "scrolleffects.parallaxLayers",
 									$k  => ["scroll", "scroll effects", "blur layers", "fade layers", "parallax", "parallax layers"],
-									$d  => $this->l("Apply the effect(s) to all Parallax Layers"),
+									$d  => $this->l('Apply the effect(s) to all Parallax Layers'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2760,10 +2779,10 @@ class RevSliderHelp {
 									],
 								],
 								'slide_bg'               => [
-									$t  => $this->l("Slide Background"),
+									$t  => $this->l('Slide Background'),
 									$h  => "scrolleffects.bg",
 									$k  => ["scroll", "scroll effects", "blur background", "fade background", "slide background", "slide bg", "image background"],
-									$d  => $this->l("Apply the effect(s) to the Slide's main background"),
+									$d  => $this->l('Apply the effect(s) to the Slide\'s main background'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2773,10 +2792,10 @@ class RevSliderHelp {
 									],
 								],
 								'static_layers'          => [
-									$t  => $this->l("Static/Global Layers"),
+									$t  => $this->l('Static/Global Layers'),
 									$h  => "scrolleffects.staticLayers",
 									$k  => ["scroll", "scroll effects", "blur global layers", "fade global layers", "static layers", "global", "global layers"],
-									$d  => $this->l("Apply the effect(s) to the Slide's Static/Global Layers"),
+									$d  => $this->l('Apply the effect(s) to the Slide\'s Static/Global Layers'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2786,10 +2805,10 @@ class RevSliderHelp {
 									],
 								],
 								'static_parallax_layers' => [
-									$t  => $this->l("Static/Global Parallax Layers"),
+									$t  => $this->l('Static/Global Parallax Layers'),
 									$h  => "scrolleffects.staticParallaxLayers",
 									$k  => ["scroll", "scroll effects", "blur global layers", "fade global layers", "static layers", "global", "global layers", "parallax"],
-									$d  => $this->l("Apply the effect(s) to the Slide's Static/Global Parallax Layers"),
+									$d  => $this->l('Apply the effect(s) to the Slide\'s Static/Global Parallax Layers'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2801,10 +2820,10 @@ class RevSliderHelp {
 							],
 							$dp          => [
 								'direction'       => [
-									$t  => $this->l("Scroll Direction"),
+									$t  => $this->l('Scroll Direction'),
 									$h  => "scrolleffects.direction",
 									$k  => ["scroll", "scroll effects", "scroll direction"],
-									$d  => $this->l("Apply the effect(s) when the page is scrolled from the top, bottom, or both directions"),
+									$d  => $this->l('Apply the effect(s) when the page is scrolled from the top, bottom, or both directions'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2814,10 +2833,10 @@ class RevSliderHelp {
 									],
 								],
 								'disable_mobile'  => [
-									$t  => $this->l("Disable on Mobile"),
+									$t  => $this->l('Disable on Mobile'),
 									$h  => "scrolleffects.disableOnMobile",
 									$k  => ["scroll", "scroll effects", "disable", "disable mobile", "disable on mobile"],
-									$d  => $this->l("Disable the effects on mobile devices"),
+									$d  => $this->l('Disable the effects on mobile devices'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2827,10 +2846,10 @@ class RevSliderHelp {
 									],
 								],
 								'offset_tilt'     => [
-									$t  => $this->l("Offset Tilt"),
+									$t  => $this->l('Offset Tilt'),
 									$h  => "scrolleffects.tilt",
 									$k  => ["scroll", "scroll effects", "tilt", "offset tilt"],
-									$d  => $this->l("The percentage the Slider is in the page's viewport before the effect(s) are applied"),
+									$d  => $this->l('The percentage the Slider is in the page\'s viewport before the effect(s) are applied'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2840,10 +2859,10 @@ class RevSliderHelp {
 									],
 								],
 								'multiple_bg'     => [
-									$t  => $this->l("BG Strength"),
+									$t  => $this->l('BG Strength'),
 									$h  => "scrolleffects.multiplicator",
 									$k  => ["scroll", "scroll effects", "multiple factor"],
-									$d  => $this->l("The strength of the opacity, blur or grayscale filter for the effect(s) for the Slide's main background"),
+									$d  => $this->l('The strength of the opacity, blur or grayscale filter for the effect(s) for the Slide\'s main background'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2853,10 +2872,10 @@ class RevSliderHelp {
 									],
 								],
 								'multiple_layers' => [
-									$t  => $this->l("Layers Strength"),
+									$t  => $this->l('Layers Strength'),
 									$h  => "scrolleffects.multiplicatorLayers",
 									$k  => ["scroll", "scroll effects", "multiple factor"],
-									$d  => $this->l("The strength of the opacity, blur or grayscale filter for the effect(s) for the Slide's Layers"),
+									$d  => $this->l('The strength of the opacity, blur or grayscale filter for the effect(s) for the Slide\'s Layers'),
 									$a  => $u . "parallax-3d-effect/",
 									$hl => [
 										$dp => [[$p => 'settings.scrolleffects.set', $v => true, $o => 'scroll_effects_enabled']],
@@ -2871,35 +2890,35 @@ class RevSliderHelp {
 					'addons'    => [],
 					'gst_sl_10' => [
 						'lazy_loading'      => [
-							$t  => $this->l("Lazy Loading"),
+							$t  => $this->l('Lazy Loading'),
 							$h  => "general.lazyLoad",
 							$k  => ["lazy", "lazy load", "lazy loading"],
-							$d  => $this->l("Choose 'All' to LazyLoad all images in the Slider when the Slider first loads, 'Smart' to only LazyLoad the prev/next Slide's images, and 'Single' to only LazyLoad the current Slide's images."),
+							$d  => $this->l('Choose \'All\' to LazyLoad all images in the Slider when the Slider first loads, \'Smart\' to only LazyLoad the prev/next Slide\'s images, and \'Single\' to only LazyLoad the current Slide\'s images.'),
 							$a  => $u . "advanced-plugin-settings/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_10", $st => '#form_slidergeneral_advanced_loading', $f => "#sr_adv_performance_load"],
 						],
 						'simplify'          => [
-							$t  => $this->l("Simplify on IOS4/IE8"),
+							$t  => $this->l('Simplify on IOS4/IE8'),
 							$h  => "troubleshooting.simplify_ie8_ios4",
 							$k  => ["fallback", "simplify", "simplify on", "simplify animations"],
-							$d  => $this->l("Simplify Animations for better compatibility with IOS4/IE8"),
+							$d  => $this->l('Simplify Animations for better compatibility with IOS4/IE8'),
 							$a  => $u . "advanced-plugin-settings/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_10", $st => '#form_slidergeneral_advanced_loading', $f => "#sr_simplify_ie8_ios4"],
 						],
 						'alt_image'         => [
 							$di => "slider_troubleshooting_alternativeimage",
-							$t  => $this->l("Alternative Image"),
+							$t  => $this->l('Alternative Image'),
 							$h  => "troubleshooting.alternateImageType",
 							$k  => ["alternative image", "fallback image"],
-							$d  => $this->l("Show a simple image instead of the Slider on mobile, IE8 or both"),
+							$d  => $this->l('Show a simple image instead of the Slider on mobile, IE8 or both'),
 							$a  => $u . "advanced-plugin-settings/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_10", $st => '#form_slidergeneral_advanced_loading', $f => "#slider_fallback_alt_image"],
 						],
 						'alt_image_url'     => [
-							$t  => $this->l("Alternative Image URL"),
+							$t  => $this->l('Alternative Image URL'),
 							$h  => "troubleshooting.alternateURL",
 							$k  => ["alternative image", "fallback image", "fallback image url", "fallback url"],
-							$d  => $this->l("The url for the fallback image if a fallback is used for IE8/Mobile"),
+							$d  => $this->l('The url for the fallback image if a fallback is used for IE8/Mobile'),
 							$a  => $u . "advanced-plugin-settings/",
 							$hl => [
 								$dp => [[$p => 'settings.troubleshooting.alternateImageType', $v => 'mobile::ie8::mobile-ie8', $o => 'slider_troubleshooting_alternativeimage']],
@@ -2909,95 +2928,95 @@ class RevSliderHelp {
 							],
 						],
 						'jquery_noconflict' => [
-							$t  => $this->l("jQuery No Conflict Mode"),
+							$t  => $this->l('jQuery No Conflict Mode'),
 							$h  => "troubleshooting.jsNoConflict",
 							$k  => ["jquery", "jquery noconflict", "no conflict", "jQuery no conflict"],
-							$d  => $this->l("Call jQuery.noConflict() to help avoid conflicts with other themes/plugins"),
+							$d  => $this->l('Call jQuery.noConflict() to help avoid conflicts with other themes/plugins'),
 							$a  => $u . "advanced-plugin-settings/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_10", $st => '#form_slidergeneral_advanced_fallback', $f => "#sr_trbl_conflictmode"],
 						],
 						'js_to_body'        => [
-							$t  => $this->l("Put JS to Body"),
+							$t  => $this->l('Put JS to Body'),
 							$h  => "troubleshooting.jsInBody",
 							$k  => ["js to body", "js to body", "troubleshooting"],
-							$d  => $this->l("Load the Slider's JS files in the page's body to help resolve conflicts"),
+							$d  => $this->l('Load the Slider\'s JS files in the page\'s body to help resolve conflicts'),
 							$a  => $u . "advanced-plugin-settings/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_10", $st => '#form_slidergeneral_advanced_fallback', $f => "#sr_trbl_jsInBody"],
 						],
 						'output_filter'     => [
-							$t  => $this->l("Output Filter Protection"),
+							$t  => $this->l('Output Filter Protection'),
 							$h  => "troubleshooting.outPutFilter",
 							$k  => ["output", "output filter"],
-							$d  => $this->l("Useful for solving a conflict when the current theme runs filters over the page's main content"),
+							$d  => $this->l('Useful for solving a conflict when the current theme runs filters over the page\'s main content'),
 							$a  => $u . "advanced-plugin-settings/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_10", $st => '#form_slidergeneral_advanced_fallback', $f => "#sr_trbl_filters"],
 						],
 						'debug_mode'        => [
-							$t  => $this->l("Debug Mode"),
+							$t  => $this->l('Debug Mode'),
 							$h  => "troubleshooting.debugMode",
 							$k  => ["debug", "debug mode", "troubleshooting"],
-							$d  => $this->l("Display debug information on the Slider to help show issues during development"),
+							$d  => $this->l('Display debug information on the Slider to help show issues during development'),
 							$a  => $u . "advanced-plugin-settings/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_10", $st => '#form_slidergeneral_advanced_fallback', $f => "#sr_trbl_debugMode"],
 						],
 					],
 					'gst_sl_11' => [
 						'custom_css' => [
-							$t  => $this->l("Custom CSS"),
+							$t  => $this->l('Custom CSS'),
 							$h  => "rs_css_area",
 							$k  => ["custom css", "css", "add css", "slider css"],
-							$d  => $this->l("Add your own custom CSS to the Slider"),
+							$d  => $this->l('Add your own custom CSS to the Slider'),
 							$a  => $u . "advanced-plugin-settings/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_11, .js_css_editor_tabsarray[data-mode='css']", 'modal' => "css_jquery"],
 						],
 						'custom_js'  => [
-							$t  => $this->l("Custom JavaScript"),
+							$t  => $this->l('Custom JavaScript'),
 							$h  => "rs_js_area",
 							$k  => ["custom js", "javascript", "custom javascript", "jquery", "custom jquery", "jquery"],
-							$d  => $this->l("Add your own custom JavaScript to the Slider"),
+							$d  => $this->l('Add your own custom JavaScript to the Slider'),
 							$a  => $u . "advanced-plugin-settings/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_11, .js_css_editor_tabsarray[data-mode='javascript']", 'modal' => "css_jquery"],
 						],
 						'slider_api' => [
-							$t  => $this->l("Slider API"),
+							$t  => $this->l('Slider API'),
 							$h  => "rs_api_area",
 							$k  => ["custom js", "javascript", "custom javascript", "jquery", "custom jquery", "jquery", "api", "slider api"],
-							$d  => $this->l("Slider Revolution API methods and events"),
+							$d  => $this->l('Slider Revolution API methods and events'),
 							$a  => $u . "advanced-plugin-settings/",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_11, .js_css_editor_tabsarray[data-mode='javascript'], #form_slidergeneral_advanced_api", 'modal' => "css_jquery"],
 						],
 					],
 					'gst_sl_13' => [
 						'modal_align_hor'   => [
-							$t  => $this->l("Modal Horizontal Alignment"),
+							$t  => $this->l('Modal Horizontal Alignment'),
 							$h  => "modal.horizontal",
 							$k  => ["modal", "as modal", "alignment", "modal align", "align"],
-							$d  => $this->l("Choose how the Plugin should be horizontally aligned to the page when loaded as a Modal"),
+							$d  => $this->l('Choose how the Plugin should be horizontally aligned to the page when loaded as a Modal'),
 							$a  => $u . "as-modal",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_13", $st => '#form_slidergeneral_general_as_modal', $f => ".modal_hor_selector.selected"],
 						],
 						'modal_align_ver'   => [
-							$t  => $this->l("Modal Vertical Alignment"),
+							$t  => $this->l('Modal Vertical Alignment'),
 							$h  => "modal.vertical",
 							$k  => ["modal", "as modal", "alignment", "modal align", "align"],
-							$d  => $this->l("Choose how the Plugin should be vertically aligned to the page when loaded as a Modal"),
+							$d  => $this->l('Choose how the Plugin should be vertically aligned to the page when loaded as a Modal'),
 							$a  => $u . "as-modal",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_13", $st => '#form_slidergeneral_general_as_modal', $f => ".modal_ver_selector.selected"],
 						],
 						'use_modal_cover'   => [
 							$di => 'modal_cover',
-							$t  => $this->l("Use Cover as Modal"),
+							$t  => $this->l('Use Cover as Modal'),
 							$h  => "modal.cover",
 							$k  => ["modal", "as modal", "cover", "background"],
-							$d  => $this->l("Include a background cover when the Plugin is loaded as a Modal"),
+							$d  => $this->l('Include a background cover when the Plugin is loaded as a Modal'),
 							$a  => $u . "as-modal",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_13", $st => '#form_slidergeneral_general_as_modal', $f => "#sr_usemodalcover"],
 						],
 						'modal_cover_color' => [
-							$t  => $this->l("Use Cover as Modal"),
+							$t  => $this->l('Use Cover as Modal'),
 							$h  => "modal.coverColor",
 							$k  => ["modal", "as modal", "cover", "background", "color", "background color", "modal color"],
-							$d  => $this->l("The background color to be applied when the Plugin loads as a Modal"),
+							$d  => $this->l('The background color to be applied when the Plugin loads as a Modal'),
 							$a  => $u . "as-modal",
 							$hl => [
 								$dp => [[$p => 'settings.modal.cover', $v => true, $o => 'modal_cover']],
@@ -3007,18 +3026,18 @@ class RevSliderHelp {
 							],
 						],
 						'body_class'        => [
-							$t  => $this->l("Body Class"),
+							$t  => $this->l('Body Class'),
 							$h  => "modal.bodyclass",
 							$k  => ["modal", "as modal", "body class", "modal class", "class"],
-							$d  => $this->l("Add an optional class name to the page's body element when the Plugin is loaded as a Modal"),
+							$d  => $this->l('Add an optional class name to the page\'s body element when the Plugin is loaded as a Modal'),
 							$a  => $u . "as-modal",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_13", $st => '#form_slidergeneral_general_as_modal', $f => "#sr_modalbodyclass"],
 						],
 						'plugin_shortcode'  => [
-							$t  => $this->l("Plugin Shortcode"),
+							$t  => $this->l('Plugin Shortcode'),
 							$h  => "modalshortcode",
 							$k  => ["modal", "as modal", "body class", "modal shortcode", "shortcode"],
-							$d  => $this->l("A special shortcode for the Plugin when loading it as a Modal in the page with <a href='#'>custom JavaScript</a>"),
+							$d  => $this->l('A special shortcode for the Plugin when loading it as a Modal in the page with <a href=\'#\'>custom JavaScript</a>'),
 							$a  => $u . "as-modal",
 							$hl => [$m => "#plugin_settings_trigger, #gst_sl_13", $st => '#form_slidergeneral_general_as_modal', $f => "#sr_modalshortcode"],
 						],
@@ -3028,10 +3047,10 @@ class RevSliderHelp {
 					'gst_nav_1' => [
 						'enable'   => [
 							$di => "nav_general_progressbar",
-							$t  => $this->l("Enable Progress Bar"),
+							$t  => $this->l('Enable Progress Bar'),
 							$h  => "general.progressbar.set",
 							$k  => ["progress", "progress bar", "enable progress bar", "activate progress"],
-							$d  => $this->l("Add a progress bar to the Slider to display a visual representation of each Slide's timeline"),
+							$d  => $this->l('Add a progress bar to the Slider to display a visual representation of each Slide\'s timeline'),
 							$a  => $u . "progress-bar/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -3041,10 +3060,10 @@ class RevSliderHelp {
 							],
 						],
 						'color'    => [
-							$t  => $this->l("Progress Bar Color"),
+							$t  => $this->l('Progress Bar Color'),
 							$h  => "general.progressbar.color",
 							$k  => ["progress", "progress bar", "progress bar color"],
-							$d  => $this->l("Adjust the color for the progress bar"),
+							$d  => $this->l('Adjust the color for the progress bar'),
 							$a  => $u . "progress-bar/",
 							$hl => [
 								$dp => [
@@ -3057,10 +3076,10 @@ class RevSliderHelp {
 							],
 						],
 						'position' => [
-							$t  => $this->l("Progress Bar Position"),
+							$t  => $this->l('Progress Bar Position'),
 							$h  => "general.progressbar.position",
 							$k  => ["progress", "progress bar", "progress bar position"],
-							$d  => $this->l("Choose if the progress bar should appear at the top or bottom of the Slider"),
+							$d  => $this->l('Choose if the progress bar should appear at the top or bottom of the Slider'),
 							$a  => $u . "progress-bar/",
 							$hl => [
 								$dp => [
@@ -3073,10 +3092,10 @@ class RevSliderHelp {
 							],
 						],
 						'height'   => [
-							$t  => $this->l("Progress Bar Height"),
+							$t  => $this->l('Progress Bar Height'),
 							$h  => "general.progressbar.height",
 							$k  => ["navigation, nav", "progressbar", "progress", "timer"],
-							$d  => $this->l("The height of the progress bar in pixels"),
+							$d  => $this->l('The height of the progress bar in pixels'),
 							$a  => $u . "progress-bar/",
 							$hl => [
 								$dp => [
@@ -3092,10 +3111,10 @@ class RevSliderHelp {
 					'gst_nav_2' => [
 						'enable'      => [
 							$di => "nav_arrows",
-							$t  => $this->l("Enable Arrows"),
+							$t  => $this->l('Enable Arrows'),
 							$h  => "nav.arrows.set",
 							$k  => ["navigation", "arrow", "arrows", "add arrows", "add navigation"],
-							$d  => $this->l("Enable left/right Arrows for the Slider's navigation"),
+							$d  => $this->l('Enable left/right Arrows for the Slider\'s navigation'),
 							$a  => $u . "navigation-arrows/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -3105,10 +3124,10 @@ class RevSliderHelp {
 							],
 						],
 						'type'        => [
-							$t  => $this->l("Arrows Type/Style"),
+							$t  => $this->l('Arrows Type/Style'),
 							$h  => "nav.arrows.style",
 							$k  => ["navigation", "arrows", "arrow type", "arrow style", "arrows style", "arrows type"],
-							$d  => $this->l("Choose a predefined style for the Arrows navigation"),
+							$d  => $this->l('Choose a predefined style for the Arrows navigation'),
 							$a  => $u . "navigation-arrows/",
 							$hl => [
 								$dp => [
@@ -3122,10 +3141,10 @@ class RevSliderHelp {
 						],
 						'positioning' => [
 							'align_by'  => [
-								$t  => $this->l("Align By Slider/Content"),
+								$t  => $this->l('Align By Slider/Content'),
 								$h  => "nav.arrows.left.align, nav.arrows.right.align",
 								$k  => ["arrows", "arrow align", "arrow alignment", "position"],
-								$d  => $this->l("Choose 'Slider' to align based on the Slider's full display, or 'Content' to align against the Slider's grid area"),
+								$d  => $this->l('Choose \'Slider\' to align based on the Slider\'s full display, or \'Content\' to align against the Slider\'s grid area'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3138,10 +3157,10 @@ class RevSliderHelp {
 								],
 							],
 							'alignment' => [
-								$t  => $this->l("Alignment"),
+								$t  => $this->l('Alignment'),
 								$h  => "nav.arrows.left.horizontal, nav.arrows.left.vertical, nav.arrows.right.horizontal, nav.arrows.right.vertical",
 								$k  => ["arrow align", "arrow alignment", "arrow position", "arrows position", "position"],
-								$d  => $this->l("The Arrow's alignment position in the Slider before any offset(s) are applied"),
+								$d  => $this->l('The Arrow\'s alignment position in the Slider before any offset(s) are applied'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3154,10 +3173,10 @@ class RevSliderHelp {
 								],
 							],
 							'offsetx'   => [
-								$t  => $this->l("Offset X"),
+								$t  => $this->l('Offset X'),
 								$h  => "nav.arrows.left.offsetX, nav.arrows.right.offsetX",
 								$k  => ["arrow position", "arrow offset", "position"],
-								$d  => $this->l("Offset the Arrow's horizontal position by this amount.  Accepts positive and negative values."),
+								$d  => $this->l('Offset the Arrow\'s horizontal position by this amount.  Accepts positive and negative values.'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3170,10 +3189,10 @@ class RevSliderHelp {
 								],
 							],
 							'offsety'   => [
-								$t  => $this->l("Offset Y"),
+								$t  => $this->l('Offset Y'),
 								$h  => "nav.arrows.left.offsetY, nav.arrows.right.offsetY",
 								$k  => ["arrow position", "arrow offset", "position"],
-								$d  => $this->l("Offset the Arrow's vertical position by this amount.  Accepts positive and negative values."),
+								$d  => $this->l('Offset the Arrow\'s vertical position by this amount.  Accepts positive and negative values.'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3186,10 +3205,10 @@ class RevSliderHelp {
 								],
 							],
 							'animation' => [
-								$t  => $this->l("Arrows Animation"),
+								$t  => $this->l('Arrows Animation'),
 								$h  => "nav.arrows.left.anim, nav.arrows.right.anim",
 								$k  => ["arrow animation", "arrows animation", "show arrows", "hide arrows"],
-								$d  => $this->l("Optionally animate the arrows into and out of view when the slider first loads and on mouse hover"),
+								$d  => $this->l('Optionally animate the arrows into and out of view when the slider first loads and on mouse hover'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3204,10 +3223,10 @@ class RevSliderHelp {
 						],
 						'visibility'  => [
 							'rtl'                => [
-								$t  => $this->l("Right to Left"),
+								$t  => $this->l('Right to Left'),
 								$h  => "nav.arrows.rtl",
 								$k  => ["rtl", "right to left", "right-to-left"],
-								$d  => $this->l("Use RTL language alignment for the Arrow positioning"),
+								$d  => $this->l('Use RTL language alignment for the Arrow positioning'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3220,10 +3239,10 @@ class RevSliderHelp {
 								],
 							],
 							'show_speed'         => [
-								$t  => $this->l("Arrows Animation Speed"),
+								$t  => $this->l('Arrows Animation Speed'),
 								$h  => "nav.arrows.animSpeed",
 								$k  => ["arrows visibility", "show speed", "navigation speed"],
-								$d  => $this->l("The animation speed for when the Arrows animate into and out of view"),
+								$d  => $this->l('The animation speed for when the Arrows animate into and out of view'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3236,10 +3255,10 @@ class RevSliderHelp {
 								],
 							],
 							'show_delay'         => [
-								$t  => $this->l("Arrows Show Delay"),
+								$t  => $this->l('Arrows Show Delay'),
 								$h  => "nav.arrows.animDelay",
 								$k  => ["arrows visibility", "navigation delay"],
-								$d  => $this->l("A delay in milliseconds before the Arrows animate into view"),
+								$d  => $this->l('A delay in milliseconds before the Arrows animate into view'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3253,10 +3272,10 @@ class RevSliderHelp {
 							],
 							'hide_after'         => [
 								$di => "nav_arrows_hide_after",
-								$t  => $this->l("Hide After"),
+								$t  => $this->l('Hide After'),
 								$h  => "nav.arrows.alwaysOn",
 								$k  => ["arrows visibility", "hide after"],
-								$d  => $this->l("Auto-hide the arrows after a set amount of time (will be shown again when the user hovers/taps the Slider)"),
+								$d  => $this->l('Auto-hide the arrows after a set amount of time (will be shown again when the user hovers/taps the Slider)'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3269,10 +3288,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_after_desktop' => [
-								$t  => $this->l("Hide After: Desktop"),
+								$t  => $this->l('Hide After: Desktop'),
 								$h  => "nav.arrows.hideDelay",
 								$k  => ["arrows visibility", "hide after", "hide after desktop"],
-								$d  => $this->l("The amount of the time before the Arrows are hidden on Desktop computers (in milliseconds)"),
+								$d  => $this->l('The amount of the time before the Arrows are hidden on Desktop computers (in milliseconds)'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3286,10 +3305,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_after_mobile'  => [
-								$t  => $this->l("Hide After: Mobile"),
+								$t  => $this->l('Hide After: Mobile'),
 								$h  => "nav.arrows.hideDelayMobile",
 								$k  => ["arrows visibility", "hide after", "hide after desktop"],
-								$d  => $this->l("The amount of the time before the Arrows are hidden on mobile devices (in milliseconds)"),
+								$d  => $this->l('The amount of the time before the Arrows are hidden on mobile devices (in milliseconds)'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3304,10 +3323,10 @@ class RevSliderHelp {
 							],
 							'hide_under'         => [
 								$di => "nav_arrows_hideunder",
-								$t  => $this->l("Hide Under"),
+								$t  => $this->l('Hide Under'),
 								$h  => "nav.arrows.hideUnder",
 								$k  => ["arrows visibility", "hide under", "hide under width"],
-								$d  => $this->l("Hide the Arrows when the browser window is equal to or below a certain number"),
+								$d  => $this->l('Hide the Arrows when the browser window is equal to or below a certain number'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3320,10 +3339,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_under_limit'   => [
-								$t  => $this->l("Hide Under Limit"),
+								$t  => $this->l('Hide Under Limit'),
 								$h  => "nav.arrows.hideUnderLimit",
 								$k  => ["arrows visibility", "hide under", "hide under limit"],
-								$d  => $this->l("Hide the Arrows when the browser window is equal to or below this number"),
+								$d  => $this->l('Hide the Arrows when the browser window is equal to or below this number'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3338,10 +3357,10 @@ class RevSliderHelp {
 							],
 							'hide_over'          => [
 								$di => "nav_arrows_hideover",
-								$t  => $this->l("Hide Over"),
+								$t  => $this->l('Hide Over'),
 								$h  => "nav.arrows.hideOver",
 								$k  => ["arrows visibility", "hide over", "hide over limit"],
-								$d  => $this->l("Hide the Arrows when the browser window is equal to or above a certain number"),
+								$d  => $this->l('Hide the Arrows when the browser window is equal to or above a certain number'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3354,10 +3373,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_over_limit'    => [
-								$t  => $this->l("Hide Over Limit"),
+								$t  => $this->l('Hide Over Limit'),
 								$h  => "nav.arrows.hideOverLimit",
 								$k  => ["arrows visibility", "hide over", "hide over limit"],
-								$d  => $this->l("Hide the Arrows when the browser window is equal to or above this number"),
+								$d  => $this->l('Hide the Arrows when the browser window is equal to or above this number'),
 								$a  => $u . "navigation-arrows/",
 								$hl => [
 									$dp => [
@@ -3375,10 +3394,10 @@ class RevSliderHelp {
 					'gst_nav_3' => [
 						'enable'      => [
 							$di => "nav_bullets",
-							$t  => $this->l("Enable Bullets"),
+							$t  => $this->l('Enable Bullets'),
 							$h  => "nav.bullets.set",
 							$k  => ["navigation", "bullet", "bullets", "add bullets", "add navigation"],
-							$d  => $this->l("Enable Bullets for the Slider's navigation"),
+							$d  => $this->l('Enable Bullets for the Slider\'s navigation'),
 							$a  => $u . "navigation-bullets/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -3388,10 +3407,10 @@ class RevSliderHelp {
 							],
 						],
 						'type'        => [
-							$t  => $this->l("Bullets Type/Style"),
+							$t  => $this->l('Bullets Type/Style'),
 							$h  => "nav.bullets.style",
 							$k  => ["navigation", "bullets", "bullet type", "bullet style", "bullets style", "bullets type"],
-							$d  => $this->l("Choose a predefined style for the Bullets navigation"),
+							$d  => $this->l('Choose a predefined style for the Bullets navigation'),
 							$a  => $u . "navigation-bullets/",
 							$hl => [
 								$dp => [
@@ -3405,10 +3424,10 @@ class RevSliderHelp {
 						],
 						'positioning' => [
 							'gap'         => [
-								$t  => $this->l("Gap/Spacing"),
+								$t  => $this->l('Gap/Spacing'),
 								$h  => "nav.bullets.space",
 								$k  => ["bullets spacing", "bullet spacing", "gap", "spacing", "bullet gap", "bullets spacing", "bullet space", "bullets space"],
-								$d  => $this->l("The spacing between the bullets (in pixels)"),
+								$d  => $this->l('The spacing between the bullets (in pixels)'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3421,10 +3440,10 @@ class RevSliderHelp {
 								],
 							],
 							'orientation' => [
-								$t  => $this->l("Orientation"),
+								$t  => $this->l('Orientation'),
 								$h  => "nav.bullets.direction",
 								$k  => ["bullets orientation", "bullet orientation", "gap", "orientation", "bullet horizontal", "bullets horizontal", "bullet vertical", "bullets veritcal"],
-								$d  => $this->l("Display the bullets next to one another (horizontal) or on top of one another (vertical)"),
+								$d  => $this->l('Display the bullets next to one another (horizontal) or on top of one another (vertical)'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3437,10 +3456,10 @@ class RevSliderHelp {
 								],
 							],
 							'align_by'    => [
-								$t  => $this->l("Align By Slider/Content"),
+								$t  => $this->l('Align By Slider/Content'),
 								$h  => "nav.bullets.align",
 								$k  => ["bullets", "bullet align", "bullet alignment"],
-								$d  => $this->l("Choose 'Slider' to align based on the Slider's full display, or 'Content' to align against the Slider's grid area"),
+								$d  => $this->l('Choose \'Slider\' to align based on the Slider\'s full display, or \'Content\' to align against the Slider\'s grid area'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3453,10 +3472,10 @@ class RevSliderHelp {
 								],
 							],
 							'alignment'   => [
-								$t  => $this->l("Alignment"),
+								$t  => $this->l('Alignment'),
 								$h  => "nav.bullets.horizontal, nav.bullets.vertical",
 								$k  => ["bullet align", "bullet alignment", "bullet position", "bullets position"],
-								$d  => $this->l("The Bullet's alignment position in the Slider before any offset(s) are applied"),
+								$d  => $this->l('The Bullet\'s alignment position in the Slider before any offset(s) are applied'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3469,10 +3488,10 @@ class RevSliderHelp {
 								],
 							],
 							'offsetx'     => [
-								$t  => $this->l("Offset X"),
+								$t  => $this->l('Offset X'),
 								$h  => "nav.bullets.offsetX",
 								$k  => ["bullet position", "bullet offset"],
-								$d  => $this->l("Offset the Bullet's horizontal position by this amount.  Accepts positive and negative values."),
+								$d  => $this->l('Offset the Bullet\'s horizontal position by this amount.  Accepts positive and negative values.'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3485,10 +3504,10 @@ class RevSliderHelp {
 								],
 							],
 							'offsety'     => [
-								$t  => $this->l("Offset Y"),
+								$t  => $this->l('Offset Y'),
 								$h  => "nav.bullets.offsetY",
 								$k  => ["bullet position", "bullet offset"],
-								$d  => $this->l("Offset the Bullet's vertical position by this amount.  Accepts positive and negative values."),
+								$d  => $this->l('Offset the Bullet\'s vertical position by this amount.  Accepts positive and negative values.'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3503,10 +3522,10 @@ class RevSliderHelp {
 						],
 						'visibility'  => [
 							'rtl'                => [
-								$t  => $this->l("Right to Left"),
+								$t  => $this->l('Right to Left'),
 								$h  => "nav.bullets.rtl",
 								$k  => ["rtl", "right to left", "right-to-left"],
-								$d  => $this->l("Use RTL language alignment for the Arrow positioning"),
+								$d  => $this->l('Use RTL language alignment for the Arrow positioning'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3519,10 +3538,10 @@ class RevSliderHelp {
 								],
 							],
 							'animation'          => [
-								$t  => $this->l("Bullets Animation"),
+								$t  => $this->l('Bullets Animation'),
 								$h  => "nav.bullets.anim",
 								$k  => ["bullets animation", "bullet animation", "show bullets", "hide bullets", "navigation animation"],
-								$d  => $this->l("Optionally animate the bullets into and out of view when the slider first loads and on mouse hover"),
+								$d  => $this->l('Optionally animate the bullets into and out of view when the slider first loads and on mouse hover'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3535,10 +3554,10 @@ class RevSliderHelp {
 								],
 							],
 							'show_speed'         => [
-								$t  => $this->l("Bullets Animation Speed"),
+								$t  => $this->l('Bullets Animation Speed'),
 								$h  => "nav.bullets.animSpeed",
 								$k  => ["bullets visibility", "show speed", "navigation speed"],
-								$d  => $this->l("The animation speed for when the Bullets animate into and out of view"),
+								$d  => $this->l('The animation speed for when the Bullets animate into and out of view'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3551,10 +3570,10 @@ class RevSliderHelp {
 								],
 							],
 							'show_delay'         => [
-								$t  => $this->l("Bullets Show Delay"),
+								$t  => $this->l('Bullets Show Delay'),
 								$h  => "nav.bullets.animDelay",
 								$k  => ["bullets visibility", "navigation delay"],
-								$d  => $this->l("A delay in milliseconds before the Bullets animate into view"),
+								$d  => $this->l('A delay in milliseconds before the Bullets animate into view'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3568,10 +3587,10 @@ class RevSliderHelp {
 							],
 							'hide_after'         => [
 								$di => "nav_bullets_hideafter",
-								$t  => $this->l("Hide After"),
+								$t  => $this->l('Hide After'),
 								$h  => "nav.bullets.alwaysOn",
 								$k  => ["bullets visibility", "hide after"],
-								$d  => $this->l("Auto-hide the bullets after a set amount of time (will be shown again when the user hovers/taps the Slider)"),
+								$d  => $this->l('Auto-hide the bullets after a set amount of time (will be shown again when the user hovers/taps the Slider)'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3584,10 +3603,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_after_desktop' => [
-								$t  => $this->l("Hide After: Desktop"),
+								$t  => $this->l('Hide After: Desktop'),
 								$h  => "nav.bullets.hideDelay",
 								$k  => ["bullets visibility", "hide after", "hide after desktop"],
-								$d  => $this->l("The amount of the time before the Bullets are hidden on Desktop computers (in milliseconds)"),
+								$d  => $this->l('The amount of the time before the Bullets are hidden on Desktop computers (in milliseconds)'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3601,10 +3620,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_after_mobile'  => [
-								$t  => $this->l("Hide After: Mobile"),
+								$t  => $this->l('Hide After: Mobile'),
 								$h  => "nav.bullets.hideDelayMobile",
 								$k  => ["bullets visibility", "hide after", "hide after desktop"],
-								$d  => $this->l("The amount of the time before the Bullets are hidden on mobile devices (in milliseconds)"),
+								$d  => $this->l('The amount of the time before the Bullets are hidden on mobile devices (in milliseconds)'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3619,10 +3638,10 @@ class RevSliderHelp {
 							],
 							'hide_under'         => [
 								$di => "nav_bullets_hideunder",
-								$t  => $this->l("Hide Under"),
+								$t  => $this->l('Hide Under'),
 								$h  => "nav.bullets.hideUnder",
 								$k  => ["bullets visibility", "hide under", "hide under width"],
-								$d  => $this->l("Hide the Bullets when the browser window is equal to or below a certain number"),
+								$d  => $this->l('Hide the Bullets when the browser window is equal to or below a certain number'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3635,10 +3654,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_under_limit'   => [
-								$t  => $this->l("Hide Under Limit"),
+								$t  => $this->l('Hide Under Limit'),
 								$h  => "nav.bullets.hideUnderLimit",
 								$k  => ["bullets visibility", "hide under", "hide under limit"],
-								$d  => $this->l("Hide the Bullets when the browser window is equal to or below this number"),
+								$d  => $this->l('Hide the Bullets when the browser window is equal to or below this number'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3653,10 +3672,10 @@ class RevSliderHelp {
 							],
 							'hide_over'          => [
 								$di => "nav_bullets_hideover",
-								$t  => $this->l("Hide Over"),
+								$t  => $this->l('Hide Over'),
 								$h  => "nav.bullets.hideOver",
 								$k  => ["bullets visibility", "hide over", "hide over limit"],
-								$d  => $this->l("Hide the Bullets when the browser window is equal to or above a certain number"),
+								$d  => $this->l('Hide the Bullets when the browser window is equal to or above a certain number'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3669,10 +3688,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_over_limit'    => [
-								$t  => $this->l("Hide Over Limit"),
+								$t  => $this->l('Hide Over Limit'),
 								$h  => "nav.bullets.hideOverLimit",
 								$k  => ["bullets visibility", "hide over", "hide over limit"],
-								$d  => $this->l("Hide the Bullets when the browser window is equal to or above this number"),
+								$d  => $this->l('Hide the Bullets when the browser window is equal to or above this number'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3688,10 +3707,10 @@ class RevSliderHelp {
 						],
 						'styles'      => [
 							'css_styling' => [
-								$t  => $this->l("CSS Styling"),
+								$t  => $this->l('CSS Styling'),
 								$h  => "navigation.styles",
 								$k  => ["navigation", "navigation styles", "bullets style", "bullets style", "bullet style"],
-								$d  => $this->l("Adjust the size colors and other styles for the bullets"),
+								$d  => $this->l('Adjust the size colors and other styles for the bullets'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3704,10 +3723,10 @@ class RevSliderHelp {
 								],
 							],
 							'override'    => [
-								$t  => $this->l("Use Custom Style"),
+								$t  => $this->l('Use Custom Style'),
 								$h  => "navigation.styles.default",
 								$k  => ["navigation", "navigation styles", "bullets style", "bullets style", "bullet style"],
-								$d  => $this->l("Enable custom styling overrides for the bullets"),
+								$d  => $this->l('Enable custom styling overrides for the bullets'),
 								$a  => $u . "navigation-bullets/",
 								$hl => [
 									$dp => [
@@ -3724,10 +3743,10 @@ class RevSliderHelp {
 					'gst_nav_4' => [
 						'enable'      => [
 							$di => "nav_tabs",
-							$t  => $this->l("Enable Tabs"),
+							$t  => $this->l('Enable Tabs'),
 							$h  => "nav.tabs.set",
 							$k  => ["navigation", "tab", "tabs", "add tabs", "add navigation"],
-							$d  => $this->l("Enable Tabs for the Slider's navigation"),
+							$d  => $this->l('Enable Tabs for the Slider\'s navigation'),
 							$a  => $u . "navigation-tabs/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -3737,10 +3756,10 @@ class RevSliderHelp {
 							],
 						],
 						'type'        => [
-							$t  => $this->l("Tabs Type/Style"),
+							$t  => $this->l('Tabs Type/Style'),
 							$h  => "nav.tabs.style",
 							$k  => ["navigation", "tabs", "tab type", "tab style", "tabs style", "tabs type"],
-							$d  => $this->l("Choose a predefined style for the Tabs navigation"),
+							$d  => $this->l('Choose a predefined style for the Tabs navigation'),
 							$a  => $u . "navigation-tabs/",
 							$hl => [
 								$dp => [
@@ -3754,10 +3773,10 @@ class RevSliderHelp {
 						],
 						'positioning' => [
 							'orientation'    => [
-								$t  => $this->l("Orientation"),
+								$t  => $this->l('Orientation'),
 								$h  => "nav.tabs.direction",
 								$k  => ["tabs orientation", "tab orientation", "gap", "orientation", "tab horizontal", "tabs horizontal", "tab vertical", "tabs veritcal"],
-								$d  => $this->l("Display the tabs next to one another (horizontal) or on top of one another (vertical)"),
+								$d  => $this->l('Display the tabs next to one another (horizontal) or on top of one another (vertical)'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3770,10 +3789,10 @@ class RevSliderHelp {
 								],
 							],
 							'align_by'       => [
-								$t  => $this->l("Align By Slider/Content"),
+								$t  => $this->l('Align By Slider/Content'),
 								$h  => "nav.tabs.align",
 								$k  => ["tabs", "tab align", "tab alignment"],
-								$d  => $this->l("Choose 'Slider' to align based on the Slider's full display, or 'Content' to align against the Slider's grid area"),
+								$d  => $this->l('Choose \'Slider\' to align based on the Slider\'s full display, or \'Content\' to align against the Slider\'s grid area'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3786,10 +3805,10 @@ class RevSliderHelp {
 								],
 							],
 							'inner_outer'    => [
-								$t  => $this->l("Inner/Outer"),
+								$t  => $this->l('Inner/Outer'),
 								$h  => "nav.tabs.innerOuter",
 								$k  => ["tabs. tabs position", "tabs inner", "tabs outer", "inner outer", "inner", "outer vertical", "outer horizontal"],
-								$d  => $this->l("Choose if the tabs should appear inside or outside the Slider's main content area"),
+								$d  => $this->l('Choose if the tabs should appear inside or outside the Slider\'s main content area'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3802,10 +3821,10 @@ class RevSliderHelp {
 								],
 							],
 							'alignment'      => [
-								$t  => $this->l("Alignment"),
+								$t  => $this->l('Alignment'),
 								$h  => "nav.tabs.horizontal, nav.tabs.vertical",
 								$k  => ["tab align", "tab alignment", "tab position", "tabs position"],
-								$d  => $this->l("The Tab's alignment position in the Slider before any offset(s) are applied"),
+								$d  => $this->l('The Tab\'s alignment position in the Slider before any offset(s) are applied'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3818,10 +3837,10 @@ class RevSliderHelp {
 								],
 							],
 							'offsetx'        => [
-								$t  => $this->l("Offset X"),
+								$t  => $this->l('Offset X'),
 								$h  => "nav.tabs.offsetX",
 								$k  => ["tab position", "tab offset"],
-								$d  => $this->l("Offset the Tab's horizontal position by this amount.  Accepts positive and negative values."),
+								$d  => $this->l('Offset the Tab\'s horizontal position by this amount.  Accepts positive and negative values.'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3834,10 +3853,10 @@ class RevSliderHelp {
 								],
 							],
 							'offsety'        => [
-								$t  => $this->l("Offset Y"),
+								$t  => $this->l('Offset Y'),
 								$h  => "nav.tabs.offsetY",
 								$k  => ["tab position", "tab offset"],
-								$d  => $this->l("Offset the Tab's vertical position by this amount.  Accepts positive and negative values."),
+								$d  => $this->l('Offset the Tab\'s vertical position by this amount.  Accepts positive and negative values.'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3850,10 +3869,10 @@ class RevSliderHelp {
 								],
 							],
 							'visible_amount' => [
-								$t  => $this->l("Num. Tabs"),
+								$t  => $this->l('Num. Tabs'),
 								$h  => "nav.tabs.amount",
 								$k  => ["tabs amount", "num tabs", "number tabs"],
-								$d  => $this->l("The maximum number of tabs that should be visible regardless of the screen size"),
+								$d  => $this->l('The maximum number of tabs that should be visible regardless of the screen size'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3868,10 +3887,10 @@ class RevSliderHelp {
 						],
 						'size'        => [
 							'space'     => [
-								$t  => $this->l("Spacing"),
+								$t  => $this->l('Spacing'),
 								$h  => "nav.tabs.space",
 								$k  => ["tabs space", "tabs spacing", "tab space", "tabs spacing", "tab margin", "tab padding", "tabs margin", "tabs padding"],
-								$d  => $this->l("The space between each individual tab (in pixels)"),
+								$d  => $this->l('The space between each individual tab (in pixels)'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3884,10 +3903,10 @@ class RevSliderHelp {
 								],
 							],
 							'width'     => [
-								$t  => $this->l("Width"),
+								$t  => $this->l('Width'),
 								$h  => "nav.tabs.width",
 								$k  => ["tabs width", "tab width", "tabs size", "tab size"],
-								$d  => $this->l("The default width for each individual tab"),
+								$d  => $this->l('The default width for each individual tab'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3900,10 +3919,10 @@ class RevSliderHelp {
 								],
 							],
 							'min_width' => [
-								$t  => $this->l("Minimum Width"),
+								$t  => $this->l('Minimum Width'),
 								$h  => "nav.tabs.widthMin",
 								$k  => ["tabs min-width", "tabs min-width", "tabs size", "tab size", "tabs min width", "tabs minimum width"],
-								$d  => $this->l("The minimum width for each individual tab"),
+								$d  => $this->l('The minimum width for each individual tab'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3916,10 +3935,10 @@ class RevSliderHelp {
 								],
 							],
 							'height'    => [
-								$t  => $this->l("Height"),
+								$t  => $this->l('Height'),
 								$h  => "nav.tabs.height",
 								$k  => ["tabs height", "tabs height", "tabs size", "tab size"],
-								$d  => $this->l("The default height for each individual tab"),
+								$d  => $this->l('The default height for each individual tab'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3934,10 +3953,10 @@ class RevSliderHelp {
 						],
 						'wrapper'     => [
 							'color'   => [
-								$t  => $this->l("Color"),
+								$t  => $this->l('Color'),
 								$h  => "nav.tabs.wrapperColor",
 								$k  => ["tabs color", "tabs color", "tabs size", "tab size"],
-								$d  => $this->l("The background color for the tabs main wrapper"),
+								$d  => $this->l('The background color for the tabs main wrapper'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3950,10 +3969,10 @@ class RevSliderHelp {
 								],
 							],
 							'padding' => [
-								$t  => $this->l("Padding"),
+								$t  => $this->l('Padding'),
 								$h  => "nav.tabs.padding",
 								$k  => ["tabs wrapper", "tabs wrapper padding", "wrapper padding"],
-								$d  => $this->l("The CSS padding that will be applied to the tabs outer wrapper div"),
+								$d  => $this->l('The CSS padding that will be applied to the tabs outer wrapper div'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3966,10 +3985,10 @@ class RevSliderHelp {
 								],
 							],
 							'span'    => [
-								$t  => $this->l("Span/Full-Width"),
+								$t  => $this->l('Span/Full-Width'),
 								$h  => "nav.tabs.spanWrapper",
 								$k  => ["tabs span", "tabs wrapper", "tabs wrapper span", "tabs full width", "tabs full-width"],
-								$d  => $this->l("Choose if the wrapper should be displayed as a block or an inline-block"),
+								$d  => $this->l('Choose if the wrapper should be displayed as a block or an inline-block'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -3984,10 +4003,10 @@ class RevSliderHelp {
 						],
 						'visibility'  => [
 							'rtl'                => [
-								$t  => $this->l("Right to Left"),
+								$t  => $this->l('Right to Left'),
 								$h  => "nav.tabs.rtl",
 								$k  => ["rtl", "right to left", "right-to-left"],
-								$d  => $this->l("Use RTL language alignment for the Arrow positioning"),
+								$d  => $this->l('Use RTL language alignment for the Arrow positioning'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4000,10 +4019,10 @@ class RevSliderHelp {
 								],
 							],
 							'animation'          => [
-								$t  => $this->l("Tabs Animation"),
+								$t  => $this->l('Tabs Animation'),
 								$h  => "nav.tabs.anim",
 								$k  => ["tabs animation", "bullet animation", "show tabs", "hide tabs", "navigation animation"],
-								$d  => $this->l("Optionally animate the tabs into and out of view when the slider first loads and on mouse hover"),
+								$d  => $this->l('Optionally animate the tabs into and out of view when the slider first loads and on mouse hover'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4016,10 +4035,10 @@ class RevSliderHelp {
 								],
 							],
 							'show_speed'         => [
-								$t  => $this->l("Tabs Animation Speed"),
+								$t  => $this->l('Tabs Animation Speed'),
 								$h  => "nav.tabs.animSpeed",
 								$k  => ["tabs visibility", "show speed", "navigation speed"],
-								$d  => $this->l("The animation speed for when the Tabs animate into and out of view"),
+								$d  => $this->l('The animation speed for when the Tabs animate into and out of view'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4032,10 +4051,10 @@ class RevSliderHelp {
 								],
 							],
 							'show_delay'         => [
-								$t  => $this->l("Tabs Show Delay"),
+								$t  => $this->l('Tabs Show Delay'),
 								$h  => "nav.tabs.animDelay",
 								$k  => ["tabs visibility", "navigation delay"],
-								$d  => $this->l("A delay in milliseconds before the Tabs animate into view"),
+								$d  => $this->l('A delay in milliseconds before the Tabs animate into view'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4049,10 +4068,10 @@ class RevSliderHelp {
 							],
 							'hide_after'         => [
 								$di => "nav_tabs_hideafter",
-								$t  => $this->l("Hide After"),
+								$t  => $this->l('Hide After'),
 								$h  => "nav.tabs.alwaysOn",
 								$k  => ["tabs visibility", "hide after"],
-								$d  => $this->l("Auto-hide the tabs after a set amount of time (will be shown again when the user hovers/taps the Slider)"),
+								$d  => $this->l('Auto-hide the tabs after a set amount of time (will be shown again when the user hovers/taps the Slider)'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4065,10 +4084,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_after_desktop' => [
-								$t  => $this->l("Hide After: Desktop"),
+								$t  => $this->l('Hide After: Desktop'),
 								$h  => "nav.tabs.hideDelay",
 								$k  => ["tabs visibility", "hide after", "hide after desktop"],
-								$d  => $this->l("The amount of the time before the Tabs are hidden on Desktop computers (in milliseconds)"),
+								$d  => $this->l('The amount of the time before the Tabs are hidden on Desktop computers (in milliseconds)'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4082,10 +4101,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_after_mobile'  => [
-								$t  => $this->l("Hide After: Mobile"),
+								$t  => $this->l('Hide After: Mobile'),
 								$h  => "nav.tabs.hideDelayMobile",
 								$k  => ["tabs visibility", "hide after", "hide after desktop"],
-								$d  => $this->l("The amount of the time before the Tabs are hidden on mobile devices (in milliseconds)"),
+								$d  => $this->l('The amount of the time before the Tabs are hidden on mobile devices (in milliseconds)'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4100,10 +4119,10 @@ class RevSliderHelp {
 							],
 							'hide_under'         => [
 								$di => "nav_tabs_hideunder",
-								$t  => $this->l("Hide Under"),
+								$t  => $this->l('Hide Under'),
 								$h  => "nav.tabs.hideUnder",
 								$k  => ["tabs visibility", "hide under", "hide under width"],
-								$d  => $this->l("Hide the Tabs when the browser window is equal to or below a certain number"),
+								$d  => $this->l('Hide the Tabs when the browser window is equal to or below a certain number'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4116,10 +4135,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_under_limit'   => [
-								$t  => $this->l("Hide Under Limit"),
+								$t  => $this->l('Hide Under Limit'),
 								$h  => "nav.tabs.hideUnderLimit",
 								$k  => ["tabs visibility", "hide under", "hide under limit"],
-								$d  => $this->l("Hide the Tabs when the browser window is equal to or below this number"),
+								$d  => $this->l('Hide the Tabs when the browser window is equal to or below this number'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4134,10 +4153,10 @@ class RevSliderHelp {
 							],
 							'hide_over'          => [
 								$di => "nav_tabs_hideover",
-								$t  => $this->l("Hide Over"),
+								$t  => $this->l('Hide Over'),
 								$h  => "nav.tabs.hideOver",
 								$k  => ["tabs visibility", "hide over", "hide over limit"],
-								$d  => $this->l("Hide the Tabs when the browser window is equal to or above a certain number"),
+								$d  => $this->l('Hide the Tabs when the browser window is equal to or above a certain number'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4150,10 +4169,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_over_limit'    => [
-								$t  => $this->l("Hide Over Limit"),
+								$t  => $this->l('Hide Over Limit'),
 								$h  => "nav.tabs.hideOverLimit",
 								$k  => ["tabs visibility", "hide over", "hide over limit"],
-								$d  => $this->l("Hide the Tabs when the browser window is equal to or above this number"),
+								$d  => $this->l('Hide the Tabs when the browser window is equal to or above this number'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4169,10 +4188,10 @@ class RevSliderHelp {
 						],
 						'styles'      => [
 							'css_styling' => [
-								$t  => $this->l("CSS Styling"),
+								$t  => $this->l('CSS Styling'),
 								$h  => "navigation.styles",
 								$k  => ["navigation", "navigation styles", "tabs style", "tabs style", "tab style", "tabs style", "tab style", "tab style"],
-								$d  => $this->l("Adjust the size colors and other styles for the tabs"),
+								$d  => $this->l('Adjust the size colors and other styles for the tabs'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4185,10 +4204,10 @@ class RevSliderHelp {
 								],
 							],
 							'override'    => [
-								$t  => $this->l("Use Custom Style"),
+								$t  => $this->l('Use Custom Style'),
 								$h  => "navigation.styles.default",
 								$k  => ["navigation", "navigation styles", "tabs style", "tabs style", "tab style", "tabs style", "tab style", "bullet style"],
-								$d  => $this->l("Enable custom styling overrides for the tabs"),
+								$d  => $this->l('Enable custom styling overrides for the tabs'),
 								$a  => $u . "navigation-tabs/",
 								$hl => [
 									$dp => [
@@ -4205,10 +4224,10 @@ class RevSliderHelp {
 					'gst_nav_5' => [
 						'enable'      => [
 							$di => "nav_thumbs",
-							$t  => $this->l("Enable Thumbnails"),
+							$t  => $this->l('Enable Thumbnails'),
 							$h  => "nav.thumbs.set",
 							$k  => ["navigation", "thumb", "thumbs", "add thumbs", "add navigation"],
-							$d  => $this->l("Enable Thumbnails for the Slider's navigation"),
+							$d  => $this->l('Enable Thumbnails for the Slider\'s navigation'),
 							$a  => $u . "navigation-thumbnails/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4218,10 +4237,10 @@ class RevSliderHelp {
 							],
 						],
 						'type'        => [
-							$t  => $this->l("Thumbnails Type/Style"),
+							$t  => $this->l('Thumbnails Type/Style'),
 							$h  => "nav.thumbs.style",
 							$k  => ["navigation", "thumbs", "thumb type", "thumb style", "thumbs style", "thumbs type"],
-							$d  => $this->l("Choose a predefined style for the Thumbnails navigation"),
+							$d  => $this->l('Choose a predefined style for the Thumbnails navigation'),
 							$a  => $u . "navigation-thumbnails/",
 							$hl => [
 								$dp => [
@@ -4235,10 +4254,10 @@ class RevSliderHelp {
 						],
 						'positioning' => [
 							'orientation'    => [
-								$t  => $this->l("Orientation"),
+								$t  => $this->l('Orientation'),
 								$h  => "nav.thumbs.direction",
 								$k  => ["thumbs orientation", "thumb orientation", "gap", "orientation", "thumb horizontal", "thumbs horizontal", "thumb vertical", "thumbs veritcal"],
-								$d  => $this->l("Display the thumbs next to one another (horizontal) or on top of one another (vertical)"),
+								$d  => $this->l('Display the thumbs next to one another (horizontal) or on top of one another (vertical)'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4251,10 +4270,10 @@ class RevSliderHelp {
 								],
 							],
 							'align_by'       => [
-								$t  => $this->l("Align By Slider/Content"),
+								$t  => $this->l('Align By Slider/Content'),
 								$h  => "nav.thumbs.align",
 								$k  => ["thumbs", "thumb align", "thumb alignment"],
-								$d  => $this->l("Choose 'Slider' to align based on the Slider's full display, or 'Content' to align against the Slider's grid area"),
+								$d  => $this->l('Choose \'Slider\' to align based on the Slider\'s full display, or \'Content\' to align against the Slider\'s grid area'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4267,10 +4286,10 @@ class RevSliderHelp {
 								],
 							],
 							'inner_outer'    => [
-								$t  => $this->l("Inner/Outer"),
+								$t  => $this->l('Inner/Outer'),
 								$h  => "nav.thumbs.innerOuter",
 								$k  => ["thumbs. thumbs position", "thumbs inner", "thumbs outer", "inner outer", "inner", "outer vertical", "outer horizontal"],
-								$d  => $this->l("Choose if the thumbs should appear inside or outside the Slider's main content area"),
+								$d  => $this->l('Choose if the thumbs should appear inside or outside the Slider\'s main content area'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4283,10 +4302,10 @@ class RevSliderHelp {
 								],
 							],
 							'alignment'      => [
-								$t  => $this->l("Alignment"),
+								$t  => $this->l('Alignment'),
 								$h  => "nav.thumbs.horizontal, nav.thumbs.vertical",
 								$k  => ["thumb align", "thumb alignment", "thumb position", "thumbs position"],
-								$d  => $this->l("The Thumb's alignment position in the Slider before any offset(s) are applied"),
+								$d  => $this->l('The Thumb\'s alignment position in the Slider before any offset(s) are applied'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4299,10 +4318,10 @@ class RevSliderHelp {
 								],
 							],
 							'offsetx'        => [
-								$t  => $this->l("Offset X"),
+								$t  => $this->l('Offset X'),
 								$h  => "nav.thumbs.offsetX",
 								$k  => ["thumb position", "thumb offset"],
-								$d  => $this->l("Offset the Thumb's horizontal position by this amount.  Accepts positive and negative values."),
+								$d  => $this->l('Offset the Thumb\'s horizontal position by this amount.  Accepts positive and negative values.'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4315,10 +4334,10 @@ class RevSliderHelp {
 								],
 							],
 							'offsety'        => [
-								$t  => $this->l("Offset Y"),
+								$t  => $this->l('Offset Y'),
 								$h  => "nav.thumbs.offsetY",
 								$k  => ["thumb position", "thumb offset"],
-								$d  => $this->l("Offset the Thumb's vertical position by this amount.  Accepts positive and negative values."),
+								$d  => $this->l('Offset the Thumb\'s vertical position by this amount.  Accepts positive and negative values.'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4331,10 +4350,10 @@ class RevSliderHelp {
 								],
 							],
 							'visible_amount' => [
-								$t  => $this->l("Num. Thumbs"),
+								$t  => $this->l('Num. Thumbs'),
 								$h  => "nav.thumbs.amount",
 								$k  => ["thumbs amount", "num thumbs", "number thumbs"],
-								$d  => $this->l("The maximum number of thumbs that should be visible regardless of the screen size"),
+								$d  => $this->l('The maximum number of thumbs that should be visible regardless of the screen size'),
 								$a  => $u . "navigation-thumbs/",
 								$hl => [
 									$dp => [
@@ -4349,10 +4368,10 @@ class RevSliderHelp {
 						],
 						'size'        => [
 							'space'     => [
-								$t  => $this->l("Spacing"),
+								$t  => $this->l('Spacing'),
 								$h  => "nav.thumbs.space",
 								$k  => ["thumbs space", "thumbs spacing", "thumb space", "thumbs spacing", "thumb margin", "thumb padding", "thumbs margin", "thumbs padding"],
-								$d  => $this->l("The space between each individual thumb (in pixels)"),
+								$d  => $this->l('The space between each individual thumb (in pixels)'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4365,10 +4384,10 @@ class RevSliderHelp {
 								],
 							],
 							'width'     => [
-								$t  => $this->l("Width"),
+								$t  => $this->l('Width'),
 								$h  => "nav.thumbs.width",
 								$k  => ["thumbs width", "thumb width", "thumbs size", "thumb size"],
-								$d  => $this->l("The default width for each individual thumb"),
+								$d  => $this->l('The default width for each individual thumb'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4381,10 +4400,10 @@ class RevSliderHelp {
 								],
 							],
 							'min_width' => [
-								$t  => $this->l("Minimum Width"),
+								$t  => $this->l('Minimum Width'),
 								$h  => "nav.thumbs.widthMin",
 								$k  => ["thumbs min-width", "thumbs min-width", "thumbs size", "thumb size", "thumbs min width", "thumbs minimum width"],
-								$d  => $this->l("The minimum width for each individual thumb"),
+								$d  => $this->l('The minimum width for each individual thumb'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4397,10 +4416,10 @@ class RevSliderHelp {
 								],
 							],
 							'height'    => [
-								$t  => $this->l("Height"),
+								$t  => $this->l('Height'),
 								$h  => "nav.thumbs.height",
 								$k  => ["thumbs height", "thumbs height", "thumbs size", "thumb size"],
-								$d  => $this->l("The default height for each individual thumb"),
+								$d  => $this->l('The default height for each individual thumb'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4415,10 +4434,10 @@ class RevSliderHelp {
 						],
 						'wrapper'     => [
 							'color'   => [
-								$t  => $this->l("Wrapper Color"),
+								$t  => $this->l('Wrapper Color'),
 								$h  => "nav.thumbs.wrapperColor",
 								$k  => ["thumbs color", "thumbs color", "thumbs size", "thumb size"],
-								$d  => $this->l("The background color for the thumbs main wrapper"),
+								$d  => $this->l('The background color for the thumbs main wrapper'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4431,10 +4450,10 @@ class RevSliderHelp {
 								],
 							],
 							'padding' => [
-								$t  => $this->l("Padding"),
+								$t  => $this->l('Padding'),
 								$h  => "nav.thumbs.padding",
 								$k  => ["thumbs wrapper", "thumbs wrapper padding", "wrapper padding"],
-								$d  => $this->l("The CSS padding that will be applied to the thumbs outer wrapper div"),
+								$d  => $this->l('The CSS padding that will be applied to the thumbs outer wrapper div'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4447,10 +4466,10 @@ class RevSliderHelp {
 								],
 							],
 							'span'    => [
-								$t  => $this->l("Span/Full-Width"),
+								$t  => $this->l('Span/Full-Width'),
 								$h  => "nav.thumbs.spanWrapper",
 								$k  => ["thumbs span", "thumbs wrapper", "thumbs wrapper span", "thumbs full width", "thumbs full-width"],
-								$d  => $this->l("Choose if the wrapper should be displayed as a block or an inline-block"),
+								$d  => $this->l('Choose if the wrapper should be displayed as a block or an inline-block'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4465,10 +4484,10 @@ class RevSliderHelp {
 						],
 						'visibility'  => [
 							'rtl'                => [
-								$t  => $this->l("Right to Left"),
+								$t  => $this->l('Right to Left'),
 								$h  => "nav.thumbs.rtl",
 								$k  => ["rtl", "right to left", "right-to-left"],
-								$d  => $this->l("Use RTL language alignment for the Arrow positioning"),
+								$d  => $this->l('Use RTL language alignment for the Arrow positioning'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4481,10 +4500,10 @@ class RevSliderHelp {
 								],
 							],
 							'animation'          => [
-								$t  => $this->l("Thumbs Animation"),
+								$t  => $this->l('Thumbs Animation'),
 								$h  => "nav.thumbs.anim",
 								$k  => ["thumbs animation", "bullet animation", "show thumbs", "hide thumbs", "navigation animation"],
-								$d  => $this->l("Optionally animate the thumbs into and out of view when the slider first loads and on mouse hover"),
+								$d  => $this->l('Optionally animate the thumbs into and out of view when the slider first loads and on mouse hover'),
 								$a  => $u . "navigation-thumbs/",
 								$hl => [
 									$dp => [
@@ -4497,10 +4516,10 @@ class RevSliderHelp {
 								],
 							],
 							'show_speed'         => [
-								$t  => $this->l("Thumbs Animation Speed"),
+								$t  => $this->l('Thumbs Animation Speed'),
 								$h  => "nav.thumbs.animSpeed",
 								$k  => ["thumbs visibility", "show speed", "navigation speed"],
-								$d  => $this->l("The animation speed for when the Thumbs animate into and out of view"),
+								$d  => $this->l('The animation speed for when the Thumbs animate into and out of view'),
 								$a  => $u . "navigation-thumbs/",
 								$hl => [
 									$dp => [
@@ -4513,10 +4532,10 @@ class RevSliderHelp {
 								],
 							],
 							'show_delay'         => [
-								$t  => $this->l("Thumbs Show Delay"),
+								$t  => $this->l('Thumbs Show Delay'),
 								$h  => "nav.thumbs.animDelay",
 								$k  => ["thumbs visibility", "navigation delay"],
-								$d  => $this->l("A delay in milliseconds before the Thumbs animate into view"),
+								$d  => $this->l('A delay in milliseconds before the Thumbs animate into view'),
 								$a  => $u . "navigation-thumbs/",
 								$hl => [
 									$dp => [
@@ -4530,10 +4549,10 @@ class RevSliderHelp {
 							],
 							'hide_after'         => [
 								$di => "nav_hideafter",
-								$t  => $this->l("Hide After"),
+								$t  => $this->l('Hide After'),
 								$h  => "nav.thumbs.alwaysOn",
 								$k  => ["thumbs visibility", "hide after"],
-								$d  => $this->l("Auto-hide the thumbs after a set amount of time (will be shown again when the user hovers/taps the Slider)"),
+								$d  => $this->l('Auto-hide the thumbs after a set amount of time (will be shown again when the user hovers/taps the Slider)'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4546,10 +4565,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_after_desktop' => [
-								$t  => $this->l("Hide After: Desktop"),
+								$t  => $this->l('Hide After: Desktop'),
 								$h  => "nav.thumbs.hideDelay",
 								$k  => ["thumbs visibility", "hide after", "hide after desktop"],
-								$d  => $this->l("The amount of the time before the Thumbnails are hidden on Desktop computers (in milliseconds)"),
+								$d  => $this->l('The amount of the time before the Thumbnails are hidden on Desktop computers (in milliseconds)'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4563,10 +4582,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_after_mobile'  => [
-								$t  => $this->l("Hide After: Mobile"),
+								$t  => $this->l('Hide After: Mobile'),
 								$h  => "nav.thumbs.hideDelayMobile",
 								$k  => ["thumbs visibility", "hide after", "hide after desktop"],
-								$d  => $this->l("The amount of the time before the Thumbnails are hidden on mobile devices (in milliseconds)"),
+								$d  => $this->l('The amount of the time before the Thumbnails are hidden on mobile devices (in milliseconds)'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4581,10 +4600,10 @@ class RevSliderHelp {
 							],
 							'hide_under'         => [
 								$di => "nav_hideunder",
-								$t  => $this->l("Hide Under"),
+								$t  => $this->l('Hide Under'),
 								$h  => "nav.thumbs.hideUnder",
 								$k  => ["thumbs visibility", "hide under", "hide under width"],
-								$d  => $this->l("Hide the Thumbnails when the browser window is equal to or below a certain number"),
+								$d  => $this->l('Hide the Thumbnails when the browser window is equal to or below a certain number'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4597,10 +4616,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_under_limit'   => [
-								$t  => $this->l("Hide Under Limit"),
+								$t  => $this->l('Hide Under Limit'),
 								$h  => "nav.thumbs.hideUnderLimit",
 								$k  => ["thumbs visibility", "hide under", "hide under limit"],
-								$d  => $this->l("Hide the Thumbnails when the browser window is equal to or below this number"),
+								$d  => $this->l('Hide the Thumbnails when the browser window is equal to or below this number'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4615,10 +4634,10 @@ class RevSliderHelp {
 							],
 							'hide_over'          => [
 								$di => "nav_hideover",
-								$t  => $this->l("Hide Over"),
+								$t  => $this->l('Hide Over'),
 								$h  => "nav.thumbs.hideOver",
 								$k  => ["thumbs visibility", "hide over", "hide over limit"],
-								$d  => $this->l("Hide the Thumbnails when the browser window is equal to or above a certain number"),
+								$d  => $this->l('Hide the Thumbnails when the browser window is equal to or above a certain number'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4631,10 +4650,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_over_limit'    => [
-								$t  => $this->l("Hide Over Limit"),
+								$t  => $this->l('Hide Over Limit'),
 								$h  => "nav.thumbs.hideOverLimit",
 								$k  => ["thumbs visibility", "hide over", "hide over limit"],
-								$d  => $this->l("Hide the Thumbnails when the browser window is equal to or above this number"),
+								$d  => $this->l('Hide the Thumbnails when the browser window is equal to or above this number'),
 								$a  => $u . "navigation-thumbnails/",
 								$hl => [
 									$dp => [
@@ -4651,10 +4670,10 @@ class RevSliderHelp {
 					],
 					'gst_nav_6' => [
 						'width'  => [
-							$t  => $this->l("Preview Image Width"),
+							$t  => $this->l('Preview Image Width'),
 							$h  => "nav.preview.width",
 							$k  => ["preview image", "prev image", "preview image width", "prev image width"],
-							$d  => $this->l("The width of the navigation preview image"),
+							$d  => $this->l('The width of the navigation preview image'),
 							$a  => $u . "navigation-thumbnails/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4664,10 +4683,10 @@ class RevSliderHelp {
 							],
 						],
 						'height' => [
-							$t  => $this->l("Preview Image Height"),
+							$t  => $this->l('Preview Image Height'),
 							$h  => "nav.preview.height",
 							$k  => ["preview image", "prev image", "preview image height", "prev image height"],
-							$d  => $this->l("The height of the navigation preview image"),
+							$d  => $this->l('The height of the navigation preview image'),
 							$a  => $u . "navigation-thumbnails/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4679,10 +4698,10 @@ class RevSliderHelp {
 					],
 					'gst_nav_7' => [
 						'enable'              => [
-							$t  => $this->l("Enable Touch Swipe"),
+							$t  => $this->l('Enable Touch Swipe'),
 							$h  => "nav.swipe.set",
 							$k  => ["touch", "touch swipe", "swipe", "mobile"],
-							$d  => $this->l("Enable touch swiping to navigate to the previous/next slides"),
+							$d  => $this->l('Enable touch swiping to navigate to the previous/next slides'),
 							$a  => $u . "touch-swipe/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4692,10 +4711,10 @@ class RevSliderHelp {
 							],
 						],
 						'enable_desktop'      => [
-							$t  => $this->l("Enable Touch Swipe for Desktop"),
+							$t  => $this->l('Enable Touch Swipe for Desktop'),
 							$h  => "nav.swipe.setOnDesktop",
 							$k  => ["touch", "touch swipe", "swipe", "desktop", "touch desktop", "touch swipe desktop"],
-							$d  => $this->l("Enable touch swiping on Desktop computers to navigate to the previous/next slides"),
+							$d  => $this->l('Enable touch swiping on Desktop computers to navigate to the previous/next slides'),
 							$a  => $u . "touch-swipe/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4705,10 +4724,10 @@ class RevSliderHelp {
 							],
 						],
 						'drag_block_vertical' => [
-							$t  => $this->l("Drag Block Vertical"),
+							$t  => $this->l('Drag Block Vertical'),
 							$h  => "nav.swipe.blockDragVertical",
 							$k  => ["drag", "drag block", "drag block vertical"],
-							$d  => $this->l("Choose if the page and its contents should be scrolled when swiping vertically"),
+							$d  => $this->l('Choose if the page and its contents should be scrolled when swiping vertically'),
 							$a  => $u . "touch-swipe/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4718,10 +4737,10 @@ class RevSliderHelp {
 							],
 						],
 						'velocity'            => [
-							$t  => $this->l("Swipe Velocity"),
+							$t  => $this->l('Swipe Velocity'),
 							$h  => "nav.swipe.velocity",
 							$k  => ["velocity", "swipe", "touch swipe", "swipe velocity", "swipe sensitivity", "touch sensitivity"],
-							$d  => $this->l("The amount of pixels that need to be swiped before a Slide change occurs"),
+							$d  => $this->l('The amount of pixels that need to be swiped before a Slide change occurs'),
 							$a  => $u . "touch-swipe/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4731,10 +4750,10 @@ class RevSliderHelp {
 							],
 						],
 						'min_touch'           => [
-							$t  => $this->l("Min. Fingers"),
+							$t  => $this->l('Min. Fingers'),
 							$h  => "nav.swipe.minTouch",
 							$k  => ["min finger", "min fingers", "swipe", "touch", "touch swipe", "minimum finger", "minimum fingers"],
-							$d  => $this->l("The number of fingers needed in the swipe action for a Slide change to occur"),
+							$d  => $this->l('The number of fingers needed in the swipe action for a Slide change to occur'),
 							$a  => $u . "touch-swipe/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4744,10 +4763,10 @@ class RevSliderHelp {
 							],
 						],
 						'orientation'         => [
-							$t  => $this->l("Swipe Orientation"),
+							$t  => $this->l('Swipe Orientation'),
 							$h  => "nav.swipe.direction",
 							$k  => ["orientation", "swipe orientation", "swipe direction", "touch direction"],
-							$d  => $this->l("The swipe direction that will trigger a Slide change"),
+							$d  => $this->l('The swipe direction that will trigger a Slide change'),
 							$a  => $u . "touch-swipe/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4759,10 +4778,10 @@ class RevSliderHelp {
 					],
 					'gst_nav_8' => [
 						'enable'    => [
-							$t  => $this->l("Enable Keyboard Navigation"),
+							$t  => $this->l('Enable Keyboard Navigation'),
 							$h  => "nav.keyboard.set",
 							$k  => ["keyboard", "key", "left key", "right key", "up key", "down key"],
-							$d  => $this->l("Enable left/right/up/down keys to control the Slider"),
+							$d  => $this->l('Enable left/right/up/down keys to control the Slider'),
 							$a  => $u . "keyboard-arrows-mouse-wheel/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4772,10 +4791,10 @@ class RevSliderHelp {
 							],
 						],
 						'direction' => [
-							$t  => $this->l("Key Arrow Direction"),
+							$t  => $this->l('Key Arrow Direction'),
 							$h  => "nav.keyboard.direction",
 							$k  => ["keyboard", "key", "left key", "right key", "up key", "down key"],
-							$d  => $this->l("Choose to use left/right keys or up/down keys to change Slides"),
+							$d  => $this->l('Choose to use left/right keys or up/down keys to change Slides'),
 							$a  => $u . "keyboard-arrows-mouse-wheel/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4787,10 +4806,10 @@ class RevSliderHelp {
 					],
 					'gst_nav_9' => [
 						'enable'  => [
-							$t  => $this->l("Enable Mouse Scroll"),
+							$t  => $this->l('Enable Mouse Scroll'),
 							$h  => "nav.mouse.set",
 							$k  => ["mouse scroll", "scroll", "mouse", "mouse wheel", "wheel"],
-							$d  => $this->l("Enable mouse scrolling to control Slide changes"),
+							$d  => $this->l('Enable mouse scrolling to control Slide changes'),
 							$a  => $u . "keyboard-arrows-mouse-wheel/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4800,10 +4819,10 @@ class RevSliderHelp {
 							],
 						],
 						'reverse' => [
-							$t  => $this->l("Reverse Scroll"),
+							$t  => $this->l('Reverse Scroll'),
 							$h  => "nav.mouse.reverse",
 							$k  => ["mouse scroll", "scroll", "mouse", "direction", "reverse", "reverse scroll", "wheel", "mouse wheel"],
-							$d  => $this->l("Choose which direction the mouse wheel should be scrolled to change Slides"),
+							$d  => $this->l('Choose which direction the mouse wheel should be scrolled to change Slides'),
 							$a  => $u . "keyboard-arrows-mouse-wheel/",
 							$hl => [
 								$dp => [[$p => 'settings.type', $v => 'standard::carousel', $o => 'slider_layout_type_standard']],
@@ -4818,18 +4837,18 @@ class RevSliderHelp {
 					'gst_slide_1'  => [
 						'type'             => [
 							$di => "slide_bg_type",
-							$t  => $this->l("Main Slide Background"),
+							$t  => $this->l('Main Slide Background'),
 							$h  => "bg.type",
 							$k  => ["slide", "slide settings", "background", "bg", "image", "image background"],
-							$d  => $this->l("Set the Slide's Main background to a color, image or video"),
+							$d  => $this->l('Set the Slide\'s Main background to a color, image or video'),
 							$a  => $u . "slide-background/",
 							$hl => [$m => "#plugin_slide_trigger, #gst_slide_1", $st => '#form_slidebg_source', $f => "#slide_bg_type"],
 						],
 						'color'            => [
-							$t  => $this->l("Slide Background Color"),
+							$t  => $this->l('Slide Background Color'),
 							$h  => "bg.color",
 							$k  => ["slide", "slide settings", "background", "bg", "image", "images", "bg color", "background color"],
-							$d  => $this->l("Set the Slide's Main background to a color, image or video"),
+							$d  => $this->l('Set the Slide\'s Main background to a color, image or video'),
 							$a  => $u . "slide-background/",
 							$hl => [
 								$dp => [[$p => '#slide#.slide.bg.type', $v => 'solid', $o => 'slide_bg_type']],
@@ -4839,10 +4858,10 @@ class RevSliderHelp {
 							],
 						],
 						'external_url'     => [
-							$t  => $this->l("External Image URL"),
+							$t  => $this->l('External Image URL'),
 							$h  => "bg.externalSrc",
 							$k  => ["slide", "slide settings", "background", "bg", "image", "images", "slide background", "image background"],
-							$d  => $this->l("An image url to be used as the Slide's main background image"),
+							$d  => $this->l('An image url to be used as the Slide\'s main background image'),
 							$a  => $u . "slide-background/",
 							$hl => [
 								$dp => [[$p => '#slide#.slide.bg.type', $v => 'external', $o => 'slide_bg_type']],
@@ -4853,10 +4872,10 @@ class RevSliderHelp {
 						],
 						'image_background' => [
 							'image_from_stream' => [
-								$t  => $this->l("Image from Stream"),
+								$t  => $this->l('Image from Stream'),
 								$h  => "bg.imageFromStream",
 								$k  => ["stream", "stream background", "poster", "youtube poster", "vimeo poster", "video poster"],
-								$d  => $this->l("The Slide's main background will be populated automatically for Video/Social-Stream Sliders"),
+								$d  => $this->l('The Slide\'s main background will be populated automatically for Video/Social-Stream Sliders'),
 								$a  => $u . "slide-background/#image",
 								$hl => [
 									$dp => [[$p => '#slide#.slide.bg.type', $v => 'image::external::youtube::vimeo::html5', $o => 'slide_bg_type']],
@@ -4866,10 +4885,10 @@ class RevSliderHelp {
 								],
 							],
 							'source_size'       => [
-								$t  => $this->l("Source Size"),
+								$t  => $this->l('Source Size'),
 								$h  => "bg.imageSourceType",
 								$k  => ["background image", "slide image", "bg image"],
-								$d  => $this->l("The size of the image that will be loaded, defined by WP Main Menu -> Settings -> Media -> Image Sizes"),
+								$d  => $this->l('The size of the image that will be loaded, defined by WP Main Menu -> Settings -> Media -> Image Sizes'),
 								$a  => $u . "slide-background/#image",
 								$hl => [
 									$dp => [[$p => '#slide#.slide.bg.type', $v => 'image', $o => 'slide_bg_type']],
@@ -4879,10 +4898,10 @@ class RevSliderHelp {
 								],
 							],
 							'bg_fit'            => [
-								$t  => $this->l("Background Fit"),
+								$t  => $this->l('Background Fit'),
 								$h  => "bg.fit",
 								$k  => ["background image", "slide image", "bg image", "bg size", "background size", "bg fit", "background fit"],
-								$d  => $this->l("The <a href='https://www.w3schools.com/cssref/css3_pr_background-size.asp' target='_blank'>CSS background-size</a> for the Slide's main background image"),
+								$d  => $this->l('The <a href=\'https://www.w3schools.com/cssref/css3_pr_background-size.asp\' target=\'_blank\'>CSS background-size</a> for the Slide\'s main background image'),
 								$a  => $u . "slide-background/#image",
 								$hl => [
 									$dp => [[$p => '#slide#.slide.bg.type', $v => 'image::external', $o => 'slide_bg_type']],
@@ -4892,10 +4911,10 @@ class RevSliderHelp {
 								],
 							],
 							'bg_repeat'         => [
-								$t  => $this->l("Background Repeat"),
+								$t  => $this->l('Background Repeat'),
 								$h  => "bg.repeat",
 								$k  => ["background image", "slide image", "bg image", "bg repeat", "background repeat"],
-								$d  => $this->l("The <a href='https://www.w3schools.com/cssref/pr_background-repeat.asp' target='_blank'>CSS background-fit</a> for the Slide's main background image"),
+								$d  => $this->l('The <a href=\'https://www.w3schools.com/cssref/pr_background-repeat.asp\' target=\'_blank\'>CSS background-fit</a> for the Slide\'s main background image'),
 								$a  => $u . "slide-background/#image",
 								$hl => [
 									$dp => [[$p => '#slide#.slide.bg.type', $v => 'image::external', $o => 'slide_bg_type']],
@@ -4905,10 +4924,10 @@ class RevSliderHelp {
 								],
 							],
 							'bg_position'       => [
-								$t  => $this->l("Background Position"),
+								$t  => $this->l('Background Position'),
 								$h  => "bg.position",
 								$k  => ["background image", "slide image", "bg image", "bg position", "background position"],
-								$d  => $this->l("The <a href='https://www.w3schools.com/cssref/pr_background-position.asp' target='_blank'>CSS background-position</a> for the Slide's main background image"),
+								$d  => $this->l('The <a href=\'https://www.w3schools.com/cssref/pr_background-position.asp\' target=\'_blank\'>CSS background-position</a> for the Slide\'s main background image'),
 								$a  => $u . "slide-background/#image",
 								$hl => [
 									$dp => [[$p => '#slide#.slide.bg.type', $v => 'image::external', $o => 'slide_bg_type']],
@@ -4918,10 +4937,10 @@ class RevSliderHelp {
 								],
 							],
 							'parallax_3d'       => [
-								$t  => $this->l("Parallax Level"),
+								$t  => $this->l('Parallax Level'),
 								$h  => "effects.parallax",
 								$k  => ["parallax", "parallax level", "background parallax bg image parallax", "bg parallax"],
-								$d  => $this->l("The movement strength that will be applied to the Slide's main background image"),
+								$d  => $this->l('The movement strength that will be applied to the Slide\'s main background image'),
 								$a  => $u . "slide-background/",
 								$hl => [
 									$dp => [[$p => 'settings.parallax.set', $v => true, $o => 'slider_parallax']],
@@ -4933,10 +4952,10 @@ class RevSliderHelp {
 							'attributes'        => [
 								'alt_attr'     => [
 									$di => "slide_attributes_alt",
-									$t  => $this->l("Alt Attribute"),
+									$t  => $this->l('Alt Attribute'),
 									$h  => "attributes.altOption",
 									$k  => ["background image alt", "alt attribute", "bg alt", "image alt"],
-									$d  => $this->l("Define the 'alt' attribute for the Slide's main background image.  Useful for SEO purposes."),
+									$d  => $this->l('Define the \'alt\' attribute for the Slide\'s main background image.  Useful for SEO purposes.'),
 									$a  => $u . "slide-background/#image",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'image::external', $o => 'slide_bg_type']],
@@ -4946,10 +4965,10 @@ class RevSliderHelp {
 									],
 								],
 								'alt_custom'   => [
-									$t  => $this->l("Custom Alt Attribute"),
+									$t  => $this->l('Custom Alt Attribute'),
 									$h  => "attributes.alt",
 									$k  => ["background image alt", "alt attribute", "bg alt", "image alt"],
-									$d  => $this->l("Enter custom alternative text for the Slide's main background image.  Useful for SEO purposes."),
+									$d  => $this->l('Enter custom alternative text for the Slide\'s main background image.  Useful for SEO purposes.'),
 									$a  => $u . "slide-background/#image",
 									$hl => [
 										$dp => [
@@ -4963,10 +4982,10 @@ class RevSliderHelp {
 								],
 								'title_attr'   => [
 									$di => "slide_attributes_title",
-									$t  => $this->l("Title Attribute"),
+									$t  => $this->l('Title Attribute'),
 									$h  => "attributes.titleOption",
 									$k  => ["background image title", "alt attribute", "bg title", "image title"],
-									$d  => $this->l("Define the 'title' attribute for the Slide's main background image.  Useful for screen readers."),
+									$d  => $this->l('Define the \'title\' attribute for the Slide\'s main background image.  Useful for screen readers.'),
 									$a  => $u . "slide-background/#image",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'image::external', $o => 'slide_bg_type']],
@@ -4976,10 +4995,10 @@ class RevSliderHelp {
 									],
 								],
 								'title_custom' => [
-									$t  => $this->l("Custom Title Attribute"),
+									$t  => $this->l('Custom Title Attribute'),
 									$h  => "attributes.title",
 									$k  => ["background image title", "title attribute", "bg title", "image title"],
-									$d  => $this->l("Enter a custom title for the Slide's main background image.  Useful for screen readers."),
+									$d  => $this->l('Enter a custom title for the Slide\'s main background image.  Useful for screen readers.'),
 									$a  => $u . "slide-background/#image",
 									$hl => [
 										$dp => [
@@ -4994,10 +5013,10 @@ class RevSliderHelp {
 							],
 							'external_image'    => [
 								'external_width'  => [
-									$t  => $this->l("External Image Width"),
+									$t  => $this->l('External Image Width'),
 									$h  => "bg.width",
 									$k  => ["background image width", "external image width", "external image"],
-									$d  => $this->l("Define a custom width attribute for external image urls"),
+									$d  => $this->l('Define a custom width attribute for external image urls'),
 									$a  => $u . "slide-background/#image",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'external', $o => 'slide_bg_type']],
@@ -5007,10 +5026,10 @@ class RevSliderHelp {
 									],
 								],
 								'external_height' => [
-									$t  => $this->l("External Image Height"),
+									$t  => $this->l('External Image Height'),
 									$h  => "bg.height",
 									$k  => ["background image height", "external image height", "external image"],
-									$d  => $this->l("Define a custom height attribute for external image urls"),
+									$d  => $this->l('Define a custom height attribute for external image urls'),
 									$a  => $u . "slide-background/#image",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'external', $o => 'slide_bg_type']],
@@ -5023,10 +5042,10 @@ class RevSliderHelp {
 						],
 						'video_background' => [
 							'youtube_id'          => [
-								$t  => $this->l("YouTube Video ID"),
+								$t  => $this->l('YouTube Video ID'),
 								$h  => "bg.youtube",
 								$k  => ["youtube video", "youtube video background", "video background", "video bg", "youtube", "youtube id"],
-								$d  => $this->l("The <a href='https://www.quora.com/What-is-a-YouTube-video-ID' target=_'blank'>YouTube Video ID</a> for the background video"),
+								$d  => $this->l('The <a href=\'https://www.quora.com/What-is-a-YouTube-video-ID\' target=_\'blank\'>YouTube Video ID</a> for the background video'),
 								$a  => $u . "slide-background/#video",
 								$hl => [
 									$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube', $o => 'slide_bg_type']],
@@ -5036,10 +5055,10 @@ class RevSliderHelp {
 								],
 							],
 							'vimeo_id'            => [
-								$t  => $this->l("Vimeo Video ID"),
+								$t  => $this->l('Vimeo Video ID'),
 								$h  => "bg.vimeo",
 								$k  => ["vimeo video", "vimeo video background", "video background", "video bg", "vimeo", "vimeo id"],
-								$d  => $this->l("The <a href='https://docs.joeworkman.net/rapidweaver/stacks/vimeo/video-id' target=_'blank'>Vimeo Video ID</a> for the background video"),
+								$d  => $this->l('The <a href=\'https://docs.joeworkman.net/rapidweaver/stacks/vimeo/video-id\' target=_\'blank\'>Vimeo Video ID</a> for the background video'),
 								$a  => $u . "slide-background/#video",
 								$hl => [
 									$dp => [[$p => '#slide#.slide.bg.type', $v => 'vimeo', $o => 'slide_bg_type']],
@@ -5049,10 +5068,10 @@ class RevSliderHelp {
 								],
 							],
 							'html5_url'           => [
-								$t  => $this->l("HTML Video URL"),
+								$t  => $this->l('HTML Video URL'),
 								$h  => "bg.mpeg",
 								$k  => ["html5 video", "video url", "html5 video url", "html5 source", "html5 video source"],
-								$d  => $this->l("The video url to be used as the Slide's main background"),
+								$d  => $this->l('The video url to be used as the Slide\'s main background'),
 								$a  => $u . "slide-background/#video",
 								$hl => [
 									$dp => [[$p => '#slide#.slide.bg.type', $v => 'html5', $o => 'slide_bg_type']],
@@ -5062,10 +5081,10 @@ class RevSliderHelp {
 								],
 							],
 							'image_from_stream'   => [
-								$t  => $this->l("Image/Poster from Stream"),
+								$t  => $this->l('Image/Poster from Stream'),
 								$h  => "bg.imageFromStream",
 								$k  => ["stream", "stream background", "poster", "youtube poster", "vimeo poster", "video poster"],
-								$d  => $this->l("The Slide's main background will be populated automatically for Video/Social-Stream Sliders"),
+								$d  => $this->l('The Slide\'s main background will be populated automatically for Video/Social-Stream Sliders'),
 								$a  => $u . "slide-background/#video",
 								$hl => [
 									$dp => [[$p => '#slide#.slide.bg.type', $v => 'image::external::youtube::vimeo::html5', $o => 'slide_bg_type']],
@@ -5075,10 +5094,10 @@ class RevSliderHelp {
 								],
 							],
 							'video_from_stream'   => [
-								$t  => $this->l("Video from Stream"),
+								$t  => $this->l('Video from Stream'),
 								$h  => "bg.videoFromStream",
 								$k  => ["stream", "stream background", "video stream"],
-								$d  => $this->l("The Slide's main background will be populated automatically for Video-Stream Sliders"),
+								$d  => $this->l('The Slide\'s main background will be populated automatically for Video-Stream Sliders'),
 								$a  => $u . "slide-background/#video",
 								$hl => [
 									$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo::html5', $o => 'slide_bg_type']],
@@ -5089,10 +5108,10 @@ class RevSliderHelp {
 							],
 							'additional_settings' => [
 								'aspect_ratio'      => [
-									$t  => $this->l("Aspect Ratio"),
+									$t  => $this->l('Aspect Ratio'),
 									$h  => "bg.video.ratio",
 									$k  => ["aspect ratio", "video size", "video aspect ratio"],
-									$d  => $this->l("This value should match the video's original aspect ratio"),
+									$d  => $this->l('This value should match the video\'s original aspect ratio'),
 									$a  => $u . "slide-background/#video-settings",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo::html5', $o => 'slide_bg_type']],
@@ -5102,10 +5121,10 @@ class RevSliderHelp {
 									],
 								],
 								'dotted_overlay'    => [
-									$t  => $this->l("Dotted Overlay"),
+									$t  => $this->l('Dotted Overlay'),
 									$h  => "bg.video.dottedOverlay",
 									$k  => ["overlay", "video overlay", "dotted overlay"],
-									$d  => $this->l("Add a mesh-style overlay to the video for extra styling"),
+									$d  => $this->l('Add a mesh-style overlay to the video for extra styling'),
 									$a  => $u . "slide-background/#video-settings",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo::html5', $o => 'slide_bg_type']],
@@ -5115,10 +5134,10 @@ class RevSliderHelp {
 									],
 								],
 								'loop'              => [
-									$t  => $this->l("Loop Video"),
+									$t  => $this->l('Loop Video'),
 									$h  => "bg.video.loop",
 									$k  => ["loop", "video loop", "restart", "restart video"],
-									$d  => $this->l("Restart the video every time it ends"),
+									$d  => $this->l('Restart the video every time it ends'),
 									$a  => $u . "slide-background/#video-settings",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo::html5', $o => 'slide_bg_type']],
@@ -5128,10 +5147,10 @@ class RevSliderHelp {
 									],
 								],
 								'force_cover'       => [
-									$t  => $this->l("Force Cover"),
+									$t  => $this->l('Force Cover'),
 									$h  => "bg.video.forceCover",
 									$k  => ["cover", "force cover"],
-									$d  => $this->l("Ensures that the video will be displayed full-width and full-height regardless of its aspect ratio"),
+									$d  => $this->l('Ensures that the video will be displayed full-width and full-height regardless of its aspect ratio'),
 									$a  => $u . "slide-background/#video-settings",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo::html5', $o => 'slide_bg_type']],
@@ -5141,10 +5160,10 @@ class RevSliderHelp {
 									],
 								],
 								'next_slide_at_end' => [
-									$t  => $this->l("Next Slide at End"),
+									$t  => $this->l('Next Slide at End'),
 									$h  => "bg.video.nextSlideAtEnd",
 									$k  => ["next slide at end", "next slide end"],
-									$d  => $this->l("Change to the next Slide when the video ends"),
+									$d  => $this->l('Change to the next Slide when the video ends'),
 									$a  => $u . "slide-background/#video-settings",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo::html5', $o => 'slide_bg_type']],
@@ -5154,10 +5173,10 @@ class RevSliderHelp {
 									],
 								],
 								'rewind_at_start'   => [
-									$t  => $this->l("Rewind at Start"),
+									$t  => $this->l('Rewind at Start'),
 									$h  => "bg.video.forceRewind",
 									$k  => ["rewind", "rewind at start"],
-									$d  => $this->l("Always play the video from the beginning each time the Slide is shown"),
+									$d  => $this->l('Always play the video from the beginning each time the Slide is shown'),
 									$a  => $u . "slide-background/#video-settings",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo::html5', $o => 'slide_bg_type']],
@@ -5167,10 +5186,10 @@ class RevSliderHelp {
 									],
 								],
 								'mute_at_start'     => [
-									$t  => $this->l("Mute at Start"),
+									$t  => $this->l('Mute at Start'),
 									$h  => "bg.video.mute",
 									$k  => ["mute video", "mute at start"],
-									$d  => $this->l("Auto-mute the video each time the Slide is shown"),
+									$d  => $this->l('Auto-mute the video each time the Slide is shown'),
 									$a  => $u . "slide-background/#video-settings",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo::html5', $o => 'slide_bg_type']],
@@ -5180,10 +5199,10 @@ class RevSliderHelp {
 									],
 								],
 								'volume'            => [
-									$t  => $this->l("Video Volume"),
+									$t  => $this->l('Video Volume'),
 									$h  => "bg.video.volume",
 									$k  => ["video volume"],
-									$d  => $this->l("Set the default volume for the video"),
+									$d  => $this->l('Set the default volume for the video'),
 									$a  => $u . "slide-background/#video-settings",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo', $o => 'slide_bg_type']],
@@ -5193,10 +5212,10 @@ class RevSliderHelp {
 									],
 								],
 								'speed'             => [
-									$t  => $this->l("Video Speed"),
+									$t  => $this->l('Video Speed'),
 									$h  => "bg.video.speed",
 									$k  => ["video speed"],
-									$d  => $this->l("Optional playback speed for the video"),
+									$d  => $this->l('Optional playback speed for the video'),
 									$a  => $u . "slide-background/#video-settings",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo', $o => 'slide_bg_type']],
@@ -5206,10 +5225,10 @@ class RevSliderHelp {
 									],
 								],
 								'start_at'          => [
-									$t  => $this->l("Start Time"),
+									$t  => $this->l('Start Time'),
 									$h  => "bg.video.startAt",
 									$k  => ["video start", "video start time", "start at", "video start at"],
-									$d  => $this->l("Start the video at this time (minutes:seconds, such as 01:30)"),
+									$d  => $this->l('Start the video at this time (minutes:seconds, such as 01:30)'),
 									$a  => $u . "slide-background/#video-settings",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo::html5', $o => 'slide_bg_type']],
@@ -5219,10 +5238,10 @@ class RevSliderHelp {
 									],
 								],
 								'end_at'            => [
-									$t  => $this->l("End Time"),
+									$t  => $this->l('End Time'),
 									$h  => "bg.video.endAt",
 									$k  => ["video end", "video end time", "end at", "video end at"],
-									$d  => $this->l("End the video at this time (minutes:seconds, such as 01:30)"),
+									$d  => $this->l('End the video at this time (minutes:seconds, such as 01:30)'),
 									$a  => $u . "slide-background/#video-settings",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo::html5', $o => 'slide_bg_type']],
@@ -5232,10 +5251,10 @@ class RevSliderHelp {
 									],
 								],
 								'arguments'         => [
-									$t  => $this->l("YouTube/Vimeo Arguments"),
+									$t  => $this->l('YouTube/Vimeo Arguments'),
 									$h  => "bg.video.args, bg.video.argsVimeo",
 									$k  => ["youtube args", "youtube arguments", "vimeo args", "vimeo arguments"],
-									$d  => $this->l("Optional iFrame arguments for <a href='https://developers.google.com/youtube/player_parameters' target='_blank'>YouTube</a> and <a href='https://help.vimeo.com/hc/en-us/articles/360001494447-Using-Player-Parameters' target='_blank'>Vimeo</a>"),
+									$d  => $this->l('Optional iFrame arguments for <a href=\'https://developers.google.com/youtube/player_parameters\' target=\'_blank\'>YouTube</a> and <a href=\'https://help.vimeo.com/hc/en-us/articles/360001494447-Using-Player-Parameters\' target=\'_blank\'>Vimeo</a>'),
 									$a  => $u . "slide-background/#video-settings",
 									$hl => [
 										$dp => [[$p => '#slide#.slide.bg.type', $v => 'youtube::vimeo', $o => 'slide_bg_type']],
@@ -5249,10 +5268,10 @@ class RevSliderHelp {
 					],
 					'gst_slide_6'  => [
 						'plugin_thumb'     => [
-							$t  => $this->l("Plugin Admin Thumbnail"),
+							$t  => $this->l('Plugin Admin Thumbnail'),
 							$h  => "#slide#.slide.thumb.customAdminThumbSrc",
 							$k  => ["thumbnail", "admin thumb", "admin thumbnail"],
-							$d  => $this->l("Set a special thumbnail for editor admin purposes only"),
+							$d  => $this->l('Set a special thumbnail for editor admin purposes only'),
 							$a  => $u . "slide-thumbnails/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_6",
@@ -5261,10 +5280,10 @@ class RevSliderHelp {
 							],
 						],
 						'navigation_thumb' => [
-							$t  => $this->l("Navigation Thumbnail"),
+							$t  => $this->l('Navigation Thumbnail'),
 							$h  => "#slide#.slide.thumb.customThumbSrc",
 							$k  => ["thumbnail", "thumb", "navigation thumb", "navigation thumbnail", "nav thumb", "navigation thumb"],
-							$d  => $this->l("The thumbnail image that will be used for the Slider's thumbnail navigation"),
+							$d  => $this->l('The thumbnail image that will be used for the Slider\'s thumbnail navigation'),
 							$a  => $u . "slide-thumbnails/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_6",
@@ -5273,10 +5292,10 @@ class RevSliderHelp {
 							],
 						],
 						'dimension'        => [
-							$t  => $this->l("Dimension"),
+							$t  => $this->l('Dimension'),
 							$h  => "thumb.dimension",
 							$k  => ["thumbnail", "thumb", "navigation thumb", "navigation thumbnail", "nav thumb", "navigation thumb", "dimension", "thumb size", "thumbnail size"],
-							$d  => $this->l("Load the images in their original size or in the size defined in the Slider Settings"),
+							$d  => $this->l('Load the images in their original size or in the size defined in the Slider Settings'),
 							$a  => $u . "slide-thumbnails/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_6",
@@ -5287,10 +5306,10 @@ class RevSliderHelp {
 					],
 					'gst_slide_2'  => [
 						'slide_transition' => [
-							$t  => $this->l("Slide Transition"),
+							$t  => $this->l('Slide Transition'),
 							$h  => "added_slide_transition",
 							$k  => ["slide", "slide settings", "slide animation", "slide transition", "animation", "transition"],
-							$d  => $this->l("Represents a transition for the current Slide's main background when the Slides change"),
+							$d  => $this->l('Represents a transition for the current Slide\'s main background when the Slides change'),
 							$a  => $u . "slide-animation/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_2",
@@ -5299,10 +5318,10 @@ class RevSliderHelp {
 							],
 						],
 						'duration'         => [
-							$t  => $this->l("Transition Duration"),
+							$t  => $this->l('Transition Duration'),
 							$h  => "timeline.duration.#curslidetrans#",
 							$k  => ["slide transition", "slide animation", "animation duration", "transition duration", "animation time", "transition time"],
-							$d  => $this->l("The Slide animation's total time for the selected transition"),
+							$d  => $this->l('The Slide animation\'s total time for the selected transition'),
 							$a  => $u . "slide-animation/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_2",
@@ -5311,10 +5330,10 @@ class RevSliderHelp {
 							],
 						],
 						'easing_in'        => [
-							$t  => $this->l("Animation 'In' Easing"),
+							$t  => $this->l('Animation \'In\' Easing'),
 							$h  => "timeline.easeIn.#curslidetrans#",
 							$k  => ["slide transition", "slide animation", "animation easing", "transition easing"],
-							$d  => $this->l("The easing equation for the 'IN' animation"),
+							$d  => $this->l('The easing equation for the \'IN\' animation'),
 							$a  => $u . "slide-animation/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_2",
@@ -5323,10 +5342,10 @@ class RevSliderHelp {
 							],
 						],
 						'easing_out'       => [
-							$t  => $this->l("Animation 'Out' Easing"),
+							$t  => $this->l('Animation \'Out\' Easing'),
 							$h  => "timeline.easeOut.#curslidetrans#",
 							$k  => ["slide transition", "slide animation", "animation easing", "transition easing"],
-							$d  => $this->l("The easing equation for the 'OUT' animation"),
+							$d  => $this->l('The easing equation for the \'OUT\' animation'),
 							$a  => $u . "slide-animation/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_2",
@@ -5335,10 +5354,10 @@ class RevSliderHelp {
 							],
 						],
 						'slots'            => [
-							$t  => $this->l("Slots/Boxes"),
+							$t  => $this->l('Slots/Boxes'),
 							$h  => "timeline.slots.#curslidetrans#",
 							$k  => ["slide transition", "slide animation", "animation slots", "transition slots", "slots"],
-							$d  => $this->l("The number of slots/boxes to use for slot-based transitions"),
+							$d  => $this->l('The number of slots/boxes to use for slot-based transitions'),
 							$a  => $u . "slide-animation/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_2",
@@ -5347,10 +5366,10 @@ class RevSliderHelp {
 							],
 						],
 						'rotation'         => [
-							$t  => $this->l("Rotation"),
+							$t  => $this->l('Rotation'),
 							$h  => "timeline.rotation.#curslidetrans#",
 							$k  => ["slide transition", "slide animation", "animation rotation", "transition rotation"],
-							$d  => $this->l("An optional rotation to apply to the Slide's transition"),
+							$d  => $this->l('An optional rotation to apply to the Slide\'s transition'),
 							$a  => $u . "slide-animation/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_2",
@@ -5361,10 +5380,10 @@ class RevSliderHelp {
 					],
 					'gst_slide_5'  => [
 						'bg_filter' => [
-							$t  => $this->l("Background Image Filter"),
+							$t  => $this->l('Background Image Filter'),
 							$h  => "bg.mediaFilter",
 							$k  => ["filter", "filters", "image filter", "image filters", "bg filter", "bg filters", "background filter", "background filters", "instagram"],
-							$d  => $this->l("An Instagram-type filter to apply to the Slide's main background image"),
+							$d  => $this->l('An Instagram-type filter to apply to the Slide\'s main background image'),
 							$a  => $u . "slide-filters/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_5",
@@ -5375,10 +5394,10 @@ class RevSliderHelp {
 					],
 					'gst_slide_8'  => [
 						'slide_length' => [
-							$t  => $this->l("Slide Time/Length"),
+							$t  => $this->l('Slide Time/Length'),
 							$h  => "timeline.delay",
 							$k  => ["slide", "slide settings", "slide time", "slide timeline", "slide length", "progress", "slide progress", "timeline"],
-							$d  => $this->l("The Slide's total duration before the next Slide is shown"),
+							$d  => $this->l('The Slide\'s total duration before the next Slide is shown'),
 							$a  => $u . "slide-progress/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_8",
@@ -5387,10 +5406,10 @@ class RevSliderHelp {
 							],
 						],
 						'pause_slider' => [
-							$t  => $this->l("Pause Slider"),
+							$t  => $this->l('Pause Slider'),
 							$h  => "timeline.stopOnPurpose",
 							$k  => ["pause slider", "pause slide", "pause", "stop", "stop slider", "stop progress"],
-							$d  => $this->l("Pause the Slider from changing Slides when this Slide is shown"),
+							$d  => $this->l('Pause the Slider from changing Slides when this Slide is shown'),
 							$a  => $u . "slide-progress/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_8",
@@ -5400,10 +5419,10 @@ class RevSliderHelp {
 						],
 						'visibility'   => [
 							'visible_in_navigation' => [
-								$t  => $this->l("Visible in Navigation"),
+								$t  => $this->l('Visible in Navigation'),
 								$h  => "visibility.hideFromNavigation",
 								$k  => ["visibility", "visible in navigation", "hidden in navigation", "slide visibility"],
-								$d  => $this->l("Show the Slide in the Slider's main navigation, or make the Slide 'hidden' so it can only be shown from a Layer Action click"),
+								$d  => $this->l('Show the Slide in the Slider\'s main navigation, or make the Slide \'hidden\' so it can only be shown from a Layer Action click'),
 								$a  => $u . "slide-progress/",
 								$hl => [
 									$m  => "#plugin_slide_trigger, #gst_slide_8",
@@ -5412,10 +5431,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_after_loop'       => [
-								$t  => $this->l("Hide After Loop"),
+								$t  => $this->l('Hide After Loop'),
 								$h  => "visibility.hideAfterLoop",
 								$k  => ["visibility", "slide visibility", "hide after loop", "hide slide"],
-								$d  => $this->l("Remove the Slide from the Slide stack after a set amount of loops"),
+								$d  => $this->l('Remove the Slide from the Slide stack after a set amount of loops'),
 								$a  => $u . "slide-progress/",
 								$hl => [
 									$m  => "#plugin_slide_trigger, #gst_slide_8",
@@ -5424,10 +5443,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_on_mobile'        => [
-								$t  => $this->l("Hide on Mobile"),
+								$t  => $this->l('Hide on Mobile'),
 								$h  => "visibility.hideOnMobile",
 								$k  => ["visibility", "slide visibility", "hide on mobile", "hide slide", "hide slide on mobile"],
-								$d  => $this->l("Hide the Slide on mobile devices"),
+								$d  => $this->l('Hide the Slide on mobile devices'),
 								$a  => $u . "slide-progress/",
 								$hl => [
 									$m  => "#plugin_slide_trigger, #gst_slide_8",
@@ -5439,10 +5458,10 @@ class RevSliderHelp {
 					],
 					'gst_slide_9'  => [
 						'publish_status' => [
-							$t  => $this->l("Published Status"),
+							$t  => $this->l('Published Status'),
 							$h  => "publish.state",
 							$k  => ["slide", "slide settings", "publish", "publish slide", "unpublished"],
-							$d  => $this->l("Choose the published state of the Slide.  Choose 'Unpublished' to work on the Slide in a draft status."),
+							$d  => $this->l('Choose the published state of the Slide.  Choose \'Unpublished\' to work on the Slide in a draft status.'),
 							$a  => $u . "slide-publish-rules/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_9",
@@ -5451,10 +5470,10 @@ class RevSliderHelp {
 							],
 						],
 						'publish_start'  => [
-							$t  => $this->l("Publish Start Date"),
+							$t  => $this->l('Publish Start Date'),
 							$h  => "publish.from",
 							$k  => ["publish", "publish slide", "unpublished", "publish from", "start date", "date", "starting date"],
-							$d  => $this->l("Set a starting date for when the Slide should officially be included in the Slider"),
+							$d  => $this->l('Set a starting date for when the Slide should officially be included in the Slider'),
 							$a  => $u . "slide-publish-rules/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_9",
@@ -5463,10 +5482,10 @@ class RevSliderHelp {
 							],
 						],
 						'publish_end'    => [
-							$t  => $this->l("Publish End Date"),
+							$t  => $this->l('Publish End Date'),
 							$h  => "publish.to",
 							$k  => ["publish", "publish slide", "unpublished", "publish from", "end date", "date", "endingdate"],
-							$d  => $this->l("Set an end date for when the Slide should officially be excluded from the Slider"),
+							$d  => $this->l('Set an end date for when the Slide should officially be excluded from the Slider'),
 							$a  => $u . "slide-publish-rules/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_9",
@@ -5478,10 +5497,10 @@ class RevSliderHelp {
 					'gst_slide_4'  => [
 						'html_tags' => [
 							'class' => [
-								$t  => $this->l("Slide Classes"),
+								$t  => $this->l('Slide Classes'),
 								$h  => "attributes.class",
 								$k  => ["slide class", "class", "class name"],
-								$d  => $this->l("Add optional class names to the Slide to target the Slide with custom CSS or JavaScript"),
+								$d  => $this->l('Add optional class names to the Slide to target the Slide with custom CSS or JavaScript'),
 								$a  => $u . "tags-link/",
 								$hl => [
 									$m  => "#plugin_slide_trigger, #gst_slide_4",
@@ -5490,10 +5509,10 @@ class RevSliderHelp {
 								],
 							],
 							'id'    => [
-								$t  => $this->l("Slide ID"),
+								$t  => $this->l('Slide ID'),
 								$h  => "attributes.id",
 								$k  => ["slide id", "slide id attribute", "id attribute"],
-								$d  => $this->l("Add an optional ID to the Slide to target the Slide with custom CSS or JavaScript"),
+								$d  => $this->l('Add an optional ID to the Slide to target the Slide with custom CSS or JavaScript'),
 								$a  => $u . "tags-link/",
 								$hl => [
 									$m  => "#plugin_slide_trigger, #gst_slide_4",
@@ -5502,10 +5521,10 @@ class RevSliderHelp {
 								],
 							],
 							'data'  => [
-								$t  => $this->l("Data Attributes"),
+								$t  => $this->l('Data Attributes'),
 								$h  => "attributes.data",
 								$k  => ["slide data", "slide data attribute", "slide data attributes", "data attribute", "data attributes"],
-								$d  => $this->l("Optional data-attributes that can be added to the Slide to target it with custom CSS or JavaScript"),
+								$d  => $this->l('Optional data-attributes that can be added to the Slide to target it with custom CSS or JavaScript'),
 								$a  => $u . "tags-link/",
 								$hl => [
 									$m  => "#plugin_slide_trigger, #gst_slide_4",
@@ -5517,10 +5536,10 @@ class RevSliderHelp {
 						'link_seo'  => [
 							'enable'        => [
 								$di => "slide_link_seo",
-								$t  => $this->l("Enable Slide Link"),
+								$t  => $this->l('Enable Slide Link'),
 								$h  => "seo.set",
 								$k  => ["slide", "slide settings", "slide link", "link", "hyperlink", "slide hyperlink", "link slide"],
-								$d  => $this->l("Add a link to the entire Slide area"),
+								$d  => $this->l('Add a link to the entire Slide area'),
 								$a  => $u . "tags-link/",
 								$hl => [
 									$m  => "#plugin_slide_trigger, #gst_slide_4",
@@ -5530,10 +5549,10 @@ class RevSliderHelp {
 							],
 							'type'          => [
 								$di => "slide_link_seo_type",
-								$t  => $this->l("Link Type"),
+								$t  => $this->l('Link Type'),
 								$h  => "seo.type",
 								$k  => ["slide link", "link", "hyperlink", "slide hyperlink", "link slide", "link to slide", "change slides"],
-								$d  => $this->l("Choose a traditional link to the Slide to navigate to a new web page or another Slide"),
+								$d  => $this->l('Choose a traditional link to the Slide to navigate to a new web page or another Slide'),
 								$a  => $u . "tags-link/",
 								$hl => [
 									$dp => [[$p => '#slide#.slide.seo.set', $v => true, $o => 'slide_link_seo']],
@@ -5543,10 +5562,10 @@ class RevSliderHelp {
 								],
 							],
 							'url'           => [
-								$t  => $this->l("Link URL"),
+								$t  => $this->l('Link URL'),
 								$h  => "seo.link",
 								$k  => ["slide link", "link", "hyperlink", "slide hyperlink", "link url", "url"],
-								$d  => $this->l("The url to go to when the Slide is clicked"),
+								$d  => $this->l('The url to go to when the Slide is clicked'),
 								$a  => $u . "tags-link/",
 								$hl => [
 									$dp => [
@@ -5559,10 +5578,10 @@ class RevSliderHelp {
 								],
 							],
 							'target'        => [
-								$t  => $this->l("Link Target"),
+								$t  => $this->l('Link Target'),
 								$h  => "seo.target",
 								$k  => ["slide link", "link", "hyperlink", "slide hyperlink", "link url", "url", "link target"],
-								$d  => $this->l("The <a href='https://www.w3schools.com/tags/att_link_target.asp' target='_blank'>target attribute</a> for the Slide link"),
+								$d  => $this->l('The <a href=\'https://www.w3schools.com/tags/att_link_target.asp\' target=\'_blank\'>target attribute</a> for the Slide link'),
 								$a  => $u . "tags-link/",
 								$hl => [
 									$dp => [
@@ -5575,10 +5594,10 @@ class RevSliderHelp {
 								],
 							],
 							'link_to_slide' => [
-								$t  => $this->l("Link to Slide"),
+								$t  => $this->l('Link to Slide'),
 								$h  => "seo.slideLink",
 								$k  => ["slide link", "link", "link to slide"],
-								$d  => $this->l("Link to another Slide in the Slider"),
+								$d  => $this->l('Link to another Slide in the Slider'),
 								$a  => $u . "tags-link/",
 								$hl => [
 									$dp => [
@@ -5591,10 +5610,10 @@ class RevSliderHelp {
 								],
 							],
 							'link_zindex'   => [
-								$t  => $this->l("Link Sensibility"),
+								$t  => $this->l('Link Sensibility'),
 								$h  => "seo.z",
 								$k  => ["slide link", "link", "hyperlink", "slide hyperlink", "link to slide", "sensibility", "link z-index", "link zindex"],
-								$d  => $this->l("Choose of the Slide link should be placed behind or above the Slide's Layer content"),
+								$d  => $this->l('Choose of the Slide link should be placed behind or above the Slide\'s Layer content'),
 								$a  => $u . "tags-link/",
 								$hl => [
 									$dp => [[$p => '#slide#.slide.seo.set', $v => true, $o => 'slide_link_seo']],
@@ -5608,10 +5627,10 @@ class RevSliderHelp {
 					'gst_slide_3'  => [
 						'enable'        => [
 							$di => "slide_panzoom",
-							$t  => $this->l("Enable PanZoom"),
+							$t  => $this->l('Enable PanZoom'),
 							$h  => "panzoom.set",
 							$k  => ["panzoom", "pan zoom"],
-							$d  => $this->l("Enable the PanZoom effect by default for this Slide"),
+							$d  => $this->l('Enable the PanZoom effect by default for this Slide'),
 							$a  => $u . "pan-zoom/",
 							$hl => [
 								$dp => [[$p => '#slide#.slide.bg.type', $v => 'image::external', $o => 'slide_bg_type']],
@@ -5621,10 +5640,10 @@ class RevSliderHelp {
 							],
 						],
 						'bg_position'   => [
-							$t  => $this->l("Background Position"),
+							$t  => $this->l('Background Position'),
 							$h  => "bg.position",
 							$k  => ["pan zoom", "panzoom", "pan zoom position", "panzoom position"],
-							$d  => $this->l("The <a href='https://www.w3schools.com/cssref/pr_background-position.asp' target='_blank'>CSS background-position</a> for the Slide's main background image"),
+							$d  => $this->l('The <a href=\'https://www.w3schools.com/cssref/pr_background-position.asp\' target=\'_blank\'>CSS background-position</a> for the Slide\'s main background image'),
 							$a  => $u . "pan-zoom/",
 							$hl => [
 								$dp => [
@@ -5638,10 +5657,10 @@ class RevSliderHelp {
 						],
 						'zoom'          => [
 							'fit_start' => [
-								$t  => $this->l("Zoom Start Percentage"),
+								$t  => $this->l('Zoom Start Percentage'),
 								$h  => "panzoom.fitStart",
 								$k  => ["panzoom", "pan zoom", "zoom", "pan zoom zoom", "panzoom zoom"],
-								$d  => $this->l("The starting zoom percentage"),
+								$d  => $this->l('The starting zoom percentage'),
 								$a  => $u . "pan-zoom/",
 								$hl => [
 									$dp => [
@@ -5654,10 +5673,10 @@ class RevSliderHelp {
 								],
 							],
 							'fit_end'   => [
-								$t  => $this->l("Zoom End Percentage"),
+								$t  => $this->l('Zoom End Percentage'),
 								$h  => "panzoom.fitEnd",
 								$k  => ["panzoom", "pan zoom", "zoom", "pan zoom zoom", "panzoom zoom"],
-								$d  => $this->l("The ending zoom percentage"),
+								$d  => $this->l('The ending zoom percentage'),
 								$a  => $u . "pan-zoom/",
 								$hl => [
 									$dp => [
@@ -5672,10 +5691,10 @@ class RevSliderHelp {
 						],
 						'movement'      => [
 							'x_start' => [
-								$t  => $this->l("Start Position X"),
+								$t  => $this->l('Start Position X'),
 								$h  => "panzoom.xStart",
 								$k  => ["panzoom", "pan zoom", "position", "pan zoom position", "panzoom position"],
-								$d  => $this->l("The starting x position for the PanZoom movement"),
+								$d  => $this->l('The starting x position for the PanZoom movement'),
 								$a  => $u . "pan-zoom/",
 								$hl => [
 									$dp => [
@@ -5688,10 +5707,10 @@ class RevSliderHelp {
 								],
 							],
 							'x_end'   => [
-								$t  => $this->l("End Position X"),
+								$t  => $this->l('End Position X'),
 								$h  => "panzoom.xEnd",
 								$k  => ["panzoom", "pan zoom", "position", "pan zoom position", "panzoom position"],
-								$d  => $this->l("The end x position for the PanZoom movement"),
+								$d  => $this->l('The end x position for the PanZoom movement'),
 								$a  => $u . "pan-zoom/",
 								$hl => [
 									$dp => [
@@ -5704,10 +5723,10 @@ class RevSliderHelp {
 								],
 							],
 							'y_start' => [
-								$t  => $this->l("Start Position Y"),
+								$t  => $this->l('Start Position Y'),
 								$h  => "panzoom.yStart",
 								$k  => ["panzoom", "pan zoom", "position", "pan zoom position", "panzoom position"],
-								$d  => $this->l("The starting y position for the PanZoom movement"),
+								$d  => $this->l('The starting y position for the PanZoom movement'),
 								$a  => $u . "pan-zoom/",
 								$hl => [
 									$dp => [
@@ -5720,10 +5739,10 @@ class RevSliderHelp {
 								],
 							],
 							'y_end'   => [
-								$t  => $this->l("End Position Y"),
+								$t  => $this->l('End Position Y'),
 								$h  => "panzoom.yEnd",
 								$k  => ["panzoom", "pan zoom", "position", "pan zoom position", "panzoom position"],
-								$d  => $this->l("The ending y position for the PanZoom movement"),
+								$d  => $this->l('The ending y position for the PanZoom movement'),
 								$a  => $u . "pan-zoom/",
 								$hl => [
 									$dp => [
@@ -5738,10 +5757,10 @@ class RevSliderHelp {
 						],
 						'rotation_blur' => [
 							'rotate_start' => [
-								$t  => $this->l("Rotate Start"),
+								$t  => $this->l('Rotate Start'),
 								$h  => "panzoom.rotateStart",
 								$k  => ["panzoom", "pan zoom", "rotate", "pan zoom rotate", "panzoom rotate", "rotation", "pan zoom rotation"],
-								$d  => $this->l("The starting rotation for the PanZoom effect (deg)"),
+								$d  => $this->l('The starting rotation for the PanZoom effect (deg)'),
 								$a  => $u . "pan-zoom/",
 								$hl => [
 									$dp => [
@@ -5754,10 +5773,10 @@ class RevSliderHelp {
 								],
 							],
 							'rotate_end'   => [
-								$t  => $this->l("Rotate End"),
+								$t  => $this->l('Rotate End'),
 								$h  => "panzoom.rotateEnd",
 								$k  => ["panzoom", "pan zoom", "rotate", "pan zoom rotate", "panzoom rotate", "rotation", "pan zoom rotation"],
-								$d  => $this->l("The ending rotation for the PanZoom effect (deg)"),
+								$d  => $this->l('The ending rotation for the PanZoom effect (deg)'),
 								$a  => $u . "pan-zoom/",
 								$hl => [
 									$dp => [
@@ -5770,10 +5789,10 @@ class RevSliderHelp {
 								],
 							],
 							'blur_start'   => [
-								$t  => $this->l("Blur Start"),
+								$t  => $this->l('Blur Start'),
 								$h  => "panzoom.blurStart",
 								$k  => ["panzoom", "pan zoom", "rotate", "pan zoom blur", "panzoom blur", "blur", "image blur"],
-								$d  => $this->l("The starting image blur for the PanZoom effect (px)"),
+								$d  => $this->l('The starting image blur for the PanZoom effect (px)'),
 								$a  => $u . "pan-zoom/",
 								$hl => [
 									$dp => [
@@ -5786,10 +5805,10 @@ class RevSliderHelp {
 								],
 							],
 							'blur_end'     => [
-								$t  => $this->l("Blur End"),
+								$t  => $this->l('Blur End'),
 								$h  => "panzoom.blurEnd",
 								$k  => ["panzoom", "pan zoom", "rotate", "pan zoom blur", "panzoom blur", "blur", "image blur"],
-								$d  => $this->l("The ending image blur for the PanZoom effect (px)"),
+								$d  => $this->l('The ending image blur for the PanZoom effect (px)'),
 								$a  => $u . "pan-zoom/",
 								$hl => [
 									$dp => [
@@ -5803,10 +5822,10 @@ class RevSliderHelp {
 							],
 						],
 						'easing'        => [
-							$t  => $this->l("Easing"),
+							$t  => $this->l('Easing'),
 							$h  => "panzoom.ease",
 							$k  => ["panzoom", "pan zoom", "easing", "pan zoom easing", "panzoom easing"],
-							$d  => $this->l("The easing equation.  <a href='https://greensock.com/ease-visualizer' target=_'blank'>View visualization</a>"),
+							$d  => $this->l('The easing equation.  <a href=\'https://greensock.com/ease-visualizer\' target=_\'blank\'>View visualization</a>'),
 							$a  => $u . "pan-zoom/",
 							$hl => [
 								$dp => [
@@ -5819,10 +5838,10 @@ class RevSliderHelp {
 							],
 						],
 						'duration'      => [
-							$t  => $this->l("Duration"),
+							$t  => $this->l('Duration'),
 							$h  => "panzoom.duration",
 							$k  => ["panzoom", "pan zoom", "duration", "pan zoom duration", "panzoom duration"],
-							$d  => $this->l("The easing duration in milliseconds"),
+							$d  => $this->l('The easing duration in milliseconds'),
 							$a  => $u . "pan-zoom/",
 							$hl => [
 								$dp => [
@@ -5837,10 +5856,10 @@ class RevSliderHelp {
 					],
 					'gst_slide_7'  => [
 						'param_text'  => [
-							$t  => $this->l("Parameter Value"),
+							$t  => $this->l('Parameter Value'),
 							$h  => "info.params.v",
 							$k  => ["slide params", "slide parameters", "params", "parameters"],
-							$d  => $this->l("Slide data that can be used for navigation text/data"),
+							$d  => $this->l('Slide data that can be used for navigation text/data'),
 							$a  => $u . "slide-parameters/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_7",
@@ -5849,10 +5868,10 @@ class RevSliderHelp {
 							],
 						],
 						'max_chars'   => [
-							$t  => $this->l("Max Characters"),
+							$t  => $this->l('Max Characters'),
 							$h  => "info.params.l",
 							$k  => ["max chars", "max characters", "params", "parameters", "slide params", "slide parameters"],
-							$d  => $this->l("The maximum characters/letters to display for the paramater"),
+							$d  => $this->l('The maximum characters/letters to display for the paramater'),
 							$a  => $u . "slide-parameters/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_7",
@@ -5861,10 +5880,10 @@ class RevSliderHelp {
 							],
 						],
 						'description' => [
-							$t  => $this->l("Description"),
+							$t  => $this->l('Description'),
 							$h  => "info.description",
 							$k  => ["params", "parameters", "slide params", "slide parameters", "slide description", "params description", "description"],
-							$d  => $this->l("A Slide description for certain navigation types"),
+							$d  => $this->l('A Slide description for certain navigation types'),
 							$a  => $u . "slide-parameters/",
 							$hl => [
 								$m  => "#plugin_slide_trigger, #gst_slide_7",
@@ -5876,18 +5895,18 @@ class RevSliderHelp {
 					'gst_slide_11' => [
 						'use_slide_loop' => [
 							$di => 'slide_loop',
-							$t  => $this->l("Slide Looping"),
+							$t  => $this->l('Slide Looping'),
 							$h  => "timeline.loop.set",
 							$k  => ["slide loop", "slide looping", "loop", "loop slide", "animation", "loop animation"],
-							$d  => $this->l("Loop all or part of the current Slide's timeline"),
+							$d  => $this->l('Loop all or part of the current Slide\'s timeline'),
 							$a  => $u . "slide-loop",
 							$hl => [$m => "#plugin_slide_trigger, #gst_slide_11", $st => '#form_slide_loops', $f => "#sl_layers_loop"],
 						],
 						'repeat'         => [
-							$t  => $this->l("Slide Loop Repeat"),
+							$t  => $this->l('Slide Loop Repeat'),
 							$h  => "timeline.loop.repeat",
 							$k  => ["slide loop", "slide looping", "loop", "loop slide", "animation", "loop animation", "repeat", "slide loop repeat", "loop repeat"],
-							$d  => $this->l("Enter a specific amount of times the Slide's timeeline should loop or use 'unlimited' to loop continusously until the Slide changes"),
+							$d  => $this->l('Enter a specific amount of times the Slide\'s timeeline should loop or use \'unlimited\' to loop continusously until the Slide changes'),
 							$a  => $u . "slide-loop",
 							$hl => [
 								$dp => [[$p => '#slide#.slide.timeline.loop.set', $v => true, $o => 'slide_loop']],
@@ -5897,10 +5916,10 @@ class RevSliderHelp {
 							],
 						],
 						'loop_start'     => [
-							$t  => $this->l("Slide Loop Start"),
+							$t  => $this->l('Slide Loop Start'),
 							$h  => "timeline.loop.start",
 							$k  => ["slide loop", "slide looping", "loop", "loop slide", "animation", "loop animation", "start", "slide loop start", "loop start"],
-							$d  => $this->l("The point in the timeline where the looping should begin"),
+							$d  => $this->l('The point in the timeline where the looping should begin'),
 							$a  => $u . "slide-loop",
 							$hl => [
 								$dp => [[$p => '#slide#.slide.timeline.loop.set', $v => true, $o => 'slide_loop']],
@@ -5910,10 +5929,10 @@ class RevSliderHelp {
 							],
 						],
 						'loop_end'       => [
-							$t  => $this->l("Slide Loop End"),
+							$t  => $this->l('Slide Loop End'),
 							$h  => "timeline.loop.end",
 							$k  => ["slide loop", "slide looping", "loop", "loop slide", "animation", "loop animation", "end", "slide loop end", "loop end"],
-							$d  => $this->l("The point in the timeline where the looping should begin"),
+							$d  => $this->l('The point in the timeline where the looping should begin'),
 							$a  => $u . "slide-loop",
 							$hl => [
 								$dp => [[$p => '#slide#.slide.timeline.loop.set', $v => true, $o => 'slide_loop']],
@@ -5925,34 +5944,34 @@ class RevSliderHelp {
 					],
 					'gst_slide_12' => [
 						'parallax_level' => [
-							$t  => $this->l("Parallax Level"),
+							$t  => $this->l('Parallax Level'),
 							$h  => "effects.parallax",
 							$k  => ["parallax", "3d", "scroll", "on scroll", "parallax level", "level", "effects"],
-							$d  => $this->l("The <a href='http://docs.themepunch.com/slider-revolution/parallax-3d-effect/#depths' target='_blank'>parallax level</a> to apply to the Slide's main background"),
+							$d  => $this->l('The <a href=\'http://docs.themepunch.com/slider-revolution/parallax-3d-effect/#depths\' target=\'_blank\'>parallax level</a> to apply to the Slide\'s main background'),
 							$a  => $u . "slide-background/",
 							$hl => [$m => "#plugin_slide_trigger, #gst_slide_12", $st => '#form_slidebg_pddd', $f => "#slide_parallax_level"],
 						],
 						'fade'           => [
-							$t  => $this->l("Fade Effect"),
+							$t  => $this->l('Fade Effect'),
 							$h  => "effects.fade",
 							$k  => ["parallax", "3d", "scroll", "on scroll", "effects", "fade"],
-							$d  => $this->l("Fade Layers in and out as the page scrolls into and out of view"),
+							$d  => $this->l('Fade Layers in and out as the page scrolls into and out of view'),
 							$a  => $u . "slide-background/",
 							$hl => [$m => "#plugin_slide_trigger, #gst_slide_12", $st => '#form_slidefilter_scrollbased', $f => "#slide_effectscroll_fade"],
 						],
 						'blur'           => [
-							$t  => $this->l("Blur Effect"),
+							$t  => $this->l('Blur Effect'),
 							$h  => "effects.blur",
 							$k  => ["parallax", "3d", "scroll", "on scroll", "effects", "blur"],
-							$d  => $this->l("Blur Layers in and out as the page scrolls into and out of view"),
+							$d  => $this->l('Blur Layers in and out as the page scrolls into and out of view'),
 							$a  => $u . "slide-background/",
 							$hl => [$m => "#plugin_slide_trigger, #gst_slide_12", $st => '#form_slidefilter_scrollbased', $f => "#slide_effectscroll_blur"],
 						],
 						'grayscale'      => [
-							$t  => $this->l("Grayscale Effect"),
+							$t  => $this->l('Grayscale Effect'),
 							$h  => "effects.grayscale",
 							$k  => ["parallax", "3d", "scroll", "on scroll", "effects", "grayscale"],
-							$d  => $this->l("Aply a grayscale filter to Layers as the page scrolls into and out of view"),
+							$d  => $this->l('Aply a grayscale filter to Layers as the page scrolls into and out of view'),
 							$a  => $u . "slide-background/",
 							$hl => [$m => "#plugin_slide_trigger, #gst_slide_12", $st => '#form_slidefilter_scrollbased', $f => "#slide_effectscroll_grayscale"],
 						],
@@ -5963,10 +5982,10 @@ class RevSliderHelp {
 					'gst_layer_1'  => [
 						'text_button_icon'    => [
 							'text_content' => [
-								$t  => $this->l("Layer Text"),
+								$t  => $this->l('Layer Text'),
 								$h  => "text",
 								$k  => ["layer", "layers", "slider text", "slide text", "layer text", "text", "change text"],
-								$d  => $this->l("The html/text for the selected Layer's content.  'Idle' is the default text.  And 'Toggle' is alternative text to show when the Layer is clicked."),
+								$d  => $this->l('The html/text for the selected Layer\'s content.  \'Idle\' is the default text.  And \'Toggle\' is alternative text to show when the Layer is clicked.'),
 								$a  => $u . "layer-content/#text-buttons",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -5976,10 +5995,10 @@ class RevSliderHelp {
 								],
 							],
 							'placeholder'  => [
-								$t  => $this->l("Placeholder"),
+								$t  => $this->l('Placeholder'),
 								$h  => "placeholder",
 								$k  => ["slider text", "slide text", "layer text", "text", "change text"],
-								$d  => $this->l("Optional placeholder attribute for the Layer's wrapper"),
+								$d  => $this->l('Optional placeholder attribute for the Layer\'s wrapper'),
 								$a  => $u . "layer-content/#text-buttons",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -5989,10 +6008,10 @@ class RevSliderHelp {
 								],
 							],
 							'linebreak'    => [
-								$t  => $this->l("Line Break Behavior"),
+								$t  => $this->l('Line Break Behavior'),
 								$h  => "idle.whiteSpace.#size#.v",
 								$k  => ["slider text", "slide text", "layer text", "text", "change text", "line-break", "line break"],
-								$d  => $this->l("Choose how text should wrap/break onto lines lines"),
+								$d  => $this->l('Choose how text should wrap/break onto lines lines'),
 								$a  => $u . "layer-content/#text-buttons",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -6004,10 +6023,10 @@ class RevSliderHelp {
 						],
 						'image'               => [
 							'image_from_stream' => [
-								$t  => $this->l("Image from Stream"),
+								$t  => $this->l('Image from Stream'),
 								$h  => "media.imageFromStream",
 								$k  => ["stream", "image stream", "stream image"],
-								$d  => $this->l("Choose if the Image source should be populated by the Slide's social stream content"),
+								$d  => $this->l('Choose if the Image source should be populated by the Slide\'s social stream content'),
 								$a  => $u . "layer-content/#images",
 								$hl => [
 									$dp => ['layerselected::image'],
@@ -6017,10 +6036,10 @@ class RevSliderHelp {
 								],
 							],
 							'image_url'         => [
-								$t  => $this->l("Image URL"),
+								$t  => $this->l('Image URL'),
 								$h  => "media.imageUrl",
 								$k  => ["layer", "layers", "layer image", "image url", "media library", "layer image url"],
-								$d  => $this->l("Set/change the image for the Layer"),
+								$d  => $this->l('Set/change the image for the Layer'),
 								$a  => $u . "layer-content/#images",
 								$hl => [
 									$dp => ['layerselected::image'],
@@ -6030,10 +6049,10 @@ class RevSliderHelp {
 								],
 							],
 							'lazy_loading'      => [
-								$t  => $this->l("Lazy Loading"),
+								$t  => $this->l('Lazy Loading'),
 								$h  => "behavior.lazyLoad",
 								$k  => ["lazy", "lazy load", "lazy loading"],
-								$d  => $this->l("'Default' will use the Slider's Lazy Load setting, 'Force' will LazyLoad the image regardless of the Slider's settings, and 'Ignore' will set LazyLoad to off regardless of the Slider's settings."),
+								$d  => $this->l('\'Default\' will use the Slider\'s Lazy Load setting, \'Force\' will LazyLoad the image regardless of the Slider\'s settings, and \'Ignore\' will set LazyLoad to off regardless of the Slider\'s settings.'),
 								$a  => $u . "layer-content/",
 								$hl => [
 									$dp => ['layerselected::image'],
@@ -6043,10 +6062,10 @@ class RevSliderHelp {
 								],
 							],
 							'image_size'        => [
-								$t  => $this->l("Image Source Size"),
+								$t  => $this->l('Image Source Size'),
 								$h  => "behavior.imageSourceType",
 								$k  => ["image size", "image source", "image sour size", "layer image"],
-								$d  => $this->l("The default WordPress Image size to be used when the image is loaded"),
+								$d  => $this->l('The default WordPress Image size to be used when the image is loaded'),
 								$a  => $u . "layer-content/",
 								$hl => [
 									$dp => ['layerselected::image'],
@@ -6059,10 +6078,10 @@ class RevSliderHelp {
 						'video_audio'         => [
 							'media_content'     => [
 								'video_from_stream' => [
-									$t  => $this->l("Video from Stream"),
+									$t  => $this->l('Video from Stream'),
 									$h  => "media.videoFromStream",
 									$k  => ["layer", "layers", "stream", "stream video", "video stream"],
-									$d  => $this->l("The Layer's image will be populated automatically from the Slider's Video-Stream source"),
+									$d  => $this->l('The Layer\'s image will be populated automatically from the Slider\'s Video-Stream source'),
 									$a  => $u . "layer-content/#video-audio",
 									$hl => [
 										$dp => ['layerselected::video'],
@@ -6073,10 +6092,10 @@ class RevSliderHelp {
 								],
 								'type'              => [
 									$di => "layer_video_type",
-									$t  => $this->l("Video Type"),
+									$t  => $this->l('Video Type'),
 									$h  => "media.mediaType",
 									$k  => ["youtube", "vimeo", "html5 video", "video layer", "layer video", "youtube video", "you-tube", "you tube", "youtube video layer", "vimeo video"],
-									$d  => $this->l("Choose if the video should be loaded from YouTube, Vimeo or locally (HTML5)"),
+									$d  => $this->l('Choose if the video should be loaded from YouTube, Vimeo or locally (HTML5)'),
 									$a  => $u . "layer-content/#video-audio",
 									$hl => [
 										$dp => ['layerselected::video'],
@@ -6087,10 +6106,10 @@ class RevSliderHelp {
 								],
 								'video_id_url'      => [
 									'video_id'        => [
-										$t  => $this->l("YouTube/Vimeo ID"),
+										$t  => $this->l('YouTube/Vimeo ID'),
 										$h  => "media.id",
 										$k  => ["youtube", "vimeo", "video layer", "layer video", "youtube video", "you-tube", "you tube", "youtube video layer", "vimeo video", "youtube id", "vimeo id"],
-										$d  => $this->l("The <a href='https://www.quora.com/What-is-a-YouTube-video-ID' target=_'blank'>YouTube ID</a> or <a href='https://docs.joeworkman.net/rapidweaver/stacks/vimeo/video-id' target='_blank'>Vimeo ID</a> for the video's source"),
+										$d  => $this->l('The <a href=\'https://www.quora.com/What-is-a-YouTube-video-ID\' target=_\'blank\'>YouTube ID</a> or <a href=\'https://docs.joeworkman.net/rapidweaver/stacks/vimeo/video-id\' target=\'_blank\'>Vimeo ID</a> for the video\'s source'),
 										$a  => $u . "layer-content/#video-audio",
 										$hl => [
 											$dp => [
@@ -6103,10 +6122,10 @@ class RevSliderHelp {
 										],
 									],
 									'html5_video_url' => [
-										$t  => $this->l("HTML5 Video URL"),
+										$t  => $this->l('HTML5 Video URL'),
 										$h  => "media.mp4Url",
 										$k  => ["mpeg", "mpg", "mp4", "html5 video", "html5 video source", "video url", "html5 url", "htlm5 video url"],
-										$d  => $this->l("The url for the locally loaded HTML5 Video"),
+										$d  => $this->l('The url for the locally loaded HTML5 Video'),
 										$a  => $u . "layer-content/#video-audio",
 										$hl => [
 											$dp => [
@@ -6119,10 +6138,10 @@ class RevSliderHelp {
 										],
 									],
 									'html5_audio_url' => [
-										$t  => $this->l("HTML5 Audio URL"),
+										$t  => $this->l('HTML5 Audio URL'),
 										$h  => "media.audioUrl",
 										$k  => ["mpeg", "mpg", "mp3", "audio", "html5 audio", "audio url", "html5 audio url", "sound"],
-										$d  => $this->l("The url for the locally loaded HTML5 Audio"),
+										$d  => $this->l('The url for the locally loaded HTML5 Audio'),
 										$a  => $u . "layer-content/#video-audio",
 										$hl => [
 											$dp => ['layerselected::audio'],
@@ -6134,10 +6153,10 @@ class RevSliderHelp {
 								],
 								'preloading'        => [
 									'preload'      => [
-										$t  => $this->l("Preload"),
+										$t  => $this->l('Preload'),
 										$h  => "media.speed",
 										$k  => ["preload video", "html5 video preload", "html5 audio preload"],
-										$d  => $this->l("The HTML5 Video/Audio <a href='https://www.w3schools.com/tags/att_video_preload.asp' target=_'blank'>preload behavior</a> for the currently selected Video Layer"),
+										$d  => $this->l('The HTML5 Video/Audio <a href=\'https://www.w3schools.com/tags/att_video_preload.asp\' target=_\'blank\'>preload behavior</a> for the currently selected Video Layer'),
 										$a  => $u . "layer-content/#video-audio",
 										$hl => [
 											$dp => [
@@ -6150,10 +6169,10 @@ class RevSliderHelp {
 										],
 									],
 									'skip_preload' => [
-										$t  => $this->l("Preload Delay"),
+										$t  => $this->l('Preload Delay'),
 										$h  => "media.preloadWait",
 										$k  => ["audio", "media", "audio player", "sound", "preload", "skip preload", "preload delay"],
-										$d  => $this->l("Skip the preloading of HTML5 Audio by a set amount of seconds"),
+										$d  => $this->l('Skip the preloading of HTML5 Audio by a set amount of seconds'),
 										$a  => $u . "layer-content/#video-audio",
 										$hl => [
 											$dp => ['layerselected::audio'],
@@ -6164,10 +6183,10 @@ class RevSliderHelp {
 									],
 								],
 								'aspect_ratio'      => [
-									$t  => $this->l("Aspect Ratio"),
+									$t  => $this->l('Aspect Ratio'),
 									$h  => "media.ratio",
 									$k  => ["aspect ratio", "video size", "video aspect ratio"],
-									$d  => $this->l("This value should match the video's original aspect ratio"),
+									$d  => $this->l('This value should match the video\'s original aspect ratio'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video'],
@@ -6177,10 +6196,10 @@ class RevSliderHelp {
 									],
 								],
 								'autoplay'          => [
-									$t  => $this->l("Autoplay"),
+									$t  => $this->l('Autoplay'),
 									$h  => "media.autoPlay",
 									$k  => ["autoplay video", "video autoplay", "autoplay", "video", "youtube", "vimeo", "html5"],
-									$d  => $this->l("The autoplay behavior for the currently selected Video Layer"),
+									$d  => $this->l('The autoplay behavior for the currently selected Video Layer'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video||audio'],
@@ -6190,10 +6209,10 @@ class RevSliderHelp {
 									],
 								],
 								'loop'              => [
-									$t  => $this->l("Loop Video/Audio"),
+									$t  => $this->l('Loop Video/Audio'),
 									$h  => "media.loop",
 									$k  => ["loop", "video loop", "restart", "restart video"],
-									$d  => $this->l("Restart the video/audio every time it ends"),
+									$d  => $this->l('Restart the video/audio every time it ends'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video||audio'],
@@ -6203,10 +6222,10 @@ class RevSliderHelp {
 									],
 								],
 								'dotted_overlay'    => [
-									$t  => $this->l("Dotted Overlay"),
+									$t  => $this->l('Dotted Overlay'),
 									$h  => "media.dotted",
 									$k  => ["overlay", "video overlay", "dotted overlay"],
-									$d  => $this->l("Add a mesh-style overlay to the video for extra styling"),
+									$d  => $this->l('Add a mesh-style overlay to the video for extra styling'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video'],
@@ -6218,10 +6237,10 @@ class RevSliderHelp {
 							],
 							'media_poster'      => [
 								'poster_from_stream' => [
-									$t  => $this->l("Poster from Stream"),
+									$t  => $this->l('Poster from Stream'),
 									$h  => "media.posterFromStream",
 									$k  => ["stream", "stream background", "poster", "youtube poster", "vimeo poster", "video poster"],
-									$d  => $this->l("The video's poster image will be populated automatically from the Slider's Video-Stream source"),
+									$d  => $this->l('The video\'s poster image will be populated automatically from the Slider\'s Video-Stream source'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video'],
@@ -6231,10 +6250,10 @@ class RevSliderHelp {
 									],
 								],
 								'poster_url'         => [
-									$t  => $this->l("Poster URL"),
+									$t  => $this->l('Poster URL'),
 									$h  => "media.posterUrl",
 									$k  => ["video poster", "poster", "youtube poster", "vimeo poster", "video image", "youtube image", "vimeo image", "poster url"],
-									$d  => $this->l("Set/remove the video's preview image for the video"),
+									$d  => $this->l('Set/remove the video\'s preview image for the video'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video'],
@@ -6244,10 +6263,10 @@ class RevSliderHelp {
 									],
 								],
 								'poster_in_pause'    => [
-									$t  => $this->l("Show Poster on Video Pause"),
+									$t  => $this->l('Show Poster on Video Pause'),
 									$h  => "media.posterOnPause",
 									$k  => ["video poster", "poster", "youtube poster", "vimeo poster", "video image", "youtube image", "vimeo image"],
-									$d  => $this->l("Show the video's preview image whenever the video is paused by the user or on a Slide change"),
+									$d  => $this->l('Show the video\'s preview image whenever the video is paused by the user or on a Slide change'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video'],
@@ -6257,10 +6276,10 @@ class RevSliderHelp {
 									],
 								],
 								'no_poster_mobile'   => [
-									$t  => $this->l("No Poster on Mobile"),
+									$t  => $this->l('No Poster on Mobile'),
 									$h  => "media.disableOnMobile",
 									$k  => ["video poster", "poster", "youtube poster", "vimeo poster", "video image", "youtube image", "vimeo image"],
-									$d  => $this->l("Only show a video preview image on desktop computers"),
+									$d  => $this->l('Only show a video preview image on desktop computers'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video'],
@@ -6270,10 +6289,10 @@ class RevSliderHelp {
 									],
 								],
 								'only_poster_mobile' => [
-									$t  => $this->l("Only Poster on Mobile"),
+									$t  => $this->l('Only Poster on Mobile'),
 									$h  => "media.posterOnMobile",
 									$k  => ["video poster", "poster", "youtube poster", "vimeo poster", "video image", "youtube image", "vimeo image"],
-									$d  => $this->l("Only show a video preview image on mobile devices"),
+									$d  => $this->l('Only show a video preview image on mobile devices'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video'],
@@ -6285,10 +6304,10 @@ class RevSliderHelp {
 							],
 							'advanced_settings' => [
 								'stop_other_media'  => [
-									$t  => $this->l("Stop Other Media"),
+									$t  => $this->l('Stop Other Media'),
 									$h  => "media.stopAllVideo",
 									$k  => ["stop video", "pause video", "stop other media", "pause media", "stop media", "stop audio", "stop sound", "pause audio", "pause sound"],
-									$d  => $this->l("Stop/pause other video/audio in the Slide when the currently selected Video Layer begins to play"),
+									$d  => $this->l('Stop/pause other video/audio in the Slide when the currently selected Video Layer begins to play'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video||audio'],
@@ -6298,10 +6317,10 @@ class RevSliderHelp {
 									],
 								],
 								'allow_fullscreen'  => [
-									$t  => $this->l("Allow Fullscreen"),
+									$t  => $this->l('Allow Fullscreen'),
 									$h  => "media.allowFullscreen",
 									$k  => ["fullscreen video", "fullscreen", "fullscreen button", "allow fullscreen"],
-									$d  => $this->l("Allow the video to be taken fullscreen by the user"),
+									$d  => $this->l('Allow the video to be taken fullscreen by the user'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video'],
@@ -6311,10 +6330,10 @@ class RevSliderHelp {
 									],
 								],
 								'next_slide_at_end' => [
-									$t  => $this->l("Next Slide at End"),
+									$t  => $this->l('Next Slide at End'),
 									$h  => "media.nextSlideAtEnd",
 									$k  => ["next slide at end", "next slide end"],
-									$d  => $this->l("Change to the next Slide when the video/audio ends"),
+									$d  => $this->l('Change to the next Slide when the video/audio ends'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video||audio'],
@@ -6324,10 +6343,10 @@ class RevSliderHelp {
 									],
 								],
 								'rewind_at_start'   => [
-									$t  => $this->l("Rewind at Start"),
+									$t  => $this->l('Rewind at Start'),
 									$h  => "media.forceRewind",
 									$k  => ["rewind", "rewind at start", "rewind video", "restart video", "rewind audio", "restart audio"],
-									$d  => $this->l("Always play the video/audio from the beginning each time the Slide is shown"),
+									$d  => $this->l('Always play the video/audio from the beginning each time the Slide is shown'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video||audio'],
@@ -6338,10 +6357,10 @@ class RevSliderHelp {
 								],
 								'no_interaction'    => [
 									$di => 'no_interaction',
-									$t  => $this->l("No Interaction"),
+									$t  => $this->l('No Interaction'),
 									$h  => "media.nointeraction",
 									$k  => ["video controls", "video control bar", "controls", "audio controls", "video player", "audio player", "interaction", "no interaction"],
-									$d  => $this->l("Disable all possible user-interaction with the video"),
+									$d  => $this->l('Disable all possible user-interaction with the video'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video||audio'],
@@ -6351,10 +6370,10 @@ class RevSliderHelp {
 									],
 								],
 								'controls'          => [
-									$t  => $this->l("Controls"),
+									$t  => $this->l('Controls'),
 									$h  => "media.controls",
 									$k  => ["video controls", "video control bar", "controls", "audio controls", "video player", "audio player"],
-									$d  => $this->l("Display controls in the video/audio player"),
+									$d  => $this->l('Display controls in the video/audio player'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => [
@@ -6367,10 +6386,10 @@ class RevSliderHelp {
 									],
 								],
 								'large_controls'    => [
-									$t  => $this->l("Large Controls"),
+									$t  => $this->l('Large Controls'),
 									$h  => "media.largeControls",
 									$k  => ["large controls", "video controls", "html5 video controls"],
-									$d  => $this->l("Include large controls for HTML5 Video Layers"),
+									$d  => $this->l('Include large controls for HTML5 Video Layers'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => [
@@ -6384,10 +6403,10 @@ class RevSliderHelp {
 									],
 								],
 								'inline_mode'       => [
-									$t  => $this->l("Inline Mode"),
+									$t  => $this->l('Inline Mode'),
 									$h  => "media.playInline",
 									$k  => ["playsinline, inline, inline mode, video inline, video playsinline"],
-									$d  => $this->l("Include a 'playsline' attribute with the video element.  This will prevent the video from being taken fullscreen when it initially plays on mobile devices."),
+									$d  => $this->l('Include a \'playsline\' attribute with the video element.  This will prevent the video from being taken fullscreen when it initially plays on mobile devices.'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video'],
@@ -6397,10 +6416,10 @@ class RevSliderHelp {
 									],
 								],
 								'mute_at_start'     => [
-									$t  => $this->l("Mute at Start"),
+									$t  => $this->l('Mute at Start'),
 									$h  => "media.mute",
 									$k  => ["mute video", "mute at start"],
-									$d  => $this->l("Auto-mute the video each time the Slide is shown"),
+									$d  => $this->l('Auto-mute the video each time the Slide is shown'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video'],
@@ -6410,10 +6429,10 @@ class RevSliderHelp {
 									],
 								],
 								'volume'            => [
-									$t  => $this->l("Video/Audio Volume"),
+									$t  => $this->l('Video/Audio Volume'),
 									$h  => "media.volume",
 									$k  => ["video volume", "volume", "youtube volume", "vimeo volume", "html5 video volume", "audio volume", "html5 audio volume"],
-									$d  => $this->l("The initial volume for the video/audio.  Choose a number between 0-100"),
+									$d  => $this->l('The initial volume for the video/audio.  Choose a number between 0-100'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video||audio'],
@@ -6423,10 +6442,10 @@ class RevSliderHelp {
 									],
 								],
 								'speed'             => [
-									$t  => $this->l("Video Speed"),
+									$t  => $this->l('Video Speed'),
 									$h  => "media.speed",
 									$k  => ["video speed"],
-									$d  => $this->l("Optional playback speed for the video"),
+									$d  => $this->l('Optional playback speed for the video'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => [
@@ -6439,10 +6458,10 @@ class RevSliderHelp {
 									],
 								],
 								'start_at'          => [
-									$t  => $this->l("Start Time"),
+									$t  => $this->l('Start Time'),
 									$h  => "media.startAt",
 									$k  => ["video start", "video start time", "start at", "video start at", "audio start at", "audio start time"],
-									$d  => $this->l("Start the video at this time (minutes:seconds, such as 01:30)"),
+									$d  => $this->l('Start the video at this time (minutes:seconds, such as 01:30)'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video||audio'],
@@ -6452,10 +6471,10 @@ class RevSliderHelp {
 									],
 								],
 								'end_at'            => [
-									$t  => $this->l("End Time"),
+									$t  => $this->l('End Time'),
 									$h  => "media.endAt",
 									$k  => ["video end", "video end time", "end at", "video end at", "audio end at", "audio end time"],
-									$d  => $this->l("End the video at this time (minutes:seconds, such as 01:30)"),
+									$d  => $this->l('End the video at this time (minutes:seconds, such as 01:30)'),
 									$a  => $u . "layer-video-audio-settings/",
 									$hl => [
 										$dp => ['layerselected::video||audio'],
@@ -6466,10 +6485,10 @@ class RevSliderHelp {
 								],
 							],
 							'arguments'         => [
-								$t  => $this->l("YouTube/Vimeo Arguments"),
+								$t  => $this->l('YouTube/Vimeo Arguments'),
 								$h  => "media.args",
 								$k  => ["youtube args", "youtube arguments", "vimeo args", "vimeo arguments"],
-								$d  => $this->l("Optional iFrame arguments for <a href='https://developers.google.com/youtube/player_parameters' target='_blank'>YouTube</a> and <a href='https://help.vimeo.com/hc/en-us/articles/360001494447-Using-Player-Parameters' target='_blank'>Vimeo</a>"),
+								$d  => $this->l('Optional iFrame arguments for <a href=\'https://developers.google.com/youtube/player_parameters\' target=\'_blank\'>YouTube</a> and <a href=\'https://help.vimeo.com/hc/en-us/articles/360001494447-Using-Player-Parameters\' target=\'_blank\'>Vimeo</a>'),
 								$a  => $u . "layer-video-audio-settings/",
 								$hl => [
 									$dp => [
@@ -6484,10 +6503,10 @@ class RevSliderHelp {
 						],
 						'row_settings'        => [
 							'columns'      => [
-								$t  => $this->l("Column Structure"),
+								$t  => $this->l('Column Structure'),
 								$h  => "row_column_structure",
 								$k  => ["rows", "columns", "row", "column", "colspan"],
-								$d  => $this->l("Choose the number of columns and their <a href='https://www.w3schools.com/tags/att_td_colspan.asp' target='_blank'>colspan</a> for the selected row"),
+								$d  => $this->l('Choose the number of columns and their <a href=\'https://www.w3schools.com/tags/att_td_colspan.asp\' target=\'_blank\'>colspan</a> for the selected row'),
 								$a  => $u . "rows-columns/",
 								$hl => [
 									$dp => ['layerselected::row||column'],
@@ -6497,10 +6516,10 @@ class RevSliderHelp {
 								],
 							],
 							'break_at'     => [
-								$t  => $this->l("Break At"),
+								$t  => $this->l('Break At'),
 								$h  => "group.columnbreakat",
 								$k  => ["rows", "columns", "row", "column", "colspan", "break at", "break columns"],
-								$d  => $this->l("Choose which viewport the rows should collapse into single columns"),
+								$d  => $this->l('Choose which viewport the rows should collapse into single columns'),
 								$a  => $u . "rows-columns/",
 								$hl => [
 									$dp => ['layerselected::row||column'],
@@ -6510,10 +6529,10 @@ class RevSliderHelp {
 								],
 							],
 							'row_position' => [
-								$t  => $this->l("Row Position"),
+								$t  => $this->l('Row Position'),
 								$h  => "row_position",
 								$k  => ["rows", "columns", "row", "column", "row position", "row align", "position", "align"],
-								$d  => $this->l("The vertical-align value for the row in relation to the Plugin's height (top, middle or bottom)"),
+								$d  => $this->l('The vertical-align value for the row in relation to the Plugin\'s height (top, middle or bottom)'),
 								$a  => $u . "rows-columns/",
 								$hl => [
 									$dp => ['layerselected::row||column'],
@@ -6525,10 +6544,10 @@ class RevSliderHelp {
 						],
 						'column_settings'     => [
 							'horizontal_align' => [
-								$t  => $this->l("Horizontal Align"),
+								$t  => $this->l('Horizontal Align'),
 								$h  => "idle.textAlign.#size#.v",
 								$k  => ["layer horizontal align", "horizontal align", "row align", "row alignment", "column align", "column alignment"],
-								$d  => $this->l("The CSS text-align for the Layer's text.  Also useful for aligning content inside rows/colums"),
+								$d  => $this->l('The CSS text-align for the Layer\'s text.  Also useful for aligning content inside rows/colums'),
 								$a  => $u . "rows-columns/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6538,10 +6557,10 @@ class RevSliderHelp {
 								],
 							],
 							'vertical_align'   => [
-								$t  => $this->l("Vertical Align"),
+								$t  => $this->l('Vertical Align'),
 								$h  => "idle.verticalAlign",
 								$k  => ["layer vertical align", "vertical align", "row align", "row alignment", "column align", "column alignment"],
-								$d  => $this->l("The vertical alignment for content inside a row/column"),
+								$d  => $this->l('The vertical alignment for content inside a row/column'),
 								$a  => $u . "rows-columns/",
 								$hl => [
 									$dp => ['layerselected::column'],
@@ -6553,46 +6572,46 @@ class RevSliderHelp {
 						],
 						'column_display_mode' => [
 							'display'          => [
-								$t => $this->l("CSS Display"),
+								$t => $this->l('CSS Display'),
 								$h => "idle.display",
 								$k => [],
-								$d => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/display' target='_blank'>CSS display property</a> for the Layer as it fits inside the Column"),
+								$d => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/display\' target=\'_blank\'>CSS display property</a> for the Layer as it fits inside the Column'),
 								$a => $u . "layer-content/",
 							],
 							'float'            => [
-								$t => $this->l("CSS Float"),
+								$t => $this->l('CSS Float'),
 								$h => "idle.clear.#size#.v",
 								$k => [],
-								$d => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/float' target='_blank'>CSS float property</a> for the Layer as it fits inside the Column"),
+								$d => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/float\' target=\'_blank\'>CSS float property</a> for the Layer as it fits inside the Column'),
 								$a => $u . "layer-content/",
 							],
 							'clear'            => [
-								$t => $this->l("CSS Clear"),
+								$t => $this->l('CSS Clear'),
 								$h => "idle.float.#size#.v",
 								$k => [],
-								$d => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/clear' target='_blank'>CSS clear property</a> for the Layer as it fits inside the Column"),
+								$d => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/clear\' target=\'_blank\'>CSS clear property</a> for the Layer as it fits inside the Column'),
 								$a => $u . "layer-content/",
 							],
 							'linebreak_before' => [
-								$t => $this->l("Add Linebreak Before"),
+								$t => $this->l('Add Linebreak Before'),
 								$h => "linebreak_before",
 								$k => [],
-								$d => $this->l("Add a linebreak before the currently selected Layer.  Useful when floats are used."),
+								$d => $this->l('Add a linebreak before the currently selected Layer.  Useful when floats are used.'),
 								$a => $u . "layer-content/",
 							],
 							'linebreak_before' => [
-								$t => $this->l("Add Linebreak After"),
+								$t => $this->l('Add Linebreak After'),
 								$h => "linebreak_after",
 								$k => [],
-								$d => $this->l("Add a linebreak after the currently selected Layer.  Useful when floats are used."),
+								$d => $this->l('Add a linebreak after the currently selected Layer.  Useful when floats are used.'),
 								$a => $u . "layer-content/",
 							],
 						],
 						'htmltag'             => [
-							$t  => $this->l("Layer HTML Tag"),
+							$t  => $this->l('Layer HTML Tag'),
 							$h  => "htmltag",
 							$k  => ["html tag", "layer tag", "layer wrapper tag", "wrapper tag", "wrapper"],
-							$d  => $this->l("Choose which HTML tag should be used for the Layer.  Useful for SEO purposes"),
+							$d  => $this->l('Choose which HTML tag should be used for the Layer.  Useful for SEO purposes'),
 							$a  => $u . "layer-content/",
 							$hl => [
 								$dp => ['layerselected::text||image||button||shape||video||audio||object||group'],
@@ -6605,10 +6624,10 @@ class RevSliderHelp {
 					'gst_layer_3'  => [
 						'font'          => [
 							'font_size'       => [
-								$t  => $this->l("Font Size"),
+								$t  => $this->l('Font Size'),
 								$h  => "idle.fontSize.#size#.v",
 								$k  => ["font size", "font-size", "font", "text", "text-size", "layer text", "layer font", "layer font size", "layer font-size"],
-								$d  => $this->l("The Layer's font-size for the currently selected viewport"),
+								$d  => $this->l('The Layer\'s font-size for the currently selected viewport'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -6618,10 +6637,10 @@ class RevSliderHelp {
 								],
 							],
 							'line_height'     => [
-								$t  => $this->l("Line Height"),
+								$t  => $this->l('Line Height'),
 								$h  => "idle.lineHeight.#size#.v",
 								$k  => ["line-height", "line height", "text size"],
-								$d  => $this->l("The Layer's <a href='https://www.w3schools.com/cssref/pr_dim_line-height.asp' target=_'blank'>CSS line-height</a> value for the currently selected viewport"),
+								$d  => $this->l('The Layer\'s <a href=\'https://www.w3schools.com/cssref/pr_dim_line-height.asp\' target=_\'blank\'>CSS line-height</a> value for the currently selected viewport'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -6631,10 +6650,10 @@ class RevSliderHelp {
 								],
 							],
 							'font_weight'     => [
-								$t  => $this->l("Font Weight"),
+								$t  => $this->l('Font Weight'),
 								$h  => "idle.fontWeight.#size#.v",
 								$k  => ["strong", "bold", "font-weight", "font-weight", "bold text", "strong text"],
-								$d  => $this->l("The Layer's <a href=https://www.w3schools.com/cssref/pr_font_weight.asp' target=_'blank'>CSS font-weight</a> value for the currently selected viewport"),
+								$d  => $this->l('The Layer\'s <a href=https://www.w3schools.com/cssref/pr_font_weight.asp\' target=_\'blank\'>CSS font-weight</a> value for the currently selected viewport'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -6644,10 +6663,10 @@ class RevSliderHelp {
 								],
 							],
 							'letter_spacing'  => [
-								$t  => $this->l("Letter Spacing"),
+								$t  => $this->l('Letter Spacing'),
 								$h  => "idle.letterSpacing.#size#.v",
 								$k  => ["letter spacing", "text spacing", "letter-spacing"],
-								$d  => $this->l("The Layer's <a href=https://www.w3schools.com/cssref/pr_text_letter-spacing.asp' target=_'blank'>CSS letter-spacing</a> value for the currently selected viewport"),
+								$d  => $this->l('The Layer\'s <a href=https://www.w3schools.com/cssref/pr_text_letter-spacing.asp\' target=_\'blank\'>CSS letter-spacing</a> value for the currently selected viewport'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -6657,10 +6676,10 @@ class RevSliderHelp {
 								],
 							],
 							'font_family'     => [
-								$t  => $this->l("Font Family"),
+								$t  => $this->l('Font Family'),
 								$h  => "idle.fontFamily",
 								$k  => ["font family", "font-family", "text", "text font", "text font family", "text font-family", "google font"],
-								$d  => $this->l("The Google Font for the currently selected Layer's text"),
+								$d  => $this->l('The Google Font for the currently selected Layer\'s text'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -6670,10 +6689,10 @@ class RevSliderHelp {
 								],
 							],
 							'text_color'      => [
-								$t  => $this->l("Text Color"),
+								$t  => $this->l('Text Color'),
 								$h  => "idle.color.#size#.v",
 								$k  => ["text color", "layer text color", "layer text"],
-								$d  => $this->l("The text color for the currently selected Layer"),
+								$d  => $this->l('The text color for the currently selected Layer'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -6683,10 +6702,10 @@ class RevSliderHelp {
 								],
 							],
 							'italic'          => [
-								$t  => $this->l("Font-Style: Italic"),
+								$t  => $this->l('Font-Style: Italic'),
 								$h  => "idle.fontStyle",
 								$k  => ["font-style", "font style", "italic", "italics", "italic text"],
-								$d  => $this->l("Add italics to the currently selected Layer's text"),
+								$d  => $this->l('Add italics to the currently selected Layer\'s text'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -6696,10 +6715,10 @@ class RevSliderHelp {
 								],
 							],
 							'text_decoration' => [
-								$t  => $this->l("Text Decoration"),
+								$t  => $this->l('Text Decoration'),
 								$h  => "idle.textDecoration",
 								$k  => ["underline", "strike", "overline", "line-through", "strike-through"],
-								$d  => $this->l("Add an text underline to the currently selected Layer's text"),
+								$d  => $this->l('Add an text underline to the currently selected Layer\'s text'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -6709,10 +6728,10 @@ class RevSliderHelp {
 								],
 							],
 							'text_transform'  => [
-								$t  => $this->l("Text Transform"),
+								$t  => $this->l('Text Transform'),
 								$h  => "idle.textTransform",
 								$k  => ["text-transform", "uppercase", "lowercase", "upper-case", "lower-case", "capitalize"],
-								$d  => $this->l("The CSS <a href='https://www.w3schools.com/cssref/pr_text_text-transform.asp' target='_blank'>text-transform</a> value for the text"),
+								$d  => $this->l('The CSS <a href=\'https://www.w3schools.com/cssref/pr_text_text-transform.asp\' target=\'_blank\'>text-transform</a> value for the text'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -6722,10 +6741,10 @@ class RevSliderHelp {
 								],
 							],
 							'selectable'      => [
-								$t  => $this->l("Layer is Selectable"),
+								$t  => $this->l('Layer is Selectable'),
 								$h  => "idle.selectable",
 								$k  => ["selectable", "layer selectable", "user-select", "user select"],
-								$d  => $this->l("The CSS <a href='https://www.w3schools.com/cssref/css3_pr_user-select.asp' target='_blank'>user-select</a> value for the text"),
+								$d  => $this->l('The CSS <a href=\'https://www.w3schools.com/cssref/css3_pr_user-select.asp\' target=\'_blank\'>user-select</a> value for the text'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::text||button'],
@@ -6737,10 +6756,10 @@ class RevSliderHelp {
 						],
 						'svg'           => [
 							'color'        => [
-								$t  => $this->l("SVG Color"),
+								$t  => $this->l('SVG Color'),
 								$h  => "idle.svg.color.#size#.v",
 								$k  => ["svg", "svg color", "layer svg", "svg icon", "icon"],
-								$d  => $this->l("The color of the currently selected SVG Layer"),
+								$d  => $this->l('The color of the currently selected SVG Layer'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::object'],
@@ -6750,10 +6769,10 @@ class RevSliderHelp {
 								],
 							],
 							'stroke_color' => [
-								$t  => $this->l("Stroke/Border Color"),
+								$t  => $this->l('Stroke/Border Color'),
 								$h  => "idle.svg.strokeColor",
 								$k  => ["svg", "svg stroke", "svg border", "svg stroke color", "border color", "stroke color", "layer svg", "svg icon", "icon"],
-								$d  => $this->l("The border/stroke color of the currently selected SVG Layer"),
+								$d  => $this->l('The border/stroke color of the currently selected SVG Layer'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::object'],
@@ -6763,10 +6782,10 @@ class RevSliderHelp {
 								],
 							],
 							'stroke_width' => [
-								$t  => $this->l("Stroke/Border Width/Size"),
+								$t  => $this->l('Stroke/Border Width/Size'),
 								$h  => "idle.svg.strokeWidth",
 								$k  => ["svg", "svg border", "layer svg", "svg icon", "icon", "svg stroke width", "stroke size", "svg border size", "svg border width"],
-								$d  => $this->l("The border/stroke width/size of the currently selected SVG Layer"),
+								$d  => $this->l('The border/stroke width/size of the currently selected SVG Layer'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::object'],
@@ -6776,10 +6795,10 @@ class RevSliderHelp {
 								],
 							],
 							'dash'         => [
-								$t  => $this->l("Dash-Array"),
+								$t  => $this->l('Dash-Array'),
 								$h  => "idle.svg.strokeDashArray",
 								$k  => ["svg", "svg dash", "svg dash array", "svg dash-array", "dash-array", "dash array"],
-								$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray' target='_blank'>dash-array</a> for the currently selected SVG.  Displays the SVG stroke/border as dashes."),
+								$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray\' target=\'_blank\'>dash-array</a> for the currently selected SVG.  Displays the SVG stroke/border as dashes.'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::object'],
@@ -6789,10 +6808,10 @@ class RevSliderHelp {
 								],
 							],
 							'dash_offset'  => [
-								$t  => $this->l("Dash-Array Offset"),
+								$t  => $this->l('Dash-Array Offset'),
 								$h  => "idle.svg.strokeDashOffset",
 								$k  => ["svg", "svg dash", "svg dash offset", "svg dash-array", "dash-array", "dash array", "dash offset"],
-								$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dashoffset' target='_blank'>stroke-dash-offset</a> for the currently selected SVG"),
+								$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dashoffset\' target=\'_blank\'>stroke-dash-offset</a> for the currently selected SVG'),
 								$a  => $u . "font-colors-styling/",
 								$hl => [
 									$dp => ['layerselected::object'],
@@ -6804,10 +6823,10 @@ class RevSliderHelp {
 						],
 						'background'    => [
 							'bg_color' => [
-								$t  => $this->l("Background Color"),
+								$t  => $this->l('Background Color'),
 								$h  => "idle.backgroundColor",
 								$k  => ["bg", "background", "background color", "layer background", "layer background color", "layer bg", "bg color"],
-								$d  => $this->l("Set a background color for the Layer"),
+								$d  => $this->l('Set a background color for the Layer'),
 								$a  => $u . "font-colors-styling/#background",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6817,10 +6836,10 @@ class RevSliderHelp {
 								],
 							],
 							'bg_image' => [
-								$t  => $this->l("Background Image"),
+								$t  => $this->l('Background Image'),
 								$h  => "idle.backgroundImage",
 								$k  => ["bg", "background", "background image", "layer background", "layer background image", "layer bg", "image background"],
-								$d  => $this->l("Set a background image for the Layer"),
+								$d  => $this->l('Set a background image for the Layer'),
 								$a  => $u . "font-colors-styling/#background",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6830,10 +6849,10 @@ class RevSliderHelp {
 								],
 							],
 							'position' => [
-								$t  => $this->l("BG Image Position"),
+								$t  => $this->l('BG Image Position'),
 								$h  => "idle.backgroundPosition",
 								$k  => ["image", "images", "background", "bg", "bg image", "background position"],
-								$d  => $this->l("The CSS background-position for the Layer's background image"),
+								$d  => $this->l('The CSS background-position for the Layer\'s background image'),
 								$a  => $u . "font-colors-styling/#background",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6843,10 +6862,10 @@ class RevSliderHelp {
 								],
 							],
 							'fit'      => [
-								$t  => $this->l("BG Image Fit"),
+								$t  => $this->l('BG Image Fit'),
 								$h  => "idle.backgroundSize",
 								$k  => ["background size", "fit", "image fit", "cover", "contain"],
-								$d  => $this->l("The css background-size value for the Layer's background image"),
+								$d  => $this->l('The css background-size value for the Layer\'s background image'),
 								$a  => $u . "font-colors-styling/#background",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6856,10 +6875,10 @@ class RevSliderHelp {
 								],
 							],
 							'repeat'   => [
-								$t  => $this->l("BG Image Repeat"),
+								$t  => $this->l('BG Image Repeat'),
 								$h  => "idle.backgroundRepeat",
 								$k  => ["background repeat", "repeat"],
-								$d  => $this->l("The css background-repeat value for the Layer's background image"),
+								$d  => $this->l('The css background-repeat value for the Layer\'s background image'),
 								$a  => $u . "font-colors-styling/#background",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6871,10 +6890,10 @@ class RevSliderHelp {
 						],
 						'margins'       => [
 							'margin_top'    => [
-								$t  => $this->l("Margin Top"),
+								$t  => $this->l('Margin Top'),
 								$h  => "idle.margin.#size#.v.0",
 								$k  => ["layer margin", "layers margin", "margin top", "margin-top"],
-								$d  => $this->l("The top margin for the currently Selected Layer.  Useful for rows/columns."),
+								$d  => $this->l('The top margin for the currently Selected Layer.  Useful for rows/columns.'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6884,10 +6903,10 @@ class RevSliderHelp {
 								],
 							],
 							'margin_right'  => [
-								$t  => $this->l("Margin Right"),
+								$t  => $this->l('Margin Right'),
 								$h  => "idle.margin.#size#.v.1",
 								$k  => ["layer margin", "layers margin", "margin right", "margin-right"],
-								$d  => $this->l("The right margin for the currently Selected Layer.  Useful for rows/columns."),
+								$d  => $this->l('The right margin for the currently Selected Layer.  Useful for rows/columns.'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6897,10 +6916,10 @@ class RevSliderHelp {
 								],
 							],
 							'margin_bottom' => [
-								$t  => $this->l("Margin Bottom"),
+								$t  => $this->l('Margin Bottom'),
 								$h  => "idle.margin.#size#.v.2",
 								$k  => ["layer margin", "layers margin", "margin bottom", "margin-bottom"],
-								$d  => $this->l("The bottom margin for the currently Selected Layer.  Useful for rows/columns."),
+								$d  => $this->l('The bottom margin for the currently Selected Layer.  Useful for rows/columns.'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6910,10 +6929,10 @@ class RevSliderHelp {
 								],
 							],
 							'margin_left'   => [
-								$t  => $this->l("Margin Left"),
+								$t  => $this->l('Margin Left'),
 								$h  => "idle.margin.#size#.v.3",
 								$k  => ["layer margin", "layers margin", "margin left", "margin-left"],
-								$d  => $this->l("The left margin for the currently Selected Layer.  Useful for rows/columns."),
+								$d  => $this->l('The left margin for the currently Selected Layer.  Useful for rows/columns.'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6925,10 +6944,10 @@ class RevSliderHelp {
 						],
 						'paddings'      => [
 							'padding_top'    => [
-								$t  => $this->l("Padding Top"),
+								$t  => $this->l('Padding Top'),
 								$h  => "idle.padding.#size#.v.0",
 								$k  => ["layer padding", "layers padding", "padding top", "padding-top"],
-								$d  => $this->l("The top padding for the currently Selected Layer"),
+								$d  => $this->l('The top padding for the currently Selected Layer'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6938,10 +6957,10 @@ class RevSliderHelp {
 								],
 							],
 							'padding_right'  => [
-								$t  => $this->l("Padding Right"),
+								$t  => $this->l('Padding Right'),
 								$h  => "idle.padding.#size#.v.1",
 								$k  => ["layer padding", "layers padding", "padding right", "padding-right"],
-								$d  => $this->l("The right padding for the currently Selected Layer"),
+								$d  => $this->l('The right padding for the currently Selected Layer'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6951,10 +6970,10 @@ class RevSliderHelp {
 								],
 							],
 							'padding_bottom' => [
-								$t  => $this->l("Padding Bottom"),
+								$t  => $this->l('Padding Bottom'),
 								$h  => "idle.padding.#size#.v.2",
 								$k  => ["layer padding", "layers padding", "padding bottom", "padding-bottom"],
-								$d  => $this->l("The bottom padding for the currently Selected Layer"),
+								$d  => $this->l('The bottom padding for the currently Selected Layer'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6964,10 +6983,10 @@ class RevSliderHelp {
 								],
 							],
 							'padding_left'   => [
-								$t  => $this->l("Padding Left"),
+								$t  => $this->l('Padding Left'),
 								$h  => "idle.padding.#size#.v.3",
 								$k  => ["layer padding", "layers padding", "padding left", "padding-left"],
-								$d  => $this->l("The left padding for the currently Selected Layer"),
+								$d  => $this->l('The left padding for the currently Selected Layer'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6979,10 +6998,10 @@ class RevSliderHelp {
 						],
 						'border'        => [
 							'border_color'        => [
-								$t  => $this->l("Border Color"),
+								$t  => $this->l('Border Color'),
 								$h  => "idle.borderColor",
 								$k  => ["border", "border color", "layer border", "layer border color", "layers border"],
-								$d  => $this->l("Add a border to the Layer's HTML element"),
+								$d  => $this->l('Add a border to the Layer\'s HTML element'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -6992,10 +7011,10 @@ class RevSliderHelp {
 								],
 							],
 							'border_style'        => [
-								$t  => $this->l("Border Style"),
+								$t  => $this->l('Border Style'),
 								$h  => "idle.borderStyle.#size#.v",
 								$k  => ["border", "border style", "layer border", "layer border style", "layers border"],
-								$d  => $this->l("The <a href='https://www.w3schools.com/cssref/pr_border-style.asp' target='_blank'>CSS border-style</a> to use for the Layer's border"),
+								$d  => $this->l('The <a href=\'https://www.w3schools.com/cssref/pr_border-style.asp\' target=\'_blank\'>CSS border-style</a> to use for the Layer\'s border'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7005,10 +7024,10 @@ class RevSliderHelp {
 								],
 							],
 							'border_width_top'    => [
-								$t  => $this->l("Border Top Size"),
+								$t  => $this->l('Border Top Size'),
 								$h  => "idle.borderWidth.0",
 								$k  => ["border", "border size", "layer border", "layer border size", "layers border", "border-width"],
-								$d  => $this->l("The border's top size (border-top-width)"),
+								$d  => $this->l('The border\'s top size (border-top-width)'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7018,10 +7037,10 @@ class RevSliderHelp {
 								],
 							],
 							'border_width_right'  => [
-								$t  => $this->l("Border Right Size"),
+								$t  => $this->l('Border Right Size'),
 								$h  => "idle.borderWidth.1",
 								$k  => ["border", "border size", "layer border", "layer border size", "layers border", "border-width"],
-								$d  => $this->l("The border's right size (border-right-width)"),
+								$d  => $this->l('The border\'s right size (border-right-width)'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7031,10 +7050,10 @@ class RevSliderHelp {
 								],
 							],
 							'border_width_bottom' => [
-								$t  => $this->l("Border Bottom Size"),
+								$t  => $this->l('Border Bottom Size'),
 								$h  => "idle.borderWidth.2",
 								$k  => ["border", "border size", "layer border", "layer border size", "layers border", "border-width"],
-								$d  => $this->l("The border's bottom size (border-bottom-width)"),
+								$d  => $this->l('The border\'s bottom size (border-bottom-width)'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7044,10 +7063,10 @@ class RevSliderHelp {
 								],
 							],
 							'border_width_left'   => [
-								$t  => $this->l("Border Left Size"),
+								$t  => $this->l('Border Left Size'),
 								$h  => "idle.borderWidth.3",
 								$k  => ["border", "border size", "layer border", "layer border size", "layers border", "border-width"],
-								$d  => $this->l("The border's left size (border-left-width)"),
+								$d  => $this->l('The border\'s left size (border-left-width)'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7059,10 +7078,10 @@ class RevSliderHelp {
 						],
 						'border_radius' => [
 							'border_radius_top_left'     => [
-								$t  => $this->l("Border Radius Top Left"),
+								$t  => $this->l('Border Radius Top Left'),
 								$h  => "idle.borderRadius.v.0",
 								$k  => ["border radius", "border-radius", "layer border radius", "layer border-radius"],
-								$d  => $this->l("The top-left corner border-radius (px or %)"),
+								$d  => $this->l('The top-left corner border-radius (px or %)'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7072,10 +7091,10 @@ class RevSliderHelp {
 								],
 							],
 							'border_radius_top_right'    => [
-								$t  => $this->l("Border Radius Top Right"),
+								$t  => $this->l('Border Radius Top Right'),
 								$h  => "idle.borderRadius.v.1",
 								$k  => ["border radius", "border-radius", "layer border radius", "layer border-radius"],
-								$d  => $this->l("The top-right corner border-radius (px or %)"),
+								$d  => $this->l('The top-right corner border-radius (px or %)'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7085,10 +7104,10 @@ class RevSliderHelp {
 								],
 							],
 							'border_radius_bottom_left'  => [
-								$t  => $this->l("Border Radius Bottom Left"),
+								$t  => $this->l('Border Radius Bottom Left'),
 								$h  => "idle.borderRadius.v.2",
 								$k  => ["border radius", "border-radius", "layer border radius", "layer border-radius"],
-								$d  => $this->l("The bottom-left corner border-radius (px or %)"),
+								$d  => $this->l('The bottom-left corner border-radius (px or %)'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7098,10 +7117,10 @@ class RevSliderHelp {
 								],
 							],
 							'border_radius_bottom_right' => [
-								$t  => $this->l("Border Radius Bottom Right"),
+								$t  => $this->l('Border Radius Bottom Right'),
 								$h  => "idle.borderRadius.v.3",
 								$k  => ["border radius", "border-radius", "layer border radius", "layer border-radius"],
-								$d  => $this->l("The bottom-right corner border-radius (px or %)"),
+								$d  => $this->l('The bottom-right corner border-radius (px or %)'),
 								$a  => $u . "font-colors-styling/#spacings-border",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7114,10 +7133,10 @@ class RevSliderHelp {
 					],
 					'gst_layer_2'  => [
 						'horizontal_align'    => [
-							$t  => $this->l("Horizontal Align"),
+							$t  => $this->l('Horizontal Align'),
 							$h  => "position.horizontal.#size#.v",
 							$k  => ["align", "alignment", "layer align", "position", "layer position", "layer alignment", "horizontal align"],
-							$d  => $this->l("Align the Layer horizontally to the Slider content or the entire Slider"),
+							$d  => $this->l('Align the Layer horizontally to the Slider content or the entire Slider'),
 							$a  => $u . "size-position/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -7127,10 +7146,10 @@ class RevSliderHelp {
 							],
 						],
 						'vertical_align'      => [
-							$t  => $this->l("Vertical Align"),
+							$t  => $this->l('Vertical Align'),
 							$h  => "position.vertical.#size#.v",
 							$k  => ["align", "alignment", "layer align", "position", "layer position", "layer alignment", "vertical align"],
-							$d  => $this->l("Align the Layer vertically to the Slider content or the entire Slider"),
+							$d  => $this->l('Align the Layer vertically to the Slider content or the entire Slider'),
 							$a  => $u . "size-position/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -7140,10 +7159,10 @@ class RevSliderHelp {
 							],
 						],
 						'offsetx'             => [
-							$t  => $this->l("Offset X"),
+							$t  => $this->l('Offset X'),
 							$h  => "position.x.#size#.v",
 							$k  => ["layer position", "layer offset"],
-							$d  => $this->l("Offset the Layer's horizontal position by this amount.  Accepts positive and negative values."),
+							$d  => $this->l('Offset the Layer\'s horizontal position by this amount.  Accepts positive and negative values.'),
 							$a  => $u . "size-position/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -7153,10 +7172,10 @@ class RevSliderHelp {
 							],
 						],
 						'offsety'             => [
-							$t  => $this->l("Offset Y"),
+							$t  => $this->l('Offset Y'),
 							$h  => "position.y.#size#.v",
 							$k  => ["layer position", "layer offset"],
-							$d  => $this->l("Offset the Layer's vertical position by this amount.  Accepts positive and negative values."),
+							$d  => $this->l('Offset the Layer\'s vertical position by this amount.  Accepts positive and negative values.'),
 							$a  => $u . "size-position/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -7166,10 +7185,10 @@ class RevSliderHelp {
 							],
 						],
 						'width'               => [
-							$t  => $this->l("Layer Width"),
+							$t  => $this->l('Layer Width'),
 							$h  => "size.width.#size#.v",
 							$k  => ["layer width", "layers width", "layer size", "layers size"],
-							$d  => $this->l("The Layer's width for the current device viewport"),
+							$d  => $this->l('The Layer\'s width for the current device viewport'),
 							$a  => $u . "size-position/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -7179,10 +7198,10 @@ class RevSliderHelp {
 							],
 						],
 						'height'              => [
-							$t  => $this->l("Layer Height"),
+							$t  => $this->l('Layer Height'),
 							$h  => "size.height.#size#.v",
 							$k  => ["layer height", "layers height", "layer size", "layers size"],
-							$d  => $this->l("The Layer's height for the current device viewport"),
+							$d  => $this->l('The Layer\'s height for the current device viewport'),
 							$a  => $u . "size-position/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -7192,10 +7211,10 @@ class RevSliderHelp {
 							],
 						],
 						'size_presets'        => [
-							$t  => $this->l("Size Presets"),
+							$t  => $this->l('Size Presets'),
 							$h  => "size.covermode",
 							$k  => ["size presets", "full width", "full height", "stretch", "cover"],
-							$d  => $this->l("Choose to set the Layer's width/height as full-width, full-height.  'Stretch' will be 100% width/height, 'Cover' will maintain aspect ratio."),
+							$d  => $this->l('Choose to set the Layer\'s width/height as full-width, full-height.  \'Stretch\' will be 100% width/height, \'Cover\' will maintain aspect ratio.'),
 							$a  => $u . "size-position/",
 							$hl => [
 								$dp => ['layerselected::image||video||shape'],
@@ -7205,10 +7224,10 @@ class RevSliderHelp {
 							],
 						],
 						'align_by'            => [
-							$t  => $this->l("Align By Slider/Content"),
+							$t  => $this->l('Align By Slider/Content'),
 							$h  => "behavior.baseAlign",
 							$k  => ["layers", "layer align", "layer alignment"],
-							$d  => $this->l("Choose 'Slider' to align based on the Slider's full display, or 'Content' to align against the Slider's grid area"),
+							$d  => $this->l('Choose \'Slider\' to align based on the Slider\'s full display, or \'Content\' to align against the Slider\'s grid area'),
 							$a  => $u . "size-position/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -7219,10 +7238,10 @@ class RevSliderHelp {
 						],
 						'additional_settings' => [
 							'min_width'  => [
-								$t  => $this->l("Minimum Width"),
+								$t  => $this->l('Minimum Width'),
 								$h  => "size.minWidth.#size#.v",
 								$k  => ["layer min-width", "layers min-width", "layer size", "layers size"],
-								$d  => $this->l("The Layer's <a href='https://www.w3schools.com/cssref/pr_dim_min-width.asp' target='_blank'>CSS min-width</a> for the current device viewport"),
+								$d  => $this->l('The Layer\'s <a href=\'https://www.w3schools.com/cssref/pr_dim_min-width.asp\' target=\'_blank\'>CSS min-width</a> for the current device viewport'),
 								$a  => $u . "size-position/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7232,10 +7251,10 @@ class RevSliderHelp {
 								],
 							],
 							'max_width'  => [
-								$t  => $this->l("Maximum Width"),
+								$t  => $this->l('Maximum Width'),
 								$h  => "size.maxWidth.#size#.v",
 								$k  => ["layer max-width", "layers max-width", "layer size", "layers size"],
-								$d  => $this->l("The Layer's <a href='https://www.w3schools.com/cssref/pr_dim_max-width.asp' target='_blank'>CSS max-width</a> for the current device viewport"),
+								$d  => $this->l('The Layer\'s <a href=\'https://www.w3schools.com/cssref/pr_dim_max-width.asp\' target=\'_blank\'>CSS max-width</a> for the current device viewport'),
 								$a  => $u . "size-position/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7245,10 +7264,10 @@ class RevSliderHelp {
 								],
 							],
 							'min_height' => [
-								$t  => $this->l("Minimum Height"),
+								$t  => $this->l('Minimum Height'),
 								$h  => "size.minHeight.#size#.v",
 								$k  => ["layer min-height", "layers min-height", "layer size", "layers size"],
-								$d  => $this->l("The Layer's <a href='https://www.w3schools.com/cssref/pr_dim_min-height.asp' target='_blank'>CSS min-height</a> for the current device viewport"),
+								$d  => $this->l('The Layer\'s <a href=\'https://www.w3schools.com/cssref/pr_dim_min-height.asp\' target=\'_blank\'>CSS min-height</a> for the current device viewport'),
 								$a  => $u . "size-position/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7258,10 +7277,10 @@ class RevSliderHelp {
 								],
 							],
 							'max_height' => [
-								$t  => $this->l("Maximum Height"),
+								$t  => $this->l('Maximum Height'),
 								$h  => "size.maxHeight.#size#.v",
 								$k  => ["layer height", "layers height", "layer size", "layers size"],
-								$d  => $this->l("The Layer's <a href='https://www.w3schools.com/cssref/pr_dim_max-height.asp' target='_blank'>CSS max-height</a> for the current device viewport"),
+								$d  => $this->l('The Layer\'s <a href=\'https://www.w3schools.com/cssref/pr_dim_max-height.asp\' target=\'_blank\'>CSS max-height</a> for the current device viewport'),
 								$a  => $u . "size-position/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7274,10 +7293,10 @@ class RevSliderHelp {
 						'responsive_behavior' => [
 							'intelligent_inheriting' => [
 								$di => "layers_intelligent_inheriting",
-								$t  => $this->l("Intelligent Inheriting"),
+								$t  => $this->l('Intelligent Inheriting'),
 								$h  => "behavior.intelligentInherit",
 								$k  => ["responsive", "intelligent inheriting", "responsive behavior"],
-								$d  => $this->l("Automatically resize/reposition new Layers for each device viewport inside the editor"),
+								$d  => $this->l('Automatically resize/reposition new Layers for each device viewport inside the editor'),
 								$a  => $u . "size-position/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7287,10 +7306,10 @@ class RevSliderHelp {
 								],
 							],
 							'inherit_from_desktop'   => [
-								$t  => $this->l("Inherit from Desktop"),
+								$t  => $this->l('Inherit from Desktop'),
 								$h  => "resetIntelligentInherits",
 								$k  => ["responsive behavior", "inherit all values", "inherit all values from desktop", "intelligent inheriting"],
-								$d  => $this->l("Automatically resize/reposition all Layers for each device viewport inside the editor"),
+								$d  => $this->l('Automatically resize/reposition all Layers for each device viewport inside the editor'),
 								$a  => $u . "size-position/",
 								$hl => [
 									$dp => ['layerselected', [$p => '#slide#.layers.#layer#.behavior.intelligentInherit', $v => true, $o => 'layers_intelligent_inheriting']],
@@ -7300,10 +7319,10 @@ class RevSliderHelp {
 								],
 							],
 							'reset_from_desktop'     => [
-								$t  => $this->l("Reset from Desktop"),
+								$t  => $this->l('Reset from Desktop'),
 								$h  => "inheritValuesFromDesktop",
 								$k  => ["responsive behavior", "reset all values", "reset all values from desktop", "intelligent inheriting"],
-								$d  => $this->l("Reset the size/position of all Layers to their desktop values for each viewport inside the editor"),
+								$d  => $this->l('Reset the size/position of all Layers to their desktop values for each viewport inside the editor'),
 								$a  => $u . "size-position/",
 								$hl => [
 									$dp => ['layerselected', [$p => '#slide#.layers.#layer#.behavior.intelligentInherit', $v => false, $o => 'layers_intelligent_inheriting']],
@@ -7313,10 +7332,10 @@ class RevSliderHelp {
 								],
 							],
 							'resize_between_devices' => [
-								$t  => $this->l("Resize Between Devices"),
+								$t  => $this->l('Resize Between Devices'),
 								$h  => "behavior.autoResponsive",
 								$k  => ["responsive", "resize", "resize layers", "resize layer", "layer resizing", "layer sizing", "responsive sizes", "responsive sizing"],
-								$d  => $this->l("Automatically resize Layers for each responsive device viewport"),
+								$d  => $this->l('Automatically resize Layers for each responsive device viewport'),
 								$a  => $u . "size-position/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7326,10 +7345,10 @@ class RevSliderHelp {
 								],
 							],
 							'responsive_offsets'     => [
-								$t  => $this->l("Responsive Offsets"),
+								$t  => $this->l('Responsive Offsets'),
 								$h  => "behavior.responsiveOffset",
 								$k  => ["responsive", "responsive offset", "responsive offsets"],
-								$d  => $this->l("Automatically adjust the positioning for Layers for each responsive device viewport"),
+								$d  => $this->l('Automatically adjust the positioning for Layers for each responsive device viewport'),
 								$a  => $u . "size-position/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7339,10 +7358,10 @@ class RevSliderHelp {
 								],
 							],
 							'responsive_children'    => [
-								$t  => $this->l("Responsive Children"),
+								$t  => $this->l('Responsive Children'),
 								$h  => "behavior.responsiveChilds",
 								$k  => ["responsive", "responsive children"],
-								$d  => $this->l("Choose to resize the Layer's inner HTML elements if the Layer includes custom HTML"),
+								$d  => $this->l('Choose to resize the Layer\'s inner HTML elements if the Layer includes custom HTML'),
 								$a  => $u . "size-position/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7356,10 +7375,10 @@ class RevSliderHelp {
 					'gst_layer_6'  => [
 						'basic_transforms' => [
 							'rotationx' => [
-								$t  => $this->l("Rotation X"),
+								$t  => $this->l('Rotation X'),
 								$h  => "idle.rotationX",
 								$k  => ["advanced style", "transform", "rotation", "rotationx"],
-								$d  => $this->l("Add a <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotateX' target='_blank'>rotateX</a> transform to the currently selected Layer"),
+								$d  => $this->l('Add a <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotateX\' target=\'_blank\'>rotateX</a> transform to the currently selected Layer'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7369,10 +7388,10 @@ class RevSliderHelp {
 								],
 							],
 							'rotationy' => [
-								$t  => $this->l("Rotation Y"),
+								$t  => $this->l('Rotation Y'),
 								$h  => "idle.rotationY",
 								$k  => ["advanced style", "transform", "rotation", "rotationx"],
-								$d  => $this->l("Add a <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotateY' target='_blank'>rotateY</a> transform to the currently selected Layer"),
+								$d  => $this->l('Add a <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotateY\' target=\'_blank\'>rotateY</a> transform to the currently selected Layer'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7382,10 +7401,10 @@ class RevSliderHelp {
 								],
 							],
 							'rotationz' => [
-								$t  => $this->l("Rotation Z"),
+								$t  => $this->l('Rotation Z'),
 								$h  => "idle.rotationZ",
 								$k  => ["advanced style", "transform", "rotation", "rotationx"],
-								$d  => $this->l("Add a <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotateZ' target='_blank'>rotateZ</a> transform to the currently selected Layer"),
+								$d  => $this->l('Add a <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotateZ\' target=\'_blank\'>rotateZ</a> transform to the currently selected Layer'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7395,10 +7414,10 @@ class RevSliderHelp {
 								],
 							],
 							'opacity'   => [
-								$t  => $this->l("Opacity"),
+								$t  => $this->l('Opacity'),
 								$h  => "idle.opacity",
 								$k  => ["advanced style", "transform", "opacity"],
-								$d  => $this->l("Adjust the opacity/transparency for the currently selected Layer"),
+								$d  => $this->l('Adjust the opacity/transparency for the currently selected Layer'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7410,10 +7429,10 @@ class RevSliderHelp {
 						],
 						'box_shadow'       => [
 							'enable'    => [
-								$t  => $this->l("Enable Box Shadow"),
+								$t  => $this->l('Enable Box Shadow'),
 								$h  => "idle.boxShadow.inuse",
 								$k  => ["box shadow", "box-shadow", "layer box-shadow", "layer box shadow", "boxshadow"],
-								$d  => $this->l("Add a <a href='https://www.w3schools.com/cssref/css3_pr_box-shadow.asp' target='_blank'>CSS box-shadow</a> to the currently selected Layer"),
+								$d  => $this->l('Add a <a href=\'https://www.w3schools.com/cssref/css3_pr_box-shadow.asp\' target=\'_blank\'>CSS box-shadow</a> to the currently selected Layer'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7423,10 +7442,10 @@ class RevSliderHelp {
 								],
 							],
 							'container' => [
-								$t  => $this->l("Apply Shadow to"),
+								$t  => $this->l('Apply Shadow to'),
 								$h  => "idle.boxShadow.container",
 								$k  => ["box shadow", "box shadow container", "shadow on"],
-								$d  => $this->l("'Wrapper Container' is the Layer's outer-most HTML wrapper div, and 'Layer Container' is the content's main div"),
+								$d  => $this->l('\'Wrapper Container\' is the Layer\'s outer-most HTML wrapper div, and \'Layer Container\' is the content\'s main div'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7436,10 +7455,10 @@ class RevSliderHelp {
 								],
 							],
 							'offsetx'   => [
-								$t  => $this->l("Offset X"),
+								$t  => $this->l('Offset X'),
 								$h  => "idle.boxShadow.hoffset.#size#.v",
 								$k  => ["box shadow offset", "box shadow offset x", "shadow offset"],
-								$d  => $this->l("The horizontal offset for the <a href='https://www.w3schools.com/cssref/css3_pr_box-shadow.asp' target='_blank'>box-shadow</a>"),
+								$d  => $this->l('The horizontal offset for the <a href=\'https://www.w3schools.com/cssref/css3_pr_box-shadow.asp\' target=\'_blank\'>box-shadow</a>'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7449,10 +7468,10 @@ class RevSliderHelp {
 								],
 							],
 							'offsety'   => [
-								$t  => $this->l("Offset Y"),
+								$t  => $this->l('Offset Y'),
 								$h  => "idle.boxShadow.voffset.#size#.v",
 								$k  => ["box shadow offset", "box shadow offset y", "shadow offset"],
-								$d  => $this->l("The vertical offset for the <a href='https://www.w3schools.com/cssref/css3_pr_box-shadow.asp' target='_blank'>box-shadow</a>"),
+								$d  => $this->l('The vertical offset for the <a href=\'https://www.w3schools.com/cssref/css3_pr_box-shadow.asp\' target=\'_blank\'>box-shadow</a>'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7462,10 +7481,10 @@ class RevSliderHelp {
 								],
 							],
 							'blur'      => [
-								$t  => $this->l("Blur Radius"),
+								$t  => $this->l('Blur Radius'),
 								$h  => "idle.boxShadow.blur.#size#.v",
 								$k  => ["box shadow blur", "box shadow blur radius", "blur radius"],
-								$d  => $this->l("The blur-radius value for the Layer's <a href='https://www.w3schools.com/cssref/css3_pr_box-shadow.asp' target='_blank'>box-shadow</a>"),
+								$d  => $this->l('The blur-radius value for the Layer\'s <a href=\'https://www.w3schools.com/cssref/css3_pr_box-shadow.asp\' target=\'_blank\'>box-shadow</a>'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7475,10 +7494,10 @@ class RevSliderHelp {
 								],
 							],
 							'spread'    => [
-								$t  => $this->l("Spread"),
+								$t  => $this->l('Spread'),
 								$h  => "idle.boxShadow.spread.#size#.v",
 								$k  => ["box shadow spread", "box shadow strength"],
-								$d  => $this->l("The spread value for the Layer's <a href='https://www.w3schools.com/cssref/css3_pr_box-shadow.asp' target='_blank'>box-shadow</a>"),
+								$d  => $this->l('The spread value for the Layer\'s <a href=\'https://www.w3schools.com/cssref/css3_pr_box-shadow.asp\' target=\'_blank\'>box-shadow</a>'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7488,10 +7507,10 @@ class RevSliderHelp {
 								],
 							],
 							'color'     => [
-								$t  => $this->l("Shadow Color"),
+								$t  => $this->l('Shadow Color'),
 								$h  => "idle.boxShadow.color",
 								$k  => ["box shadow color", "shadow color", "box-shadow color"],
-								$d  => $this->l("The rgba color for the Layer's <a href='https://www.w3schools.com/cssref/css3_pr_box-shadow.asp' target='_blank'>box-shadow</a>"),
+								$d  => $this->l('The rgba color for the Layer\'s <a href=\'https://www.w3schools.com/cssref/css3_pr_box-shadow.asp\' target=\'_blank\'>box-shadow</a>'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7503,10 +7522,10 @@ class RevSliderHelp {
 						],
 						'text_shadow'      => [
 							'enable'  => [
-								$t  => $this->l("Enable Text Shadow"),
+								$t  => $this->l('Enable Text Shadow'),
 								$h  => "idle.textShadow.inuse",
 								$k  => ["text shadow", "text-shadow", "layer text-shadow", "layer text shadow", "textshadow"],
-								$d  => $this->l("Add a <a href='https://www.w3schools.com/CSSref/css3_pr_text-shadow.asp' target='_blank'>CSS text-shadow</a> to the currently selected Layer"),
+								$d  => $this->l('Add a <a href=\'https://www.w3schools.com/CSSref/css3_pr_text-shadow.asp\' target=\'_blank\'>CSS text-shadow</a> to the currently selected Layer'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected::text'],
@@ -7516,10 +7535,10 @@ class RevSliderHelp {
 								],
 							],
 							'offsetx' => [
-								$t  => $this->l("Offset X"),
+								$t  => $this->l('Offset X'),
 								$h  => "idle.textShadow.hoffset.#size#.v",
 								$k  => ["text shadow offset", "text shadow offset x", "shadow offset"],
-								$d  => $this->l("The horizontal offset for the <a href='https://www.w3schools.com/CSSref/css3_pr_text-shadow.asp' target='_blank'>text-shadow</a>"),
+								$d  => $this->l('The horizontal offset for the <a href=\'https://www.w3schools.com/CSSref/css3_pr_text-shadow.asp\' target=\'_blank\'>text-shadow</a>'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected::text'],
@@ -7529,10 +7548,10 @@ class RevSliderHelp {
 								],
 							],
 							'offsety' => [
-								$t  => $this->l("Offset Y"),
+								$t  => $this->l('Offset Y'),
 								$h  => "idle.textShadow.voffset.#size#.v",
 								$k  => ["text shadow offset", "text shadow offset y", "shadow offset"],
-								$d  => $this->l("The vertical offset for the <a href='https://www.w3schools.com/CSSref/css3_pr_text-shadow.asp' target='_blank'>text-shadow</a>"),
+								$d  => $this->l('The vertical offset for the <a href=\'https://www.w3schools.com/CSSref/css3_pr_text-shadow.asp\' target=\'_blank\'>text-shadow</a>'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected::text'],
@@ -7542,10 +7561,10 @@ class RevSliderHelp {
 								],
 							],
 							'blur'    => [
-								$t  => $this->l("Blur Radius"),
+								$t  => $this->l('Blur Radius'),
 								$h  => "idle.textShadow.blur.#size#.v",
 								$k  => ["text shadow blur", "text shadow blur radius", "blur radius"],
-								$d  => $this->l("The blur-radius value for the Layer's <a href='https://www.w3schools.com/CSSref/css3_pr_text-shadow.asp' target='_blank'>text-shadow</a>"),
+								$d  => $this->l('The blur-radius value for the Layer\'s <a href=\'https://www.w3schools.com/CSSref/css3_pr_text-shadow.asp\' target=\'_blank\'>text-shadow</a>'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected::text'],
@@ -7555,10 +7574,10 @@ class RevSliderHelp {
 								],
 							],
 							'color'   => [
-								$t  => $this->l("Shadow Color"),
+								$t  => $this->l('Shadow Color'),
 								$h  => "idle.textShadow.color",
 								$k  => ["text shadow color", "shadow color", "text-shadow color"],
-								$d  => $this->l("The rgba color for the Layer's <a href='https://www.w3schools.com/CSSref/css3_pr_text-shadow.asp' target='_blank'>text-shadow</a>"),
+								$d  => $this->l('The rgba color for the Layer\'s <a href=\'https://www.w3schools.com/CSSref/css3_pr_text-shadow.asp\' target=\'_blank\'>text-shadow</a>'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected::text'],
@@ -7570,10 +7589,10 @@ class RevSliderHelp {
 						],
 						'blend_mode'       => [
 							'filter'         => [
-								$t  => $this->l("Blend Mode Filter"),
+								$t  => $this->l('Blend Mode Filter'),
 								$h  => "idle.filter.blendMode",
 								$k  => ["blend mode", "blend mode filter", "filter", "layer blend mode", "blend-mode"],
-								$d  => $this->l("The CSS <a href='https://www.w3schools.com/cssref/pr_background-blend-mode.asp' target='_blank'>background-blend-mode</a> filter for the currently selected Layer"),
+								$d  => $this->l('The CSS <a href=\'https://www.w3schools.com/cssref/pr_background-blend-mode.asp\' target=\'_blank\'>background-blend-mode</a> filter for the currently selected Layer'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7583,10 +7602,10 @@ class RevSliderHelp {
 								],
 							],
 							'show_in_editor' => [
-								$t  => $this->l("Show in Editor Preview"),
+								$t  => $this->l('Show in Editor Preview'),
 								$h  => "idle.filter.showInEditor",
 								$k  => ["blend mode", "blend mode filter", "filter", "layer blend mode", "blend-mode", "show in editor"],
-								$d  => $this->l("Show the blend-mode both live in the Slider and also in the admin editing stage"),
+								$d  => $this->l('Show the blend-mode both live in the Slider and also in the admin editing stage'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7599,10 +7618,10 @@ class RevSliderHelp {
 						'spike_masks'      => [
 							'enable'            => [
 								$di => 'spike_masks',
-								$t  => $this->l("Enable Spike Masks"),
+								$t  => $this->l('Enable Spike Masks'),
 								$h  => "idle.spikeUse",
 								$k  => ["advanced style", "spikes", "corner", "spike", "corners"],
-								$d  => $this->l("Add creative edges and corners to your content"),
+								$d  => $this->l('Add creative edges and corners to your content'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7612,10 +7631,10 @@ class RevSliderHelp {
 								],
 							],
 							'left_spike'        => [
-								$t  => $this->l("Left Spike"),
+								$t  => $this->l('Left Spike'),
 								$h  => "idle.spikeLeft",
 								$k  => ["advanced style", "spikes", "corner", "spike", "corners"],
-								$d  => $this->l("Add creative edges and corners to the left side of your content"),
+								$d  => $this->l('Add creative edges and corners to the left side of your content'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => [
@@ -7628,10 +7647,10 @@ class RevSliderHelp {
 								],
 							],
 							'left_spike_width'  => [
-								$t  => $this->l("Left Spike Width"),
+								$t  => $this->l('Left Spike Width'),
 								$h  => "idle.spikeLeftWidth",
 								$k  => ["advanced style", "spikes", "corner", "spike", "corners"],
-								$d  => $this->l("The percentage of your content's width to use when the spike(s) are drawn on the left side"),
+								$d  => $this->l('The percentage of your content\'s width to use when the spike(s) are drawn on the left side'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => [
@@ -7644,10 +7663,10 @@ class RevSliderHelp {
 								],
 							],
 							'right_spike'       => [
-								$t  => $this->l("Enable Spike Masks"),
+								$t  => $this->l('Enable Spike Masks'),
 								$h  => "idle.spikeRight",
 								$k  => ["advanced style", "spikes", "corner", "spike", "corners"],
-								$d  => $this->l("Add creative edges and corners to the right side of your content"),
+								$d  => $this->l('Add creative edges and corners to the right side of your content'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => [
@@ -7660,10 +7679,10 @@ class RevSliderHelp {
 								],
 							],
 							'right_spike_width' => [
-								$t  => $this->l("Right Spike Width"),
+								$t  => $this->l('Right Spike Width'),
 								$h  => "idle.spikeRightWidth",
 								$k  => ["advanced style", "spikes", "corner", "spike", "corners"],
-								$d  => $this->l("The percentage of your content's width to use when the spike(s) are drawn on the right side"),
+								$d  => $this->l('The percentage of your content\'s width to use when the spike(s) are drawn on the right side'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => [
@@ -7678,10 +7697,10 @@ class RevSliderHelp {
 						],
 						'sharp_corners'    => [
 							'left_corner'  => [
-								$t  => $this->l("Left Corner"),
+								$t  => $this->l('Left Corner'),
 								$h  => "idle.cornerLeft",
 								$k  => ["advanced style", "corner", "sharp", "sharp corners", "corners"],
-								$d  => $this->l("Mask your content with diagonal slice from the left side"),
+								$d  => $this->l('Mask your content with diagonal slice from the left side'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7691,10 +7710,10 @@ class RevSliderHelp {
 								],
 							],
 							'right_corner' => [
-								$t  => $this->l("Right Corner"),
+								$t  => $this->l('Right Corner'),
 								$h  => "idle.cornerRight",
 								$k  => ["advanced style", "corner", "sharp", "sharp corners", "corners"],
-								$d  => $this->l("Mask your content with diagonal slice from the right side"),
+								$d  => $this->l('Mask your content with diagonal slice from the right side'),
 								$a  => $u . "font-colors-styling/#advanced-style",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7707,10 +7726,10 @@ class RevSliderHelp {
 					],
 					'gst_layer_4'  => [
 						'start_animation_from' => [
-							$t  => $this->l("Start/In Animation: From"),
+							$t  => $this->l('Start/In Animation: From'),
 							$h  => "animation.in.from",
 							$k  => ["animation in", "animation from", "layer animation", "layers animation", "animation"],
-							$d  => $this->l("The Layer animation's starting point values before it first animates into view"),
+							$d  => $this->l('The Layer animation\'s starting point values before it first animates into view'),
 							$a  => $u . "layer-animations/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -7720,10 +7739,10 @@ class RevSliderHelp {
 							],
 						],
 						'start_animation_to'   => [
-							$t  => $this->l("Start/In Animation: To"),
+							$t  => $this->l('Start/In Animation: To'),
 							$h  => "animation.in.to",
 							$k  => ["animation in", "animation to", "layer animation", "layers animation", "animation"],
-							$d  => $this->l("The ending values for the Layer's very first animation"),
+							$d  => $this->l('The ending values for the Layer\'s very first animation'),
 							$a  => $u . "layer-animations/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -7733,10 +7752,10 @@ class RevSliderHelp {
 							],
 						],
 						'animation_to'         => [
-							$t  => $this->l("Animate Again To..."),
+							$t  => $this->l('Animate Again To...'),
 							$h  => "animation.keyframe.to",
 							$k  => ["animation keyframe", "animation to", "layer animation", "layers animation", "animation", "keyframe"],
-							$d  => $this->l("An additional animation to add to the Layer after its already animated into view"),
+							$d  => $this->l('An additional animation to add to the Layer after its already animated into view'),
 							$a  => $u . "layer-animations/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -7746,10 +7765,10 @@ class RevSliderHelp {
 							],
 						],
 						'end_animation_out'    => [
-							$t  => $this->l("End/Out Animation: To"),
+							$t  => $this->l('End/Out Animation: To'),
 							$h  => "animation.out.to",
 							$k  => ["animation out", "animation to", "layer animation", "layers animation", "animation"],
-							$d  => $this->l("The Layer's final animation when it's meant to be hidden or when the Slide changes"),
+							$d  => $this->l('The Layer\'s final animation when it\'s meant to be hidden or when the Slide changes'),
 							$a  => $u . "layer-animations/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -7759,10 +7778,10 @@ class RevSliderHelp {
 							],
 						],
 						'editor_view'          => [
-							$t  => $this->l("Set as Editor View"),
+							$t  => $this->l('Set as Editor View'),
 							$h  => "editorview",
 							$k  => ["animation out", "animation to", "layer animation", "layers animation", "animation", "editor view", "set as editor view"],
-							$d  => $this->l("Set the selected animation point as the default view when editing your content"),
+							$d  => $this->l('Set the selected animation point as the default view when editing your content'),
 							$a  => $u . "layer-animations/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -7773,10 +7792,10 @@ class RevSliderHelp {
 						],
 						'basics'               => [
 							'alias'           => [
-								$t  => $this->l("Animation Name"),
+								$t  => $this->l('Animation Name'),
 								$h  => "#frame#.alias",
 								$k  => ["animation alias", "animation name"],
-								$d  => $this->l("Give the animation a name for editing purposes"),
+								$d  => $this->l('Give the animation a name for editing purposes'),
 								$a  => $u . "layer-animations/#duration-easing",
 								$hl => [
 									$dp => ['layerselected'],
@@ -7786,10 +7805,10 @@ class RevSliderHelp {
 								],
 							],
 							'speed'           => [
-								$t  => $this->l("Animation Speed"),
+								$t  => $this->l('Animation Speed'),
 								$h  => "#frame#.timeline.speed",
 								$k  => ["animation speed", "animation duration", "animation time"],
-								$d  => $this->l("The total duration for the selected animation"),
+								$d  => $this->l('The total duration for the selected animation'),
 								$a  => $u . "layer-animations/#duration-easing",
 								$hl => [
 									$dp => ['layerselected', '#keyframe_list_el_frame_1'],
@@ -7799,10 +7818,10 @@ class RevSliderHelp {
 								],
 							],
 							'easing'          => [
-								$t  => $this->l("Animation Easing"),
+								$t  => $this->l('Animation Easing'),
 								$h  => "#frame#.timeline.ease",
 								$k  => ["animation easing", "easing"],
-								$d  => $this->l("The easing equation to use for the selected animation"),
+								$d  => $this->l('The easing equation to use for the selected animation'),
 								$a  => $u . "layer-animations/#duration-easing",
 								$hl => [
 									$dp => ['layerselected', '#keyframe_list_el_frame_1'],
@@ -7812,10 +7831,10 @@ class RevSliderHelp {
 								],
 							],
 							'wait_for_action' => [
-								$t  => $this->l("Wait for Action"),
+								$t  => $this->l('Wait for Action'),
 								$h  => "#frame#.timeline.actionTriggered",
 								$k  => ["animation", "action", "actions", "animations", "keyframe", "keyframes"],
-								$d  => $this->l("The selected animation will only start when it's called from a <a href='http://docs.themepunch.com/slider-revolution/layer-actions/' target=_'blank'>Layer Action</a>"),
+								$d  => $this->l('The selected animation will only start when it\'s called from a <a href=\'http://docs.themepunch.com/slider-revolution/layer-actions/\' target=_\'blank\'>Layer Action</a>'),
 								$a  => $u . "layer-animations/#duration-easing",
 								$hl => [
 									$dp => ['layerselected', '#keyframe_list_el_frame_1'],
@@ -7828,10 +7847,10 @@ class RevSliderHelp {
 						'advanced'             => [
 							'layer'          => [
 								'opacity'           => [
-									$t  => $this->l("Opacity"),
+									$t  => $this->l('Opacity'),
 									$h  => "#frame#.transform.opacity",
 									$k  => ["opacity", "animation opacity", "transparency", "show layer", "hide layer", "animate opacity"],
-									$d  => $this->l("The Layer's opacity to apply to the currently selected animation frame"),
+									$d  => $this->l('The Layer\'s opacity to apply to the currently selected animation frame'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -7842,10 +7861,10 @@ class RevSliderHelp {
 								],
 								'translate'         => [
 									'translate_x' => [
-										$t  => $this->l("TranslateX"),
+										$t  => $this->l('TranslateX'),
 										$h  => "#frame#.transform.x.#size#.v",
 										$k  => ["animation position", "layer animation position", "animate left", "animate right", "translatex"],
-										$d  => $this->l("The 'x' (left) position to apply to the currently selected animation frame.  Accepts positive and negative numbers."),
+										$d  => $this->l('The \'x\' (left) position to apply to the currently selected animation frame.  Accepts positive and negative numbers.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -7855,10 +7874,10 @@ class RevSliderHelp {
 										],
 									],
 									'translate_y' => [
-										$t  => $this->l("TranslateY"),
+										$t  => $this->l('TranslateY'),
 										$h  => "#frame#.transform.y.#size#.v",
 										$k  => ["animation position", "layer animation position", "animate top", "animate bottom", "translatey"],
-										$d  => $this->l("The 'y' (top) position to apply to the currently selected animation frame.  Accepts positive and negative numbers."),
+										$d  => $this->l('The \'y\' (top) position to apply to the currently selected animation frame.  Accepts positive and negative numbers.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -7868,10 +7887,10 @@ class RevSliderHelp {
 										],
 									],
 									'translate_z' => [
-										$t  => $this->l("TranslateZ"),
+										$t  => $this->l('TranslateZ'),
 										$h  => "#frame#.transform.z",
 										$k  => ["animation depth", "animation z", "translatez", "3d"],
-										$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translateZ' target=_'blank'>CSS translateZ</a> to apply to the selected animation frame.  This adds/removes 3D depth to the Layer"),
+										$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translateZ\' target=_\'blank\'>CSS translateZ</a> to apply to the selected animation frame.  This adds/removes 3D depth to the Layer'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -7881,10 +7900,10 @@ class RevSliderHelp {
 										],
 									],
 									'perspective' => [
-										$t  => $this->l("Transform Perspective"),
+										$t  => $this->l('Transform Perspective'),
 										$h  => "#frame#.transform.transformPerspective",
 										$k  => ["animation perspective", "perspective", "transform perspective", "transform-perspective", "3d"],
-										$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/perspective' target=_'blank'>CSS perspective</a> to apply to the selected animation frame"),
+										$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/perspective\' target=_\'blank\'>CSS perspective</a> to apply to the selected animation frame'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -7896,10 +7915,10 @@ class RevSliderHelp {
 								],
 								'scale_skew_rotate' => [
 									'scalex'    => [
-										$t  => $this->l("scaleX"),
+										$t  => $this->l('scaleX'),
 										$h  => "#frame#.transform.scaleX",
 										$k  => ["animation scale", "animation scalex", "scalex", "scale x", "scale"],
-										$d  => $this->l("Scale the Layer's width by this amount for the selected animation frame"),
+										$d  => $this->l('Scale the Layer\'s width by this amount for the selected animation frame'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -7909,10 +7928,10 @@ class RevSliderHelp {
 										],
 									],
 									'scaley'    => [
-										$t  => $this->l("scaleY"),
+										$t  => $this->l('scaleY'),
 										$h  => "#frame#.transform.scaleY",
 										$k  => ["animation scale", "animation scaley", "scaley", "scale y", "scale"],
-										$d  => $this->l("Scale the Layer's height by this amount for the selected animation frame"),
+										$d  => $this->l('Scale the Layer\'s height by this amount for the selected animation frame'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -7922,10 +7941,10 @@ class RevSliderHelp {
 										],
 									],
 									'skewx'     => [
-										$t  => $this->l("skewX"),
+										$t  => $this->l('skewX'),
 										$h  => "#frame#.transform.skewX",
 										$k  => ["animation skew", "animation skewx", "skew x", "skewx", "skew"],
-										$d  => $this->l("Skew/distort the Layer horizontally by this amount for the selected animation frame.  Accepts positive and negative values."),
+										$d  => $this->l('Skew/distort the Layer horizontally by this amount for the selected animation frame.  Accepts positive and negative values.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -7935,10 +7954,10 @@ class RevSliderHelp {
 										],
 									],
 									'skewy'     => [
-										$t  => $this->l("skewY"),
+										$t  => $this->l('skewY'),
 										$h  => "#frame#.transform.skewY",
 										$k  => ["animation skew", "animation skewy", "skew y", "skewy", "skew"],
-										$d  => $this->l("Skew/distort the Layer vertically by this amount for the selected animation frame.  Accepts positive and negative values."),
+										$d  => $this->l('Skew/distort the Layer vertically by this amount for the selected animation frame.  Accepts positive and negative values.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -7948,10 +7967,10 @@ class RevSliderHelp {
 										],
 									],
 									'rotationx' => [
-										$t  => $this->l("rotateX"),
+										$t  => $this->l('rotateX'),
 										$h  => "#frame#.transform.rotationX",
 										$k  => ["animation rotation", "animation rotatex", "rotatex", "rotationx", "rotation x", "3d", "3d rotation"],
-										$d  => $this->l("Rotate the Layer on its 'x' axis by this amount for the selected animation frame.  Accepts positive and negative values."),
+										$d  => $this->l('Rotate the Layer on its \'x\' axis by this amount for the selected animation frame.  Accepts positive and negative values.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -7961,10 +7980,10 @@ class RevSliderHelp {
 										],
 									],
 									'rotationy' => [
-										$t  => $this->l("rotateY"),
+										$t  => $this->l('rotateY'),
 										$h  => "#frame#.transform.rotationY",
 										$k  => ["animation rotation", "animation rotatey", "rotatey", "rotationy", "rotation y", "3d", "3d rotation"],
-										$d  => $this->l("Rotate the Layer on its 'y' axis by this amount for the selected animation frame.  Accepts positive and negative values."),
+										$d  => $this->l('Rotate the Layer on its \'y\' axis by this amount for the selected animation frame.  Accepts positive and negative values.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -7974,10 +7993,10 @@ class RevSliderHelp {
 										],
 									],
 									'rotation'  => [
-										$t  => $this->l("2D Rotation"),
+										$t  => $this->l('2D Rotation'),
 										$h  => "#frame#.transform.rotationZ",
 										$k  => ["animation rotation", "animation rotate", "rotate", "rotation", "2d", "2d rotation"],
-										$d  => $this->l("The Layer's <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotate' target='_blank'>2D Rotation</a> for the selected animation frame.  Accepts positive and negative values."),
+										$d  => $this->l('The Layer\'s <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotate\' target=\'_blank\'>2D Rotation</a> for the selected animation frame.  Accepts positive and negative values.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -7989,10 +8008,10 @@ class RevSliderHelp {
 								],
 								'transform_origin'  => [
 									'originx' => [
-										$t  => $this->l("Transform Origin X"),
+										$t  => $this->l('Transform Origin X'),
 										$h  => "#frame#.transform.originX",
 										$k  => ["animation origin", "animation originx", "transform origin", "transform-origin"],
-										$d  => $this->l("The 'x' axis for the Layer's <a href='https://www.w3schools.com/cssref/css3_pr_transform-origin.asp' target='_blank'>transform-origin</a> applied to the selected animation frame."),
+										$d  => $this->l('The \'x\' axis for the Layer\'s <a href=\'https://www.w3schools.com/cssref/css3_pr_transform-origin.asp\' target=\'_blank\'>transform-origin</a> applied to the selected animation frame.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -8002,10 +8021,10 @@ class RevSliderHelp {
 										],
 									],
 									'originy' => [
-										$t  => $this->l("Transform Origin Y"),
+										$t  => $this->l('Transform Origin Y'),
 										$h  => "#frame#.transform.originY",
 										$k  => ["animation origin", "animation originx", "transform origin", "transform-origin"],
-										$d  => $this->l("The 'y' axis for the Layer's <a href='https://www.w3schools.com/cssref/css3_pr_transform-origin.asp' target='_blank'>transform-origin</a> applied to the selected animation frame."),
+										$d  => $this->l('The \'y\' axis for the Layer\'s <a href=\'https://www.w3schools.com/cssref/css3_pr_transform-origin.asp\' target=\'_blank\'>transform-origin</a> applied to the selected animation frame.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -8015,10 +8034,10 @@ class RevSliderHelp {
 										],
 									],
 									'originz' => [
-										$t  => $this->l("Transform Origin Z"),
+										$t  => $this->l('Transform Origin Z'),
 										$h  => "#frame#.transform.originZ",
 										$k  => ["animation origin", "animation originx", "transform origin", "transform-origin"],
-										$d  => $this->l("The 'z' axis for the Layer's <a href='https://www.w3schools.com/cssref/css3_pr_transform-origin.asp' target='_blank'>transform-origin</a> applied to the selected animation frame."),
+										$d  => $this->l('The \'z\' axis for the Layer\'s <a href=\'https://www.w3schools.com/cssref/css3_pr_transform-origin.asp\' target=\'_blank\'>transform-origin</a> applied to the selected animation frame.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => ['layerselected', '#layerbasic_ts_wrapbrtn .transtarget_selector'],
@@ -8032,10 +8051,10 @@ class RevSliderHelp {
 							'mask'           => [
 								'enable'          => [
 									$di => "layer_frame_mask",
-									$t  => $this->l("Enable Layer Mask"),
+									$t  => $this->l('Enable Layer Mask'),
 									$h  => "#frame#.mask.use",
 									$k  => ["animation mask", "animation masking", "layer mask", "layer masking", "mask", "masking"],
-									$d  => $this->l("Add a mask to the Layer which is useful for wipe/reveal type animations"),
+									$d  => $this->l('Add a mask to the Layer which is useful for wipe/reveal type animations'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => ['layerselected', '#mask_ts_wrapbrtn .transtarget_selector'],
@@ -8045,10 +8064,10 @@ class RevSliderHelp {
 									],
 								],
 								'maskx'           => [
-									$t  => $this->l("Mask X Position"),
+									$t  => $this->l('Mask X Position'),
 									$h  => "#frame#.mask.x.#size#.v",
 									$k  => ["animation mask", "animation masking", "layer mask", "layer masking", "mask", "masking"],
-									$d  => $this->l("Position the mask horizontally.  Accepts positive and negative values."),
+									$d  => $this->l('Position the mask horizontally.  Accepts positive and negative values.'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8062,10 +8081,10 @@ class RevSliderHelp {
 									],
 								],
 								'masky'           => [
-									$t  => $this->l("Mask Y Position"),
+									$t  => $this->l('Mask Y Position'),
 									$h  => "#frame#.mask.y.#size#.v",
 									$k  => ["animation mask", "animation masking", "layer mask", "layer masking", "mask", "masking"],
-									$d  => $this->l("Position the mask vertically.  Accepts positive and negative values."),
+									$d  => $this->l('Position the mask vertically.  Accepts positive and negative values.'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8080,10 +8099,10 @@ class RevSliderHelp {
 								],
 								'clippath_enable' => [
 									$di => "clippath_enable",
-									$t  => $this->l("Enable Clip Path"),
+									$t  => $this->l('Enable Clip Path'),
 									$h  => "timeline.clipPath.use",
 									$k  => ["clip path", "clippath", "mask", "masking"],
-									$d  => $this->l("Apply and animate a CSS clip-path to the Layer.  Useful for creating 'wipe' animations"),
+									$d  => $this->l('Apply and animate a CSS clip-path to the Layer.  Useful for creating \'wipe\' animations'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => ['layerselected', '#mask_ts_wrapbrtn .transtarget_selector'],
@@ -8093,10 +8112,10 @@ class RevSliderHelp {
 									],
 								],
 								'clippath_type'   => [
-									$t  => $this->l("Clip Path Type"),
+									$t  => $this->l('Clip Path Type'),
 									$h  => "timeline.clipPath.type",
 									$k  => ["clip path", "clippath", "mask", "masking", "clip path type"],
-									$d  => $this->l("Choose 'Rectangle' or 'Circle' for traditional wipes from the sides, center or corners, and 'Inverts' for curtain-type reveals"),
+									$d  => $this->l('Choose \'Rectangle\' or \'Circle\' for traditional wipes from the sides, center or corners, and \'Inverts\' for curtain-type reveals'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8110,10 +8129,10 @@ class RevSliderHelp {
 									],
 								],
 								'clippath_origin' => [
-									$t  => $this->l("Clip Path Origin"),
+									$t  => $this->l('Clip Path Origin'),
 									$h  => "timeline.clipPath.origin",
 									$k  => ["clip path", "clippath", "mask", "masking", "clip path origin", "origin"],
-									$d  => $this->l("Choose which direction the Clip Path should move to"),
+									$d  => $this->l('Choose which direction the Clip Path should move to'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8127,10 +8146,10 @@ class RevSliderHelp {
 									],
 								],
 								'clip_percentage' => [
-									$t  => $this->l("Clip Percentage"),
+									$t  => $this->l('Clip Percentage'),
 									$h  => "#frame#.transform.clip, #frame#.transform.clipB",
 									$k  => ["clip path", "clippath", "mask", "masking", "clip path percentage"],
-									$d  => $this->l("The percentage of the Layer to apply the clip-path mask to.  The number '0' would represent completely hidden and '100' represent completely visible."),
+									$d  => $this->l('The percentage of the Layer to apply the clip-path mask to.  The number \'0\' would represent completely hidden and \'100\' represent completely visible.'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8147,10 +8166,10 @@ class RevSliderHelp {
 							'filter'         => [
 								'enable'     => [
 									$di => "layer_frame_filter",
-									$t  => $this->l("Enable Filter Animation"),
+									$t  => $this->l('Enable Filter Animation'),
 									$h  => "#frame#.filter.use",
 									$k  => ["animate filter", "filter animation", "filter", "filters"],
-									$d  => $this->l("Animate the Layer's blur, grayscale or brightness filter"),
+									$d  => $this->l('Animate the Layer\'s blur, grayscale or brightness filter'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => ['layerselected', '#filter_ts_wrapbrtn .transtarget_selector'],
@@ -8160,10 +8179,10 @@ class RevSliderHelp {
 									],
 								],
 								'blur'       => [
-									$t  => $this->l("Blur Filter"),
+									$t  => $this->l('Blur Filter'),
 									$h  => "#frame#.filter.blur",
 									$k  => ["animate filter", "filter animation", "filter", "filters", "blur filter", "blur"],
-									$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur' target='_blank'>blur filter</a> value for the selected Animation frame"),
+									$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur\' target=\'_blank\'>blur filter</a> value for the selected Animation frame'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8177,10 +8196,10 @@ class RevSliderHelp {
 									],
 								],
 								'grayscale'  => [
-									$t  => $this->l("Grayscale"),
+									$t  => $this->l('Grayscale'),
 									$h  => "#frame#.filter.grayscale",
 									$k  => ["animate filter", "filter animation", "filter", "filters", "grayscale filter", "grayscale"],
-									$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale' target='_blank'>grayscale filter</a> value for the selected Animation frame"),
+									$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale\' target=\'_blank\'>grayscale filter</a> value for the selected Animation frame'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8194,10 +8213,10 @@ class RevSliderHelp {
 									],
 								],
 								'brightness' => [
-									$t  => $this->l("Brightness"),
+									$t  => $this->l('Brightness'),
 									$h  => "#frame#.filter.brightness",
 									$k  => ["animate filter", "filter animation", "filter", "filters", "brightness filter", "brightness"],
-									$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/brightness' target='_blank'>brightness filter</a> value for the selected Animation frame"),
+									$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/brightness\' target=\'_blank\'>brightness filter</a> value for the selected Animation frame'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8214,10 +8233,10 @@ class RevSliderHelp {
 							'color'          => [
 								'enable_text_color'       => [
 									$di => "layer_frame_color_text",
-									$t  => $this->l("Animate Text Color"),
+									$t  => $this->l('Animate Text Color'),
 									$h  => "#frame#.color.use",
 									$k  => ["animate color", "animate text color", "animate text-color", "color animation", "text color animation"],
-									$d  => $this->l("Animate the Layer's text color"),
+									$d  => $this->l('Animate the Layer\'s text color'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => ['layerselected', '#color_ts_wrapbrtn .transtarget_selector'],
@@ -8227,10 +8246,10 @@ class RevSliderHelp {
 									],
 								],
 								'text_color'              => [
-									$t  => $this->l("Text Color Value"),
+									$t  => $this->l('Text Color Value'),
 									$h  => "#frame#.color.color",
 									$k  => ["animate color", "animate text color", "animate text-color", "color animation", "text color animation"],
-									$d  => $this->l("The Layer's text color for the selected Animation frame"),
+									$d  => $this->l('The Layer\'s text color for the selected Animation frame'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8245,10 +8264,10 @@ class RevSliderHelp {
 								],
 								'enable_background_color' => [
 									$di => "layer_frame_color_background",
-									$t  => $this->l("Animate Background Color"),
+									$t  => $this->l('Animate Background Color'),
 									$h  => "#frame#.bgcolor.use",
 									$k  => ["animate color", "animate background color", "animate background-color", "color animation", "background color animation"],
-									$d  => $this->l("Animate the Layer's background color"),
+									$d  => $this->l('Animate the Layer\'s background color'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => ['layerselected', '#color_ts_wrapbrtn .transtarget_selector'],
@@ -8258,10 +8277,10 @@ class RevSliderHelp {
 									],
 								],
 								'background_color'        => [
-									$t  => $this->l("Background Color Value"),
+									$t  => $this->l('Background Color Value'),
 									$h  => "#frame#.bgcolor.backgroundColor",
 									$k  => ["animate color", "animate background color", "animate background-color", "background color animation", "background-color animation"],
-									$d  => $this->l("The Layer's background color for the selected Animation frame"),
+									$d  => $this->l('The Layer\'s background color for the selected Animation frame'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8278,10 +8297,10 @@ class RevSliderHelp {
 							'char_word_line' => [
 								'enable'           => [
 									$di => "layer_frame_char",
-									$t  => $this->l("Enable Text-Split Animations"),
+									$t  => $this->l('Enable Text-Split Animations'),
 									$h  => "#frame#.chars.use, #frame#.words.use, #frame#.lines.use",
 									$k  => ["text-split", "split", "text-split animation", "split animation", "char animation", "word animation", "line animation", "character animation"],
-									$d  => $this->l("Animate characters, words or lines of text"),
+									$d  => $this->l('Animate characters, words or lines of text'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => ['layerselected', '#chars_ts_wrapbrtn .transtarget_selector'],
@@ -8291,10 +8310,10 @@ class RevSliderHelp {
 									],
 								],
 								'direction'        => [
-									$t  => $this->l("Split Direction"),
+									$t  => $this->l('Split Direction'),
 									$h  => "#frame#.chars.direction, #frame#.words.direction, #frame#.lines.direction",
 									$k  => ["split direction", "split animation direction", "text-split direction", "text animation direction"],
-									$d  => $this->l("Choose which direction the chars/words/lines should be animated in"),
+									$d  => $this->l('Choose which direction the chars/words/lines should be animated in'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8308,10 +8327,10 @@ class RevSliderHelp {
 									],
 								],
 								'delay'            => [
-									$t  => $this->l("Split Delay"),
+									$t  => $this->l('Split Delay'),
 									$h  => "#frame#.lines.delay, #frame#.chars.delay, #frame#.words.delay",
 									$k  => ["split delay", "split animation delay", "text-split delay", "text animation delay"],
-									$d  => $this->l("The delay time between each animation for the individual characters/words/lines"),
+									$d  => $this->l('The delay time between each animation for the individual characters/words/lines'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8325,10 +8344,10 @@ class RevSliderHelp {
 									],
 								],
 								'easing'           => [
-									$t  => $this->l("Animation Easing"),
+									$t  => $this->l('Animation Easing'),
 									$h  => "#frame#.words.ease, #frame#.chars.ease, #frame#.lines.ease",
 									$k  => ["split easing", "split animation easing", "text-split easing", "text animation easing"],
-									$d  => $this->l("The easing equation to be applied for each animation"),
+									$d  => $this->l('The easing equation to be applied for each animation'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8342,10 +8361,10 @@ class RevSliderHelp {
 									],
 								],
 								'opacity'          => [
-									$t  => $this->l("Opacity"),
+									$t  => $this->l('Opacity'),
 									$h  => "#frame#.chars.opacity, #frame#.words.opacity, #frame#.lines.opacity",
 									$k  => ["opacity", "animation opacity", "transparency", "animate opacity"],
-									$d  => $this->l("The char/word/line opacity to apply to the currently selected animation frame"),
+									$d  => $this->l('The char/word/line opacity to apply to the currently selected animation frame'),
 									$a  => $u . "layer-animations/#advanced-settings",
 									$hl => [
 										$dp => [
@@ -8360,10 +8379,10 @@ class RevSliderHelp {
 								],
 								'translate'        => [
 									'translate_x' => [
-										$t  => $this->l("TranslateX"),
+										$t  => $this->l('TranslateX'),
 										$h  => "#frame#.chars.x.#size#.v, #frame#.words.x.#size#.v, #frame#.lines.x.#size#.v",
 										$k  => ["animation position", "animate left", "animate right", "translatex"],
-										$d  => $this->l("The 'x' (left) position to apply to the currently selected animation frame.  Accepts positive and negative numbers."),
+										$d  => $this->l('The \'x\' (left) position to apply to the currently selected animation frame.  Accepts positive and negative numbers.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8377,10 +8396,10 @@ class RevSliderHelp {
 										],
 									],
 									'translate_y' => [
-										$t  => $this->l("TranslateY"),
+										$t  => $this->l('TranslateY'),
 										$h  => "#frame#.chars.y.#size#.v, #frame#.words.y.#size#.v, #frame#.lines.y.#size#.v",
 										$k  => ["animation position", "animate top", "animate bottom", "translatey"],
-										$d  => $this->l("The 'y' (top) position to apply to the currently selected animation frame.  Accepts positive and negative numbers."),
+										$d  => $this->l('The \'y\' (top) position to apply to the currently selected animation frame.  Accepts positive and negative numbers.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8394,10 +8413,10 @@ class RevSliderHelp {
 										],
 									],
 									'translate_z' => [
-										$t  => $this->l("TranslateZ"),
+										$t  => $this->l('TranslateZ'),
 										$h  => "#frame#.lines.z, #frame#.words.z, #frame#.chars.z",
 										$k  => ["animation depth", "animation z", "translatez", "3d"],
-										$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translateZ' target=_'blank'>CSS translateZ</a> to apply to the selected animation frame.  This adds/removes 3D depth to the Layer"),
+										$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translateZ\' target=_\'blank\'>CSS translateZ</a> to apply to the selected animation frame.  This adds/removes 3D depth to the Layer'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8413,10 +8432,10 @@ class RevSliderHelp {
 								],
 								'scale_skew'       => [
 									'scalex' => [
-										$t  => $this->l("scaleX"),
+										$t  => $this->l('scaleX'),
 										$h  => "#frame#.chars.scaleX, #frame#.words.scaleX, #frame#.lines.scaleX",
 										$k  => ["animation scale", "animation scalex", "scalex", "scale x", "scale"],
-										$d  => $this->l("Scale the char/word/line width by this amount for the selected animation frame"),
+										$d  => $this->l('Scale the char/word/line width by this amount for the selected animation frame'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8430,10 +8449,10 @@ class RevSliderHelp {
 										],
 									],
 									'scaley' => [
-										$t  => $this->l("scaleY"),
+										$t  => $this->l('scaleY'),
 										$h  => "#frame#.chars.scaleY, #frame#.words.scaleY, #frame#.lines.scaleY",
 										$k  => ["animation scale", "animation scaley", "scaley", "scale y", "scale"],
-										$d  => $this->l("Scale the char/word/line height by this amount for the selected animation frame"),
+										$d  => $this->l('Scale the char/word/line height by this amount for the selected animation frame'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8447,10 +8466,10 @@ class RevSliderHelp {
 										],
 									],
 									'skewx'  => [
-										$t  => $this->l("skewX"),
+										$t  => $this->l('skewX'),
 										$h  => "#frame#.chars.skewX, #frame#.words.skewX, #frame#.lines.skewX",
 										$k  => ["animation skew", "animation skewx", "skew x", "skewx", "skew"],
-										$d  => $this->l("Skew/distort the Layer horizontally by this amount for the selected animation frame.  Accepts positive and negative values."),
+										$d  => $this->l('Skew/distort the Layer horizontally by this amount for the selected animation frame.  Accepts positive and negative values.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8464,10 +8483,10 @@ class RevSliderHelp {
 										],
 									],
 									'skewy'  => [
-										$t  => $this->l("skewY"),
+										$t  => $this->l('skewY'),
 										$h  => "#frame#.chars.skewY, #frame#.words.skewY, #frame#.lines.skewY",
 										$k  => ["animation skew", "animation skewy", "skew y", "skewy", "skew"],
-										$d  => $this->l("Skew/distort the Layer vertically by this amount for the selected animation frame.  Accepts positive and negative values."),
+										$d  => $this->l('Skew/distort the Layer vertically by this amount for the selected animation frame.  Accepts positive and negative values.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8483,10 +8502,10 @@ class RevSliderHelp {
 								],
 								'rotation'         => [
 									'rotationx' => [
-										$t  => $this->l("rotateX"),
+										$t  => $this->l('rotateX'),
 										$h  => "#frame#.chars.rotationX, #frame#.words.rotationX, #frame#.lines.rotationX",
 										$k  => ["animation rotation", "animation rotatex", "rotatex", "rotationx", "rotation x", "3d", "3d rotation"],
-										$d  => $this->l("Rotate the Layer on its 'x' axis by this amount for the selected animation frame.  Accepts positive and negative values."),
+										$d  => $this->l('Rotate the Layer on its \'x\' axis by this amount for the selected animation frame.  Accepts positive and negative values.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8500,10 +8519,10 @@ class RevSliderHelp {
 										],
 									],
 									'rotationy' => [
-										$t  => $this->l("rotateY"),
+										$t  => $this->l('rotateY'),
 										$h  => "#frame#.chars.rotationY, #frame#.words.rotationY, #frame#.lines.rotationY",
 										$k  => ["animation rotation", "animation rotatey", "rotatey", "rotationy", "rotation y", "3d", "3d rotation"],
-										$d  => $this->l("Rotate the Layer on its 'y' axis by this amount for the selected animation frame.  Accepts positive and negative values."),
+										$d  => $this->l('Rotate the Layer on its \'y\' axis by this amount for the selected animation frame.  Accepts positive and negative values.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8517,10 +8536,10 @@ class RevSliderHelp {
 										],
 									],
 									'rotation'  => [
-										$t  => $this->l("2D Rotation"),
+										$t  => $this->l('2D Rotation'),
 										$h  => "#frame#.chars.rotationZ, #frame#.words.rotationZ, #frame#.lines.rotationZ",
 										$k  => ["animation rotation", "animation rotate", "rotate", "rotation", "2d", "2d rotation"],
-										$d  => $this->l("The char/word/line <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotate' target='_blank'>2D Rotation</a> for the selected animation frame.  Accepts positive and negative values."),
+										$d  => $this->l('The char/word/line <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotate\' target=\'_blank\'>2D Rotation</a> for the selected animation frame.  Accepts positive and negative values.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8536,10 +8555,10 @@ class RevSliderHelp {
 								],
 								'transform_origin' => [
 									'originx' => [
-										$t  => $this->l("Transform Origin X"),
+										$t  => $this->l('Transform Origin X'),
 										$h  => "#frame#.chars.originX, #frame#.words.originX, #frame#.lines.originX",
 										$k  => ["animation origin", "animation originx", "transform origin", "transform-origin"],
-										$d  => $this->l("The 'x' axis for the char/word/line <a href='https://www.w3schools.com/cssref/css3_pr_transform-origin.asp' target='_blank'>transform-origin</a> applied to the selected animation frame."),
+										$d  => $this->l('The \'x\' axis for the char/word/line <a href=\'https://www.w3schools.com/cssref/css3_pr_transform-origin.asp\' target=\'_blank\'>transform-origin</a> applied to the selected animation frame.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8553,10 +8572,10 @@ class RevSliderHelp {
 										],
 									],
 									'originy' => [
-										$t  => $this->l("Transform Origin Y"),
+										$t  => $this->l('Transform Origin Y'),
 										$h  => "#frame#.chars.originY, #frame#.words.originY, #frame#.lines.originY",
 										$k  => ["animation origin", "animation originx", "transform origin", "transform-origin"],
-										$d  => $this->l("The 'y' axis for the char/word/line <a href='https://www.w3schools.com/cssref/css3_pr_transform-origin.asp' target='_blank'>transform-origin</a> applied to the selected animation frame."),
+										$d  => $this->l('The \'y\' axis for the char/word/line <a href=\'https://www.w3schools.com/cssref/css3_pr_transform-origin.asp\' target=\'_blank\'>transform-origin</a> applied to the selected animation frame.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8570,10 +8589,10 @@ class RevSliderHelp {
 										],
 									],
 									'originz' => [
-										$t  => $this->l("Transform Origin Z"),
+										$t  => $this->l('Transform Origin Z'),
 										$h  => "#frame#.chars.originZ, #frame#.words.originZ, #frame#.lines.originZ",
 										$k  => ["animation origin", "animation originx", "transform origin", "transform-origin"],
-										$d  => $this->l("The 'z' axis for the char/word/line <a href='https://www.w3schools.com/cssref/css3_pr_transform-origin.asp' target='_blank'>transform-origin</a> applied to the selected animation frame."),
+										$d  => $this->l('The \'z\' axis for the char/word/line <a href=\'https://www.w3schools.com/cssref/css3_pr_transform-origin.asp\' target=\'_blank\'>transform-origin</a> applied to the selected animation frame.'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8590,10 +8609,10 @@ class RevSliderHelp {
 								'filter_chars'     => [
 									'enable'     => [
 										$di => "char_frame_filter",
-										$t  => $this->l("Enable Filter Animation"),
+										$t  => $this->l('Enable Filter Animation'),
 										$h  => "#frame#.chars.fuse",
 										$k  => ["animate filter", "filter animation", "filter", "filters"],
-										$d  => $this->l("Animate the Char animation's blur, grayscale or brightness filter"),
+										$d  => $this->l('Animate the Char animation\'s blur, grayscale or brightness filter'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8607,10 +8626,10 @@ class RevSliderHelp {
 										],
 									],
 									'blur'       => [
-										$t  => $this->l("Blur Filter"),
+										$t  => $this->l('Blur Filter'),
 										$h  => "#frame#.chars.blur",
 										$k  => ["animate filter", "filter animation", "filter", "filters", "blur filter", "blur"],
-										$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur' target='_blank'>blur filter</a> value for the Chars animation"),
+										$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur\' target=\'_blank\'>blur filter</a> value for the Chars animation'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8625,10 +8644,10 @@ class RevSliderHelp {
 										],
 									],
 									'grayscale'  => [
-										$t  => $this->l("Grayscale"),
+										$t  => $this->l('Grayscale'),
 										$h  => "#frame#.chars.grayscale",
 										$k  => ["animate filter", "filter animation", "filter", "filters", "grayscale filter", "grayscale"],
-										$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale' target='_blank'>grayscale filter</a> value for the Chars animation"),
+										$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale\' target=\'_blank\'>grayscale filter</a> value for the Chars animation'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8643,10 +8662,10 @@ class RevSliderHelp {
 										],
 									],
 									'brightness' => [
-										$t  => $this->l("Brightness"),
+										$t  => $this->l('Brightness'),
 										$h  => "#frame#.chars.brightness",
 										$k  => ["animate filter", "filter animation", "filter", "filters", "brightness filter", "brightness"],
-										$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/brightness' target='_blank'>brightness filter</a> value for the Chars animation"),
+										$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/brightness\' target=\'_blank\'>brightness filter</a> value for the Chars animation'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8664,10 +8683,10 @@ class RevSliderHelp {
 								'filter_words'     => [
 									'enable'     => [
 										$di => "word_frame_filter",
-										$t  => $this->l("Enable Filter Animation"),
+										$t  => $this->l('Enable Filter Animation'),
 										$h  => "#frame#.words.fuse",
 										$k  => ["animate filter", "filter animation", "filter", "filters"],
-										$d  => $this->l("Animate the word animation's blur, grayscale or brightness filter"),
+										$d  => $this->l('Animate the word animation\'s blur, grayscale or brightness filter'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8681,10 +8700,10 @@ class RevSliderHelp {
 										],
 									],
 									'blur'       => [
-										$t  => $this->l("Blur Filter"),
+										$t  => $this->l('Blur Filter'),
 										$h  => "#frame#.words.blur",
 										$k  => ["animate filter", "filter animation", "filter", "filters", "blur filter", "blur"],
-										$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur' target='_blank'>blur filter</a> value for the words animation"),
+										$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur\' target=\'_blank\'>blur filter</a> value for the words animation'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8699,10 +8718,10 @@ class RevSliderHelp {
 										],
 									],
 									'grayscale'  => [
-										$t  => $this->l("Grayscale"),
+										$t  => $this->l('Grayscale'),
 										$h  => "#frame#.words.grayscale",
 										$k  => ["animate filter", "filter animation", "filter", "filters", "grayscale filter", "grayscale"],
-										$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale' target='_blank'>grayscale filter</a> value for the words animation"),
+										$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale\' target=\'_blank\'>grayscale filter</a> value for the words animation'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8717,10 +8736,10 @@ class RevSliderHelp {
 										],
 									],
 									'brightness' => [
-										$t  => $this->l("Brightness"),
+										$t  => $this->l('Brightness'),
 										$h  => "#frame#.words.brightness",
 										$k  => ["animate filter", "filter animation", "filter", "filters", "brightness filter", "brightness"],
-										$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/brightness' target='_blank'>brightness filter</a> value for the words animation"),
+										$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/brightness\' target=\'_blank\'>brightness filter</a> value for the words animation'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8738,10 +8757,10 @@ class RevSliderHelp {
 								'filter_lines'     => [
 									'enable'     => [
 										$di => "line_frame_filter",
-										$t  => $this->l("Enable Filter Animation"),
+										$t  => $this->l('Enable Filter Animation'),
 										$h  => "#frame#.lines.fuse",
 										$k  => ["animate filter", "filter animation", "filter", "filters"],
-										$d  => $this->l("Animate the line animation's blur, grayscale or brightness filter"),
+										$d  => $this->l('Animate the line animation\'s blur, grayscale or brightness filter'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8755,10 +8774,10 @@ class RevSliderHelp {
 										],
 									],
 									'blur'       => [
-										$t  => $this->l("Blur Filter"),
+										$t  => $this->l('Blur Filter'),
 										$h  => "#frame#.lines.blur",
 										$k  => ["animate filter", "filter animation", "filter", "filters", "blur filter", "blur"],
-										$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur' target='_blank'>blur filter</a> value for the lines animation"),
+										$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur\' target=\'_blank\'>blur filter</a> value for the lines animation'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8773,10 +8792,10 @@ class RevSliderHelp {
 										],
 									],
 									'grayscale'  => [
-										$t  => $this->l("Grayscale"),
+										$t  => $this->l('Grayscale'),
 										$h  => "#frame#.lines.grayscale",
 										$k  => ["animate filter", "filter animation", "filter", "filters", "grayscale filter", "grayscale"],
-										$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale' target='_blank'>grayscale filter</a> value for the lines animation"),
+										$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale\' target=\'_blank\'>grayscale filter</a> value for the lines animation'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8791,10 +8810,10 @@ class RevSliderHelp {
 										],
 									],
 									'brightness' => [
-										$t  => $this->l("Brightness"),
+										$t  => $this->l('Brightness'),
 										$h  => "#frame#.lines.brightness",
 										$k  => ["animate filter", "filter animation", "filter", "filters", "brightness filter", "brightness"],
-										$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/brightness' target='_blank'>brightness filter</a> value for the lines animation"),
+										$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/brightness\' target=\'_blank\'>brightness filter</a> value for the lines animation'),
 										$a  => $u . "layer-animations/#advanced-settings",
 										$hl => [
 											$dp => [
@@ -8812,10 +8831,10 @@ class RevSliderHelp {
 							],
 						],
 						'sfx'                  => [
-							$t  => $this->l("Special Effects"),
+							$t  => $this->l('Special Effects'),
 							$h  => "#frame#.sfx.effect",
 							$k  => ["sfx", "special effects", "block animations", "block transitions"],
-							$d  => $this->l("Choose a predefined special effect to use as the Layer's animation"),
+							$d  => $this->l('Choose a predefined special effect to use as the Layer\'s animation'),
 							$a  => $u . "layer-animations/#advanced-settings",
 							$hl => [
 								$dp => ['layerselected', '#sfx_ts_wrapbrtn .transtarget_selector'],
@@ -8829,10 +8848,10 @@ class RevSliderHelp {
 						'timeline' => [
 							'enable'           => [
 								$di => "looping_timeline",
-								$t  => $this->l("Loop Layer's Timeline"),
+								$t  => $this->l('Loop Layer\'s Timeline'),
 								$h  => "timeline.tloop.use",
 								$k  => ["loop", "looping", "loop animation", "looping animation", "animation", "timeline", "loop timeline"],
-								$d  => $this->l("Loop all or part of the Layer's timeline animation"),
+								$d  => $this->l('Loop all or part of the Layer\'s timeline animation'),
 								$a  => $u . "looping-animations/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -8842,10 +8861,10 @@ class RevSliderHelp {
 								],
 							],
 							'start_frame'      => [
-								$t  => $this->l("Loop Start Frame"),
+								$t  => $this->l('Loop Start Frame'),
 								$h  => "timeline.tloop.from",
 								$k  => ["loop start", "start loop", "start loop animation", "start frame", "loop start frame", "loop", "timeline"],
-								$d  => $this->l("Choose which point in the Layer's timeline it should begin from for the loop animation"),
+								$d  => $this->l('Choose which point in the Layer\'s timeline it should begin from for the loop animation'),
 								$a  => $u . "looping-animations/",
 								$hl => [
 									$dp => [
@@ -8858,10 +8877,10 @@ class RevSliderHelp {
 								],
 							],
 							'end_frame'        => [
-								$t  => $this->l("Loop End Frame"),
+								$t  => $this->l('Loop End Frame'),
 								$h  => "timeline.tloop.to",
 								$k  => ["loop end", "end loop", "end loop animation", "end frame", "loop end frame", "loop", "timeline"],
-								$d  => $this->l("Choose which point in the Layer's timeline it should play to before it animates again"),
+								$d  => $this->l('Choose which point in the Layer\'s timeline it should play to before it animates again'),
 								$a  => $u . "looping-animations/",
 								$hl => [
 									$dp => [
@@ -8874,10 +8893,10 @@ class RevSliderHelp {
 								],
 							],
 							'loop_amount'      => [
-								$t  => $this->l("Num Loops"),
+								$t  => $this->l('Num Loops'),
 								$h  => "timeline.tloop.repeat",
 								$k  => ["loop timeline", "loop", "num loops", "loop amount", "timeline"],
-								$d  => $this->l("The number of times the Layer's selected timeline should loop.  Enter '-1' to loop continously throughout the life-cycle of the current Slide"),
+								$d  => $this->l('The number of times the Layer\'s selected timeline should loop.  Enter \'-1\' to loop continously throughout the life-cycle of the current Slide'),
 								$a  => $u . "looping-animations/",
 								$hl => [
 									$dp => [
@@ -8890,10 +8909,10 @@ class RevSliderHelp {
 								],
 							],
 							'animate_to_start' => [
-								$t  => $this->l("Animate to Start"),
+								$t  => $this->l('Animate to Start'),
 								$h  => "timeline.tloop.keep",
 								$k  => ["loop timeline", "loop", "timeline", "animate to start"],
-								$d  => $this->l("Animate the Layer back to its starting values in the loop once the last frame is reached.  Useful for creating a more natural looping visual."),
+								$d  => $this->l('Animate the Layer back to its starting values in the loop once the last frame is reached.  Useful for creating a more natural looping visual.'),
 								$a  => $u . "looping-animations/",
 								$hl => [
 									$dp => [
@@ -8909,10 +8928,10 @@ class RevSliderHelp {
 						'effects'  => [
 							'enable'           => [
 								$di => "layer_looping",
-								$t  => $this->l("Add Loop Animation"),
+								$t  => $this->l('Add Loop Animation'),
 								$h  => "timeline.loop.use",
 								$k  => ["loop", "looping", "loop animation", "looping animation", "animation"],
-								$d  => $this->l("Add a continuously looping animation to the Layer"),
+								$d  => $this->l('Add a continuously looping animation to the Layer'),
 								$a  => $u . "looping-animations/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -8922,10 +8941,10 @@ class RevSliderHelp {
 								],
 							],
 							'start'            => [
-								$t  => $this->l("Start Time"),
+								$t  => $this->l('Start Time'),
 								$h  => "timeline.loop.start",
 								$k  => ["loop start", "start loop", "start loop animation"],
-								$d  => $this->l("Define when the loop animation should begin after the Slide is shown"),
+								$d  => $this->l('Define when the loop animation should begin after the Slide is shown'),
 								$a  => $u . "looping-animations/",
 								$hl => [
 									$dp => [
@@ -8938,10 +8957,10 @@ class RevSliderHelp {
 								],
 							],
 							'duration'         => [
-								$t  => $this->l("Animation Duration"),
+								$t  => $this->l('Animation Duration'),
 								$h  => "timeline.loop.speed",
 								$k  => ["loop duration", "loop animation time"],
-								$d  => $this->l("The amount of time each loop animation should occur before it begins again"),
+								$d  => $this->l('The amount of time each loop animation should occur before it begins again'),
 								$a  => $u . "looping-animations/",
 								$hl => [
 									$dp => [
@@ -8954,10 +8973,10 @@ class RevSliderHelp {
 								],
 							],
 							'easing'           => [
-								$t  => $this->l("Animation Easing"),
+								$t  => $this->l('Animation Easing'),
 								$h  => "timeline.loop.ease",
 								$k  => ["loop easing", "loop animation easing"],
-								$d  => $this->l("The easing equation to be used for the loop animation"),
+								$d  => $this->l('The easing equation to be used for the loop animation'),
 								$a  => $u . "looping-animations/",
 								$hl => [
 									$dp => [
@@ -8971,10 +8990,10 @@ class RevSliderHelp {
 							],
 							'transform_origin' => [
 								'originx' => [
-									$t  => $this->l("Transform Origin X"),
+									$t  => $this->l('Transform Origin X'),
 									$h  => "timeline.loop.originX",
 									$k  => ["animation origin", "animation originx", "transform origin", "transform-origin"],
-									$d  => $this->l("The 'x' axis for the Layer's <a href='https://www.w3schools.com/cssref/css3_pr_transform-origin.asp' target='_blank'>transform-origin</a> applied to the loop animation."),
+									$d  => $this->l('The \'x\' axis for the Layer\'s <a href=\'https://www.w3schools.com/cssref/css3_pr_transform-origin.asp\' target=\'_blank\'>transform-origin</a> applied to the loop animation.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -8987,10 +9006,10 @@ class RevSliderHelp {
 									],
 								],
 								'originy' => [
-									$t  => $this->l("Transform Origin Y"),
+									$t  => $this->l('Transform Origin Y'),
 									$h  => "timeline.loop.originY",
 									$k  => ["animation origin", "animation originx", "transform origin", "transform-origin"],
-									$d  => $this->l("The 'y' axis for the Layer's <a href='https://www.w3schools.com/cssref/css3_pr_transform-origin.asp' target='_blank'>transform-origin</a> applied to the loop animation."),
+									$d  => $this->l('The \'y\' axis for the Layer\'s <a href=\'https://www.w3schools.com/cssref/css3_pr_transform-origin.asp\' target=\'_blank\'>transform-origin</a> applied to the loop animation.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9003,10 +9022,10 @@ class RevSliderHelp {
 									],
 								],
 								'originz' => [
-									$t  => $this->l("Transform Origin Z"),
+									$t  => $this->l('Transform Origin Z'),
 									$h  => "timeline.loop.originZ",
 									$k  => ["animation origin", "animation originx", "transform origin", "transform-origin"],
-									$d  => $this->l("The 'z' axis for the Layer's <a href='https://www.w3schools.com/cssref/css3_pr_transform-origin.asp' target='_blank'>transform-origin</a> applied to the loop animation."),
+									$d  => $this->l('The \'z\' axis for the Layer\'s <a href=\'https://www.w3schools.com/cssref/css3_pr_transform-origin.asp\' target=\'_blank\'>transform-origin</a> applied to the loop animation.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9021,10 +9040,10 @@ class RevSliderHelp {
 							],
 							'move'             => [
 								'yoyo'   => [
-									$t  => $this->l("Yoyo Movement"),
+									$t  => $this->l('Yoyo Movement'),
 									$h  => "timeline.loop.yoyo_move",
 									$k  => ["yoyo", "yoyo animation", "yoyo transition", "loop animation"],
-									$d  => $this->l("Reverse the position as soon as the animation ends and vice versa"),
+									$d  => $this->l('Reverse the position as soon as the animation ends and vice versa'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9038,10 +9057,10 @@ class RevSliderHelp {
 									],
 								],
 								'startx' => [
-									$t  => $this->l("Start X Position"),
+									$t  => $this->l('Start X Position'),
 									$h  => "timeline.loop.frame_0.x",
 									$k  => ["animation position", "layer animation position", "animate left", "animate right", "translatex"],
-									$d  => $this->l("The 'x' (left) position to apply at the start of the loop animation.  Accepts positive and negative numbers."),
+									$d  => $this->l('The \'x\' (left) position to apply at the start of the loop animation.  Accepts positive and negative numbers.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9055,10 +9074,10 @@ class RevSliderHelp {
 									],
 								],
 								'endx'   => [
-									$t  => $this->l("End X Position"),
+									$t  => $this->l('End X Position'),
 									$h  => "timeline.loop.frame_999.x",
 									$k  => ["animation position", "layer animation position", "animate left", "animate right", "translatex"],
-									$d  => $this->l("Animate the Layer to this 'x' (left) position.  Accepts positive and negative numbers."),
+									$d  => $this->l('Animate the Layer to this \'x\' (left) position.  Accepts positive and negative numbers.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9072,10 +9091,10 @@ class RevSliderHelp {
 									],
 								],
 								'starty' => [
-									$t  => $this->l("Start Y Position"),
+									$t  => $this->l('Start Y Position'),
 									$h  => "timeline.loop.frame_0.y",
 									$k  => ["animation position", "layer animation position", "animate top", "animate bottom", "translatey"],
-									$d  => $this->l("The 'y' (top) position to apply at the start of the loop animation.  Accepts positive and negative numbers."),
+									$d  => $this->l('The \'y\' (top) position to apply at the start of the loop animation.  Accepts positive and negative numbers.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9089,10 +9108,10 @@ class RevSliderHelp {
 									],
 								],
 								'endy'   => [
-									$t  => $this->l("End Y Position"),
+									$t  => $this->l('End Y Position'),
 									$h  => "timeline.loop.frame_999.y",
 									$k  => ["animation position", "layer animation position", "animate top", "animate bottom", "translatey"],
-									$d  => $this->l("Animate the Layer to this 'y' (top) position.  Accepts positive and negative numbers."),
+									$d  => $this->l('Animate the Layer to this \'y\' (top) position.  Accepts positive and negative numbers.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9106,10 +9125,10 @@ class RevSliderHelp {
 									],
 								],
 								'startz' => [
-									$t  => $this->l("Start Z Position"),
+									$t  => $this->l('Start Z Position'),
 									$h  => "timeline.loop.frame_0.z",
 									$k  => ["animation depth", "animation z", "translatez", "3d"],
-									$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translateZ' target=_'blank'>CSS translateZ</a> at the start of the loop animation.  This adds/removes 3D depth to the Layer"),
+									$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translateZ\' target=_\'blank\'>CSS translateZ</a> at the start of the loop animation.  This adds/removes 3D depth to the Layer'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9123,10 +9142,10 @@ class RevSliderHelp {
 									],
 								],
 								'endz'   => [
-									$t  => $this->l("End Z Position"),
+									$t  => $this->l('End Z Position'),
 									$h  => "timeline.loop.frame_999.z",
 									$k  => ["animation depth", "animation z", "translatez", "3d"],
-									$d  => $this->l("Animate the Layer's <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translateZ' target=_'blank'>CSS translateZ</a> property to this value.  This adds/removes 3D depth to the Layer"),
+									$d  => $this->l('Animate the Layer\'s <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translateZ\' target=_\'blank\'>CSS translateZ</a> property to this value.  This adds/removes 3D depth to the Layer'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9142,10 +9161,10 @@ class RevSliderHelp {
 								'curved' => [
 									'enable'         => [
 										$di => "layer_loop_move_curved",
-										$t  => $this->l("Add a Bezier Curve"),
+										$t  => $this->l('Add a Bezier Curve'),
 										$h  => "timeline.loop.curved",
 										$k  => ["curved", "curved animation", "bezier", "bezier curve"],
-										$d  => $this->l("Adds a middle point to the movement between the starting and ending points"),
+										$d  => $this->l('Adds a middle point to the movement between the starting and ending points'),
 										$a  => $u . "looping-animations/",
 										$hl => [
 											$dp => [
@@ -9159,10 +9178,10 @@ class RevSliderHelp {
 										],
 									],
 									'auto_rotate'    => [
-										$t  => $this->l("Auto Rotate Bezier"),
+										$t  => $this->l('Auto Rotate Bezier'),
 										$h  => "timeline.loop.autoRotate",
 										$k  => ["curved", "curved animation", "bezier", "bezier curve"],
-										$d  => $this->l("Automatically rotate the Layer according to its position along the Bezier path"),
+										$d  => $this->l('Automatically rotate the Layer according to its position along the Bezier path'),
 										$a  => $u . "looping-animations/",
 										$hl => [
 											$dp => [
@@ -9177,10 +9196,10 @@ class RevSliderHelp {
 										],
 									],
 									'angle'          => [
-										$t  => $this->l("Bezier Curve Angle"),
+										$t  => $this->l('Bezier Curve Angle'),
 										$h  => "timeline.loop.radiusAngle",
 										$k  => ["curved", "curved animation", "bezier", "bezier curve", "curve angle", "angle"],
-										$d  => $this->l("Represents the curve's placement in the animation.  Lower degrees will place the curve toward the beginning, and higher degrees toward the end."),
+										$d  => $this->l('Represents the curve\'s placement in the animation.  Lower degrees will place the curve toward the beginning, and higher degrees toward the end.'),
 										$a  => $u . "looping-animations/",
 										$hl => [
 											$dp => [
@@ -9195,10 +9214,10 @@ class RevSliderHelp {
 										],
 									],
 									'tension'        => [
-										$t  => $this->l("Bezier Curve Tension"),
+										$t  => $this->l('Bezier Curve Tension'),
 										$h  => "timeline.loop.curviness",
 										$k  => ["curved", "curved animation", "bezier", "bezier curve", "curve angle", "tension"],
-										$d  => $this->l("Magnify the curve by this value.  1 = no magnification.  2 = twice the curve, etc."),
+										$d  => $this->l('Magnify the curve by this value.  1 = no magnification.  2 = twice the curve, etc.'),
 										$a  => $u . "looping-animations/",
 										$hl => [
 											$dp => [
@@ -9213,10 +9232,10 @@ class RevSliderHelp {
 										],
 									],
 									'bezier_x_start' => [
-										$t  => $this->l("Bezier Start Point X"),
+										$t  => $this->l('Bezier Start Point X'),
 										$h  => "timeline.loop.frame_0.xr",
 										$k  => ["curved", "curved animation", "bezier", "bezier curve"],
-										$d  => $this->l("Represents the starting 'x' (left) position for the bezier curve"),
+										$d  => $this->l('Represents the starting \'x\' (left) position for the bezier curve'),
 										$a  => $u . "looping-animations/",
 										$hl => [
 											$dp => [
@@ -9231,10 +9250,10 @@ class RevSliderHelp {
 										],
 									],
 									'bezier_x_end'   => [
-										$t  => $this->l("Bezier End Point X"),
+										$t  => $this->l('Bezier End Point X'),
 										$h  => "timeline.loop.frame_999.xr",
 										$k  => ["curved", "curved animation", "bezier", "bezier curve"],
-										$d  => $this->l("Represents the ending 'x' (left) position for the bezier curve"),
+										$d  => $this->l('Represents the ending \'x\' (left) position for the bezier curve'),
 										$a  => $u . "looping-animations/",
 										$hl => [
 											$dp => [
@@ -9249,10 +9268,10 @@ class RevSliderHelp {
 										],
 									],
 									'bezier_y_start' => [
-										$t  => $this->l("Bezier Start Point Y"),
+										$t  => $this->l('Bezier Start Point Y'),
 										$h  => "timeline.loop.frame_0.yr",
 										$k  => ["curved", "curved animation", "bezier", "bezier curve"],
-										$d  => $this->l("Represents the starting 'y' (top) position for the bezier curve"),
+										$d  => $this->l('Represents the starting \'y\' (top) position for the bezier curve'),
 										$a  => $u . "looping-animations/",
 										$hl => [
 											$dp => [
@@ -9267,10 +9286,10 @@ class RevSliderHelp {
 										],
 									],
 									'bezier_y_end'   => [
-										$t  => $this->l("Bezier End Point Y"),
+										$t  => $this->l('Bezier End Point Y'),
 										$h  => "timeline.loop.frame_999.yr",
 										$k  => ["curved", "curved animation", "bezier", "bezier curve"],
-										$d  => $this->l("Represents the ending 'y' (top) position for the bezier curve"),
+										$d  => $this->l('Represents the ending \'y\' (top) position for the bezier curve'),
 										$a  => $u . "looping-animations/",
 										$hl => [
 											$dp => [
@@ -9285,10 +9304,10 @@ class RevSliderHelp {
 										],
 									],
 									'bezier_z_start' => [
-										$t  => $this->l("Bezier Start Point Z"),
+										$t  => $this->l('Bezier Start Point Z'),
 										$h  => "timeline.loop.frame_0.zr",
 										$k  => ["curved", "curved animation", "bezier", "bezier curve"],
-										$d  => $this->l("Represents the starting 'z' (3D depth) position for the bezier curve"),
+										$d  => $this->l('Represents the starting \'z\' (3D depth) position for the bezier curve'),
 										$a  => $u . "looping-animations/",
 										$hl => [
 											$dp => [
@@ -9303,10 +9322,10 @@ class RevSliderHelp {
 										],
 									],
 									'bezier_z_end'   => [
-										$t  => $this->l("Bezier End Point Z"),
+										$t  => $this->l('Bezier End Point Z'),
 										$h  => "timeline.loop.frame_999.zr",
 										$k  => ["curved", "curved animation", "bezier", "bezier curve"],
-										$d  => $this->l("Represents the ending 'z' (3D depth) position for the bezier curve"),
+										$d  => $this->l('Represents the ending \'z\' (3D depth) position for the bezier curve'),
 										$a  => $u . "looping-animations/",
 										$hl => [
 											$dp => [
@@ -9324,10 +9343,10 @@ class RevSliderHelp {
 							],
 							'scale'            => [
 								'yoyo'          => [
-									$t  => $this->l("Yoyo Scaling"),
+									$t  => $this->l('Yoyo Scaling'),
 									$h  => "timeline.loop.yoyo_scale",
 									$k  => ["yoyo", "yoyo animation", "yoyo transition", "loop animation"],
-									$d  => $this->l("Reverse the scaling as soon as the animation ends and vice versa"),
+									$d  => $this->l('Reverse the scaling as soon as the animation ends and vice versa'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9341,10 +9360,10 @@ class RevSliderHelp {
 									],
 								],
 								'scale_start_x' => [
-									$t  => $this->l("Start scaleX"),
+									$t  => $this->l('Start scaleX'),
 									$h  => "timeline.loop.frame_0.scaleX",
 									$k  => ["animation scale", "animation scalex", "scalex", "scale x", "scale"],
-									$d  => $this->l("The starting scaleX value (width) for the loop animation"),
+									$d  => $this->l('The starting scaleX value (width) for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9358,10 +9377,10 @@ class RevSliderHelp {
 									],
 								],
 								'scale_end_x'   => [
-									$t  => $this->l("End scaleX"),
+									$t  => $this->l('End scaleX'),
 									$h  => "timeline.loop.frame_999.scaleX",
 									$k  => ["animation scale", "animation scalex", "scalex", "scale x", "scale"],
-									$d  => $this->l("The ending scaleX value (width) for the loop animation"),
+									$d  => $this->l('The ending scaleX value (width) for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9375,10 +9394,10 @@ class RevSliderHelp {
 									],
 								],
 								'scale_start_y' => [
-									$t  => $this->l("Start scaleY"),
+									$t  => $this->l('Start scaleY'),
 									$h  => "timeline.loop.frame_0.scaleY",
 									$k  => ["animation scale", "animation scaley", "scaley", "scale y", "scale"],
-									$d  => $this->l("The starting scaleY value (height) for the loop animation"),
+									$d  => $this->l('The starting scaleY value (height) for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9392,10 +9411,10 @@ class RevSliderHelp {
 									],
 								],
 								'scale_end_y'   => [
-									$t  => $this->l("End scaleY"),
+									$t  => $this->l('End scaleY'),
 									$h  => "timeline.loop.frame_999.scaleY",
 									$k  => ["animation scale", "animation scaley", "scaley", "scale y", "scale"],
-									$d  => $this->l("The ending scaleY value (height) for the loop animation"),
+									$d  => $this->l('The ending scaleY value (height) for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9409,10 +9428,10 @@ class RevSliderHelp {
 									],
 								],
 								'skew_start_x'  => [
-									$t  => $this->l("Start skewX"),
+									$t  => $this->l('Start skewX'),
 									$h  => "timeline.loop.frame_0.skewX",
 									$k  => ["animation skew", "animation skewx", "skewx", "skew x", "skew"],
-									$d  => $this->l("The starting skewX value (horizontal plane) for the loop animation"),
+									$d  => $this->l('The starting skewX value (horizontal plane) for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9426,10 +9445,10 @@ class RevSliderHelp {
 									],
 								],
 								'skew_end_x'    => [
-									$t  => $this->l("End skewX"),
+									$t  => $this->l('End skewX'),
 									$h  => "timeline.loop.frame_999.skewX",
 									$k  => ["animation skew", "animation skewx", "skewx", "skew x", "skew"],
-									$d  => $this->l("The ending skewX value (horizontal plane) for the loop animation"),
+									$d  => $this->l('The ending skewX value (horizontal plane) for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9443,10 +9462,10 @@ class RevSliderHelp {
 									],
 								],
 								'skew_start_y'  => [
-									$t  => $this->l("Start skewY"),
+									$t  => $this->l('Start skewY'),
 									$h  => "timeline.loop.frame_0.skewY",
 									$k  => ["animation skew", "animation skewy", "skewy", "skew y", "skew"],
-									$d  => $this->l("The starting skewY value (vertical plane) for the loop animation"),
+									$d  => $this->l('The starting skewY value (vertical plane) for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9460,10 +9479,10 @@ class RevSliderHelp {
 									],
 								],
 								'skew_end_y'    => [
-									$t  => $this->l("End skewY"),
+									$t  => $this->l('End skewY'),
 									$h  => "timeline.loop.frame_999.skewY",
 									$k  => ["animation skew", "animation skewy", "skewy", "skew y", "skew"],
-									$d  => $this->l("The ending skewY value (vertical plane) for the loop animation"),
+									$d  => $this->l('The ending skewY value (vertical plane) for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9479,10 +9498,10 @@ class RevSliderHelp {
 							],
 							'rotate'           => [
 								'yoyo'              => [
-									$t  => $this->l("Yoyo Rotation"),
+									$t  => $this->l('Yoyo Rotation'),
 									$h  => "timeline.loop.yoyo_rotate",
 									$k  => ["yoyo", "yoyo animation", "yoyo transition", "loop animation"],
-									$d  => $this->l("Reverse the rotation as soon as the animation ends and vice versa"),
+									$d  => $this->l('Reverse the rotation as soon as the animation ends and vice versa'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9496,10 +9515,10 @@ class RevSliderHelp {
 									],
 								],
 								'start_rotation_x'  => [
-									$t  => $this->l("Start rotateX"),
+									$t  => $this->l('Start rotateX'),
 									$h  => "timeline.loop.frame_0.rotationX",
 									$k  => ["animation rotation", "animation rotatex", "rotatex", "rotationx", "rotation x", "3d", "3d rotation"],
-									$d  => $this->l("The starting rotateX value (horizontal plane) for the loop animation.  Accepts positive and negative values."),
+									$d  => $this->l('The starting rotateX value (horizontal plane) for the loop animation.  Accepts positive and negative values.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9513,10 +9532,10 @@ class RevSliderHelp {
 									],
 								],
 								'end_rotation_x'    => [
-									$t  => $this->l("End rotateX"),
+									$t  => $this->l('End rotateX'),
 									$h  => "timeline.loop.frame_999.rotationX",
 									$k  => ["animation rotation", "animation rotatex", "rotatex", "rotationx", "rotation x", "3d", "3d rotation"],
-									$d  => $this->l("The ending rotateX value (horizontal plane) for the loop animation.  Accepts positive and negative values."),
+									$d  => $this->l('The ending rotateX value (horizontal plane) for the loop animation.  Accepts positive and negative values.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9530,10 +9549,10 @@ class RevSliderHelp {
 									],
 								],
 								'start_rotation_y'  => [
-									$t  => $this->l("Start rotateY"),
+									$t  => $this->l('Start rotateY'),
 									$h  => "timeline.loop.frame_0.rotationY",
 									$k  => ["animation rotation", "animation rotatey", "rotatey", "rotationy", "rotation y", "3d", "3d rotation"],
-									$d  => $this->l("The starting rotateY value (horizontal plane) for the loop animation.  Accepts positive and negative values."),
+									$d  => $this->l('The starting rotateY value (horizontal plane) for the loop animation.  Accepts positive and negative values.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9547,10 +9566,10 @@ class RevSliderHelp {
 									],
 								],
 								'end_rotation_y'    => [
-									$t  => $this->l("End rotateY"),
+									$t  => $this->l('End rotateY'),
 									$h  => "timeline.loop.frame_999.rotationY",
 									$k  => ["animation rotation", "animation rotatey", "rotatey", "rotationy", "rotation y", "3d", "3d rotation"],
-									$d  => $this->l("The ending rotateY value (horizontal plane) for the loop animation.  Accepts positive and negative values."),
+									$d  => $this->l('The ending rotateY value (horizontal plane) for the loop animation.  Accepts positive and negative values.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9564,10 +9583,10 @@ class RevSliderHelp {
 									],
 								],
 								'start_rotation_2d' => [
-									$t  => $this->l("Start rotate2D"),
+									$t  => $this->l('Start rotate2D'),
 									$h  => "timeline.loop.frame_0.rotationZ",
 									$k  => ["animation rotation", "animation rotatey", "rotatey", "rotationy", "rotation y", "2d", "2d rotation"],
-									$d  => $this->l("The starting rotation value (2D) for the loop animation.  Accepts positive and negative values."),
+									$d  => $this->l('The starting rotation value (2D) for the loop animation.  Accepts positive and negative values.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9581,10 +9600,10 @@ class RevSliderHelp {
 									],
 								],
 								'end_rotation_2d'   => [
-									$t  => $this->l("End rotate2D"),
+									$t  => $this->l('End rotate2D'),
 									$h  => "timeline.loop.frame_999.rotationZ",
 									$k  => ["animation rotation", "animation rotatey", "rotatey", "rotationy", "rotation y", "2d", "2d rotation"],
-									$d  => $this->l("The ending rotation value (2D) for the loop animation.  Accepts positive and negative values."),
+									$d  => $this->l('The ending rotation value (2D) for the loop animation.  Accepts positive and negative values.'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9600,10 +9619,10 @@ class RevSliderHelp {
 							],
 							'filter'           => [
 								'yoyo'             => [
-									$t  => $this->l("Yoyo Filters"),
+									$t  => $this->l('Yoyo Filters'),
 									$h  => "timeline.loop.yoyo_filter",
 									$k  => ["yoyo", "yoyo animation", "yoyo transition", "loop animation"],
-									$d  => $this->l("Reverse the animated filters as soon as the animation ends and vice versa"),
+									$d  => $this->l('Reverse the animated filters as soon as the animation ends and vice versa'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9617,10 +9636,10 @@ class RevSliderHelp {
 									],
 								],
 								'opacity_start'    => [
-									$t  => $this->l("Opacity Start"),
+									$t  => $this->l('Opacity Start'),
 									$h  => "timeline.loop.frame_0.opacity",
 									$k  => ["animate filter", "filter animation", "filter", "filters", "opacity filter", "opacity"],
-									$d  => $this->l("The starting transparency for the loop animation"),
+									$d  => $this->l('The starting transparency for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9634,10 +9653,10 @@ class RevSliderHelp {
 									],
 								],
 								'opacity_end'      => [
-									$t  => $this->l("Opacity End"),
+									$t  => $this->l('Opacity End'),
 									$h  => "timeline.loop.frame_999.opacity",
 									$k  => ["animate filter", "filter animation", "filter", "filters", "opacity filter", "opacity"],
-									$d  => $this->l("The ending transparency for the loop animation"),
+									$d  => $this->l('The ending transparency for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9651,10 +9670,10 @@ class RevSliderHelp {
 									],
 								],
 								'blur_start'       => [
-									$t  => $this->l("Blur Start"),
+									$t  => $this->l('Blur Start'),
 									$h  => "timeline.loop.frame_0.blur",
 									$k  => ["animate filter", "filter animation", "filter", "filters", "blur filter", "blur"],
-									$d  => $this->l("The starting <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur' target='_blank'>blur filter</a> value for the loop animation"),
+									$d  => $this->l('The starting <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur\' target=\'_blank\'>blur filter</a> value for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9668,10 +9687,10 @@ class RevSliderHelp {
 									],
 								],
 								'blur_end'         => [
-									$t  => $this->l("Blur End"),
+									$t  => $this->l('Blur End'),
 									$h  => "timeline.loop.frame_999.blur",
 									$k  => ["animate filter", "filter animation", "filter", "filters", "blur filter", "blur"],
-									$d  => $this->l("The ending <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur' target='_blank'>blur filter</a> value for the loop animation"),
+									$d  => $this->l('The ending <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur\' target=\'_blank\'>blur filter</a> value for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9685,10 +9704,10 @@ class RevSliderHelp {
 									],
 								],
 								'grayscale_start'  => [
-									$t  => $this->l("Grayscale Start"),
+									$t  => $this->l('Grayscale Start'),
 									$h  => "timeline.loop.frame_0.grayscale",
 									$k  => ["animate filter", "filter animation", "filter", "filters", "grayscale filter", "grayscale"],
-									$d  => $this->l("The starting <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale' target='_blank'>grayscale filter</a> value for the loop animation"),
+									$d  => $this->l('The starting <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale\' target=\'_blank\'>grayscale filter</a> value for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9702,10 +9721,10 @@ class RevSliderHelp {
 									],
 								],
 								'grayscale_end'    => [
-									$t  => $this->l("Grayscale End"),
+									$t  => $this->l('Grayscale End'),
 									$h  => "timeline.loop.frame_999.grayscale",
 									$k  => ["animate filter", "filter animation", "filter", "filters", "grayscale filter", "grayscale"],
-									$d  => $this->l("The ending <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale' target='_blank'>grayscale filter</a> value for the loop animation"),
+									$d  => $this->l('The ending <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale\' target=\'_blank\'>grayscale filter</a> value for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9719,10 +9738,10 @@ class RevSliderHelp {
 									],
 								],
 								'brightness_start' => [
-									$t  => $this->l("Brightness Start"),
+									$t  => $this->l('Brightness Start'),
 									$h  => "timeline.loop.frame_0.brightness",
 									$k  => ["animate filter", "filter animation", "filter", "filters", "brightness filter", "brightness"],
-									$d  => $this->l("The starting <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale' target='_blank'>brightness filter</a> value for the loop animation"),
+									$d  => $this->l('The starting <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale\' target=\'_blank\'>brightness filter</a> value for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9736,10 +9755,10 @@ class RevSliderHelp {
 									],
 								],
 								'brightness_end'   => [
-									$t  => $this->l("Brightness End"),
+									$t  => $this->l('Brightness End'),
 									$h  => "timeline.loop.frame_999.brightness",
 									$k  => ["animate filter", "filter animation", "filter", "filters", "brightness filter", "brightness"],
-									$d  => $this->l("The ending <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale' target='_blank'>brightness filter</a> value for the loop animation"),
+									$d  => $this->l('The ending <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale\' target=\'_blank\'>brightness filter</a> value for the loop animation'),
 									$a  => $u . "looping-animations/",
 									$hl => [
 										$dp => [
@@ -9758,10 +9777,10 @@ class RevSliderHelp {
 					'gst_layer_9'  => [
 						'enable'           => [
 							$di => "enable_hover",
-							$t  => $this->l("Mouse Hover"),
+							$t  => $this->l('Mouse Hover'),
 							$h  => "hover.usehover",
 							$k  => ["mouse hover", "mouseover", "mouse over", "mouse hover", "hover", "hover animation", "hover style", "hover styles"],
-							$d  => $this->l("Activate mouse hover styles/transitions"),
+							$d  => $this->l('Activate mouse hover styles/transitions'),
 							$a  => $u . "mouse-hover-settings/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -9771,10 +9790,10 @@ class RevSliderHelp {
 							],
 						],
 						'reset'            => [
-							$t  => $this->l("Reset Styles"),
+							$t  => $this->l('Reset Styles'),
 							$h  => "resethover",
 							$k  => ["mouse hover", "mouseover", "mouse over", "mouse hover", "hover", "hover animation", "hover style", "hover styles", "reset", "reset styles"],
-							$d  => $this->l("Reset all hover styles to the Layer's default idle/static styles"),
+							$d  => $this->l('Reset all hover styles to the Layer\'s default idle/static styles'),
 							$a  => $u . "mouse-hover-settings/#general-settings",
 							$hl => [
 								$dp => [
@@ -9787,10 +9806,10 @@ class RevSliderHelp {
 							],
 						],
 						'cursor'           => [
-							$t  => $this->l("Cursor Type"),
+							$t  => $this->l('Cursor Type'),
 							$h  => "idle.cursor",
 							$k  => ["mouse hover", "mouseover", "mouse over", "mouse hover", "hover", "hover animation", "hover style", "hover styles"],
-							$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/cursor' target='_blank'>CSS cursor</a> property for the Layer.  Choose 'pointer' for a traditional hand cursor when hovering the Layer"),
+							$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/cursor\' target=\'_blank\'>CSS cursor</a> property for the Layer.  Choose \'pointer\' for a traditional hand cursor when hovering the Layer'),
 							$a  => $u . "mouse-hover-settings/#general-settings",
 							$hl => [
 								$dp => ['layerselected'],
@@ -9800,10 +9819,10 @@ class RevSliderHelp {
 							],
 						],
 						'pointer_events'   => [
-							$t  => $this->l("Pointer Events"),
+							$t  => $this->l('Pointer Events'),
 							$h  => "hover.pointerEvents",
 							$k  => ["pointer-events", "pointer-event", "pointer event", "pointer-event"],
-							$d  => $this->l("Choose 'none' to disable user-interaction.  Useful for enabling clicks on content placed beneath the Layer."),
+							$d  => $this->l('Choose \'none\' to disable user-interaction.  Useful for enabling clicks on content placed beneath the Layer.'),
 							$a  => $u . "mouse-hover-settings/#general-settings",
 							$hl => [
 								$dp => ['layerselected'],
@@ -9813,10 +9832,10 @@ class RevSliderHelp {
 							],
 						],
 						'mask'             => [
-							$t  => $this->l("Masking"),
+							$t  => $this->l('Masking'),
 							$h  => "hover.usehovermask",
 							$k  => ["hover", "masking", "mask", "mask hover", "hover mask", "hover masking"],
-							$d  => $this->l("Mask the current Layer before applying hover styles/effects.  Useful for movements and scale/zooms."),
+							$d  => $this->l('Mask the current Layer before applying hover styles/effects.  Useful for movements and scale/zooms.'),
 							$a  => $u . "mouse-hover-settings/#general-settings",
 							$hl => [
 								$dp => ['layerselected'],
@@ -9826,10 +9845,10 @@ class RevSliderHelp {
 							],
 						],
 						'background_hover' => [
-							$t  => $this->l("Hover Background Color"),
+							$t  => $this->l('Hover Background Color'),
 							$h  => "hover.backgroundColor",
 							$k  => ["hover bg color", "hover background color", "bg hover", "background hover"],
-							$d  => $this->l("Adjust the Layer's background color on mouse hover"),
+							$d  => $this->l('Adjust the Layer\'s background color on mouse hover'),
 							$a  => $u . "mouse-hover-settings/#font-background",
 							$hl => [
 								$dp => ['layerselected'],
@@ -9840,10 +9859,10 @@ class RevSliderHelp {
 						],
 						'hover_transform'  => [
 							'speed'             => [
-								$t  => $this->l("Transition Speed"),
+								$t  => $this->l('Transition Speed'),
 								$h  => "hover.speed",
 								$k  => ["transition speed", "hover transition speed", "hover duration"],
-								$d  => $this->l("The transition duration for the currently selected Layer (in milliseconds)"),
+								$d  => $this->l('The transition duration for the currently selected Layer (in milliseconds)'),
 								$a  => $u . "mouse-hover-settings/#hover-transforms",
 								$hl => [
 									$dp => ['layerselected'],
@@ -9853,10 +9872,10 @@ class RevSliderHelp {
 								],
 							],
 							'easing'            => [
-								$t  => $this->l("Transition Easing"),
+								$t  => $this->l('Transition Easing'),
 								$h  => "hover.ease",
 								$k  => ["easing", "transition easing", "hover easing", "animation easing"],
-								$d  => $this->l("The easing equation to use for the hover transition"),
+								$d  => $this->l('The easing equation to use for the hover transition'),
 								$a  => $u . "mouse-hover-settings/#hover-transforms",
 								$hl => [
 									$dp => ['layerselected'],
@@ -9866,10 +9885,10 @@ class RevSliderHelp {
 								],
 							],
 							'zindex'            => [
-								$t  => $this->l("zIndex"),
+								$t  => $this->l('zIndex'),
 								$h  => "hover.zIndex",
 								$k  => ["zindex", "hover zindex", "hover z-index"],
-								$d  => $this->l("The CSS z-index to apply to the Layer on mouse hover"),
+								$d  => $this->l('The CSS z-index to apply to the Layer on mouse hover'),
 								$a  => $u . "mouse-hover-settings/#hover-transforms",
 								$hl => [
 									$dp => ['layerselected'],
@@ -9879,10 +9898,10 @@ class RevSliderHelp {
 								],
 							],
 							'opacity'           => [
-								$t  => $this->l("Opacity"),
+								$t  => $this->l('Opacity'),
 								$h  => "hover.opacity",
 								$k  => ["opacity", "animation opacity", "transparency", "animate opacity"],
-								$d  => $this->l("Change the Layer's transparency on mouse hover"),
+								$d  => $this->l('Change the Layer\'s transparency on mouse hover'),
 								$a  => $u . "mouse-hover-settings/#hover-transforms",
 								$hl => [
 									$dp => ['layerselected'],
@@ -9893,10 +9912,10 @@ class RevSliderHelp {
 							],
 							'scale_skew_rotate' => [
 								'scalex'    => [
-									$t  => $this->l("scaleX"),
+									$t  => $this->l('scaleX'),
 									$h  => "hover.scaleX",
 									$k  => ["animation scale", "animation scalex", "scalex", "scale x", "scale"],
-									$d  => $this->l("Scale the Layer's width by this amount on mouse hover"),
+									$d  => $this->l('Scale the Layer\'s width by this amount on mouse hover'),
 									$a  => $u . "mouse-hover-settings/#hover-transforms",
 									$hl => [
 										$dp => ['layerselected'],
@@ -9906,10 +9925,10 @@ class RevSliderHelp {
 									],
 								],
 								'scaley'    => [
-									$t  => $this->l("scaleY"),
+									$t  => $this->l('scaleY'),
 									$h  => "hover.scaleY",
 									$k  => ["animation scale", "animation scaley", "scaley", "scale y", "scale"],
-									$d  => $this->l("Scale the Layer's height by this amount on mouse hover"),
+									$d  => $this->l('Scale the Layer\'s height by this amount on mouse hover'),
 									$a  => $u . "mouse-hover-settings/#hover-transforms",
 									$hl => [
 										$dp => ['layerselected'],
@@ -9919,10 +9938,10 @@ class RevSliderHelp {
 									],
 								],
 								'skewx'     => [
-									$t  => $this->l("skewX"),
+									$t  => $this->l('skewX'),
 									$h  => "hover.skewX",
 									$k  => ["animation skew", "animation skewx", "skew x", "skewx", "skew"],
-									$d  => $this->l("Skew/distort the Layer horizontally by this amount on mouse hover.  Accepts positive and negative values."),
+									$d  => $this->l('Skew/distort the Layer horizontally by this amount on mouse hover.  Accepts positive and negative values.'),
 									$a  => $u . "mouse-hover-settings/#hover-transforms",
 									$hl => [
 										$dp => ['layerselected'],
@@ -9932,10 +9951,10 @@ class RevSliderHelp {
 									],
 								],
 								'skewy'     => [
-									$t  => $this->l("skewY"),
+									$t  => $this->l('skewY'),
 									$h  => "hover.skewY",
 									$k  => ["animation skew", "animation skewy", "skew y", "skewy", "skew"],
-									$d  => $this->l("Skew/distort the Layer vertically by this amount on mouse hover.  Accepts positive and negative values."),
+									$d  => $this->l('Skew/distort the Layer vertically by this amount on mouse hover.  Accepts positive and negative values.'),
 									$a  => $u . "mouse-hover-settings/#hover-transforms",
 									$hl => [
 										$dp => ['layerselected'],
@@ -9945,10 +9964,10 @@ class RevSliderHelp {
 									],
 								],
 								'rotationx' => [
-									$t  => $this->l("rotateX"),
+									$t  => $this->l('rotateX'),
 									$h  => "hover.rotationX",
 									$k  => ["animation rotation", "animation rotatex", "rotatex", "rotationx", "rotation x", "3d", "3d rotation"],
-									$d  => $this->l("Rotate the Layer on its 'x' axis by this amount on mouse hover.  Accepts positive and negative values."),
+									$d  => $this->l('Rotate the Layer on its \'x\' axis by this amount on mouse hover.  Accepts positive and negative values.'),
 									$a  => $u . "mouse-hover-settings/#hover-transforms",
 									$hl => [
 										$dp => ['layerselected'],
@@ -9958,10 +9977,10 @@ class RevSliderHelp {
 									],
 								],
 								'rotationy' => [
-									$t  => $this->l("rotateY"),
+									$t  => $this->l('rotateY'),
 									$h  => "hover.rotationY",
 									$k  => ["animation rotation", "animation rotatey", "rotatey", "rotationy", "rotation y", "3d", "3d rotation"],
-									$d  => $this->l("Rotate the Layer on its 'y' axis by this amount on mouse hover.  Accepts positive and negative values."),
+									$d  => $this->l('Rotate the Layer on its \'y\' axis by this amount on mouse hover.  Accepts positive and negative values.'),
 									$a  => $u . "mouse-hover-settings/#hover-transforms",
 									$hl => [
 										$dp => ['layerselected'],
@@ -9971,10 +9990,10 @@ class RevSliderHelp {
 									],
 								],
 								'rotation'  => [
-									$t  => $this->l("2D Rotation"),
+									$t  => $this->l('2D Rotation'),
 									$h  => "hover.rotationZ",
 									$k  => ["animation rotation", "animation rotate", "rotate", "rotation", "2d", "2d rotation"],
-									$d  => $this->l("The Layer's <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotate' target='_blank'>2D Rotation</a> on mouse hover.  Accepts positive and negative values."),
+									$d  => $this->l('The Layer\'s <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/rotate\' target=\'_blank\'>2D Rotation</a> on mouse hover.  Accepts positive and negative values.'),
 									$a  => $u . "mouse-hover-settings/#hover-transforms",
 									$hl => [
 										$dp => ['layerselected'],
@@ -9986,10 +10005,10 @@ class RevSliderHelp {
 							],
 							'transform_origin'  => [
 								'originx'     => [
-									$t  => $this->l("Transform Origin X"),
+									$t  => $this->l('Transform Origin X'),
 									$h  => "hover.originX",
 									$k  => ["animation origin", "animation originx", "transform origin", "transform-origin"],
-									$d  => $this->l("The 'x' axis for the Layer's <a href='https://www.w3schools.com/cssref/css3_pr_transform-origin.asp' target='_blank'>transform-origin</a> on mouse hover."),
+									$d  => $this->l('The \'x\' axis for the Layer\'s <a href=\'https://www.w3schools.com/cssref/css3_pr_transform-origin.asp\' target=\'_blank\'>transform-origin</a> on mouse hover.'),
 									$a  => $u . "mouse-hover-settings/#hover-transforms",
 									$hl => [
 										$dp => ['layerselected'],
@@ -9999,10 +10018,10 @@ class RevSliderHelp {
 									],
 								],
 								'originy'     => [
-									$t  => $this->l("Transform Origin Y"),
+									$t  => $this->l('Transform Origin Y'),
 									$h  => "hover.originY",
 									$k  => ["animation origin", "animation originx", "transform origin", "transform-origin"],
-									$d  => $this->l("The 'y' axis for the Layer's <a href='https://www.w3schools.com/cssref/css3_pr_transform-origin.asp' target='_blank'>transform-origin</a> on mouse hover."),
+									$d  => $this->l('The \'y\' axis for the Layer\'s <a href=\'https://www.w3schools.com/cssref/css3_pr_transform-origin.asp\' target=\'_blank\'>transform-origin</a> on mouse hover.'),
 									$a  => $u . "mouse-hover-settings/#hover-transforms",
 									$hl => [
 										$dp => ['layerselected'],
@@ -10012,10 +10031,10 @@ class RevSliderHelp {
 									],
 								],
 								'originz'     => [
-									$t  => $this->l("Transform Origin Z"),
+									$t  => $this->l('Transform Origin Z'),
 									$h  => "hover.originZ",
 									$k  => ["animation origin", "animation originx", "transform origin", "transform-origin"],
-									$d  => $this->l("The 'z' axis for the Layer's <a href='https://www.w3schools.com/cssref/css3_pr_transform-origin.asp' target='_blank'>transform-origin</a> on mouse hover."),
+									$d  => $this->l('The \'z\' axis for the Layer\'s <a href=\'https://www.w3schools.com/cssref/css3_pr_transform-origin.asp\' target=\'_blank\'>transform-origin</a> on mouse hover.'),
 									$a  => $u . "mouse-hover-settings/#hover-transforms",
 									$hl => [
 										$dp => ['layerselected'],
@@ -10025,10 +10044,10 @@ class RevSliderHelp {
 									],
 								],
 								'perspective' => [
-									$t  => $this->l("Transform Perspective"),
+									$t  => $this->l('Transform Perspective'),
 									$h  => "hover.transformPerspective",
 									$k  => ["animation perspective", "perspective", "transform perspective", "transform-perspective", "3d"],
-									$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/perspective' target=_'blank'>CSS perspective</a> for the Layer on mouse hover"),
+									$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/perspective\' target=_\'blank\'>CSS perspective</a> for the Layer on mouse hover'),
 									$a  => $u . "mouse-hover-settings/#hover-transforms",
 									$hl => [
 										$dp => ['layerselected'],
@@ -10041,10 +10060,10 @@ class RevSliderHelp {
 						],
 						'border_hover'     => [
 							'border_color'  => [
-								$t  => $this->l("Border Color"),
+								$t  => $this->l('Border Color'),
 								$h  => "hover.borderColor",
 								$k  => ["border", "border color", "layer border", "layer border color", "layers border"],
-								$d  => $this->l("The border color for the Layer on mouse hover"),
+								$d  => $this->l('The border color for the Layer on mouse hover'),
 								$a  => $u . "mouse-hover-settings/#border-hover",
 								$hl => [
 									$dp => ['layerselected'],
@@ -10054,10 +10073,10 @@ class RevSliderHelp {
 								],
 							],
 							'border_style'  => [
-								$t  => $this->l("Border Style"),
+								$t  => $this->l('Border Style'),
 								$h  => "hover.borderStyle",
 								$k  => ["border", "border style", "layer border", "layer border style", "layers border"],
-								$d  => $this->l("The <a href='https://www.w3schools.com/cssref/pr_border-style.asp' target='_blank'>CSS border-style</a> for the Layer on mouse hover"),
+								$d  => $this->l('The <a href=\'https://www.w3schools.com/cssref/pr_border-style.asp\' target=\'_blank\'>CSS border-style</a> for the Layer on mouse hover'),
 								$a  => $u . "mouse-hover-settings/#border-hover",
 								$hl => [
 									$dp => ['layerselected'],
@@ -10068,10 +10087,10 @@ class RevSliderHelp {
 							],
 							'border_size'   => [
 								'border_width_top'    => [
-									$t  => $this->l("Border Top Width"),
+									$t  => $this->l('Border Top Width'),
 									$h  => "hover.borderWidth.0",
 									$k  => ["border", "border size", "layer border", "layer border size", "layers border", "border-width"],
-									$d  => $this->l("The border's top size (border-top-width) for the Layer on mouse hover"),
+									$d  => $this->l('The border\'s top size (border-top-width) for the Layer on mouse hover'),
 									$a  => $u . "mouse-hover-settings/#border-hover",
 									$hl => [
 										$dp => ['layerselected'],
@@ -10081,10 +10100,10 @@ class RevSliderHelp {
 									],
 								],
 								'border_width_right'  => [
-									$t  => $this->l("Border Right Width"),
+									$t  => $this->l('Border Right Width'),
 									$h  => "hover.borderWidth.1",
 									$k  => ["border", "border size", "layer border", "layer border size", "layers border", "border-width"],
-									$d  => $this->l("The border's right size (border-right-width) for the Layer on mouse hover"),
+									$d  => $this->l('The border\'s right size (border-right-width) for the Layer on mouse hover'),
 									$a  => $u . "mouse-hover-settings/#border-hover",
 									$hl => [
 										$dp => ['layerselected'],
@@ -10094,10 +10113,10 @@ class RevSliderHelp {
 									],
 								],
 								'border_width_bottom' => [
-									$t  => $this->l("Border Bottom Width"),
+									$t  => $this->l('Border Bottom Width'),
 									$h  => "hover.borderWidth.2",
 									$k  => ["border", "border size", "layer border", "layer border size", "layers border", "border-width"],
-									$d  => $this->l("The border's bottom size (border-bottom-width) for the Layer on mouse hover"),
+									$d  => $this->l('The border\'s bottom size (border-bottom-width) for the Layer on mouse hover'),
 									$a  => $u . "mouse-hover-settings/#border-hover",
 									$hl => [
 										$dp => ['layerselected'],
@@ -10107,10 +10126,10 @@ class RevSliderHelp {
 									],
 								],
 								'border_width_left'   => [
-									$t  => $this->l("Border Left Width"),
+									$t  => $this->l('Border Left Width'),
 									$h  => "hover.borderWidth.3",
 									$k  => ["border", "border size", "layer border", "layer border size", "layers border", "border-width"],
-									$d  => $this->l("The border's left size (border-left-width) for the Layer on mouse hover"),
+									$d  => $this->l('The border\'s left size (border-left-width) for the Layer on mouse hover'),
 									$a  => $u . "mouse-hover-settings/#border-hover",
 									$hl => [
 										$dp => ['layerselected'],
@@ -10122,10 +10141,10 @@ class RevSliderHelp {
 							],
 							'border_radius' => [
 								'border_radius_top_left'     => [
-									$t  => $this->l("Border Radius Top Left"),
+									$t  => $this->l('Border Radius Top Left'),
 									$h  => "hover.borderRadius.v.0",
 									$k  => ["border radius", "border-radius", "layer border radius", "layer border-radius"],
-									$d  => $this->l("The top-left corner border-radius for the Layer on mouse hover (px or %)"),
+									$d  => $this->l('The top-left corner border-radius for the Layer on mouse hover (px or %)'),
 									$a  => $u . "mouse-hover-settings/#border-hover",
 									$hl => [
 										$dp => ['layerselected'],
@@ -10135,10 +10154,10 @@ class RevSliderHelp {
 									],
 								],
 								'border_radius_top_right'    => [
-									$t  => $this->l("Border Radius Top Right"),
+									$t  => $this->l('Border Radius Top Right'),
 									$h  => "hover.borderRadius.v.1",
 									$k  => ["border radius", "border-radius", "layer border radius", "layer border-radius"],
-									$d  => $this->l("The top-right corner border-radius for the Layer on mouse hover (px or %)"),
+									$d  => $this->l('The top-right corner border-radius for the Layer on mouse hover (px or %)'),
 									$a  => $u . "mouse-hover-settings/#border-hover",
 									$hl => [
 										$dp => ['layerselected'],
@@ -10148,10 +10167,10 @@ class RevSliderHelp {
 									],
 								],
 								'border_radius_bottom_left'  => [
-									$t  => $this->l("Border Radius Bottom Left"),
+									$t  => $this->l('Border Radius Bottom Left'),
 									$h  => "hover.borderRadius.v.2",
 									$k  => ["border radius", "border-radius", "layer border radius", "layer border-radius"],
-									$d  => $this->l("The bottom-left corner border-radius for the Layer on mouse hover (px or %)"),
+									$d  => $this->l('The bottom-left corner border-radius for the Layer on mouse hover (px or %)'),
 									$a  => $u . "mouse-hover-settings/#border-hover",
 									$hl => [
 										$dp => ['layerselected'],
@@ -10161,10 +10180,10 @@ class RevSliderHelp {
 									],
 								],
 								'border_radius_bottom_right' => [
-									$t  => $this->l("Border Radius Bottom Right"),
+									$t  => $this->l('Border Radius Bottom Right'),
 									$h  => "hover.borderRadius.v.3",
 									$k  => ["border radius", "border-radius", "layer border radius", "layer border-radius"],
-									$d  => $this->l("The bottom-right corner border-radius for the Layer on mouse hover (px or %)"),
+									$d  => $this->l('The bottom-right corner border-radius for the Layer on mouse hover (px or %)'),
 									$a  => $u . "mouse-hover-settings/#border-hover",
 									$hl => [
 										$dp => ['layerselected'],
@@ -10177,10 +10196,10 @@ class RevSliderHelp {
 						],
 						'filter_hover'     => [
 							'blur'       => [
-								$t  => $this->l("Blur Filter"),
+								$t  => $this->l('Blur Filter'),
 								$h  => "hover.filter.blur",
 								$k  => ["animate filter", "filter animation", "filter", "filters", "blur filter", "blur"],
-								$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur' target='_blank'>blur filter</a> value for the Layer on mouse hover"),
+								$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/blur\' target=\'_blank\'>blur filter</a> value for the Layer on mouse hover'),
 								$a  => $u . "mouse-hover-settings/#filter-hover",
 								$hl => [
 									$dp => ['layerselected'],
@@ -10190,10 +10209,10 @@ class RevSliderHelp {
 								],
 							],
 							'brightness' => [
-								$t  => $this->l("Brightness"),
+								$t  => $this->l('Brightness'),
 								$h  => "hover.filter.brightness",
 								$k  => ["animate filter", "filter animation", "filter", "filters", "brightness filter", "brightness"],
-								$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/brightness' target='_blank'>brightness filter</a> value for the Layer on mouse hover"),
+								$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/brightness\' target=\'_blank\'>brightness filter</a> value for the Layer on mouse hover'),
 								$a  => $u . "mouse-hover-settings/#filter-hover",
 								$hl => [
 									$dp => ['layerselected'],
@@ -10203,10 +10222,10 @@ class RevSliderHelp {
 								],
 							],
 							'grayscale'  => [
-								$t  => $this->l("Grayscale"),
+								$t  => $this->l('Grayscale'),
 								$h  => "hover.filter.grayscale",
 								$k  => ["animate filter", "filter animation", "filter", "filters", "grayscale filter", "grayscale"],
-								$d  => $this->l("The <a href='https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale' target='_blank'>grayscale filter</a> value for the Layer on mouse hover"),
+								$d  => $this->l('The <a href=\'https://developer.mozilla.org/en-US/docs/Web/CSS/filter-function/grayscale\' target=\'_blank\'>grayscale filter</a> value for the Layer on mouse hover'),
 								$a  => $u . "mouse-hover-settings/#filter-hover",
 								$hl => [
 									$dp => ['layerselected'],
@@ -10219,10 +10238,10 @@ class RevSliderHelp {
 					],
 					'gst_layer_8'  => [
 						'level'           => [
-							$t  => $this->l("Parallax Level"),
+							$t  => $this->l('Parallax Level'),
 							$h  => "effects.parallax",
 							$k  => ["parallax", "layer parallax", "parallax 3d", "parallax level", "level", "3d level", "parallax layer", "depth", "parallax depth", "3d depth"],
-							$d  => $this->l("The parallax depth level to use for the Layer.  Level values are defined in the Slider Settings."),
+							$d  => $this->l('The parallax depth level to use for the Layer.  Level values are defined in the Slider Settings.'),
 							$a  => $u . "layers-parallax-level/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -10232,10 +10251,10 @@ class RevSliderHelp {
 							],
 						],
 						'under_mask'      => [
-							$t  => $this->l("Parallax Masking"),
+							$t  => $this->l('Parallax Masking'),
 							$h  => "effects.pxmask",
 							$k  => ["parallax", "layer parallax", "parallax 3d", "parallax layer", "mask", "masking", "parallax mask"],
-							$d  => $this->l("Apply a mask to the Layer as the Parallax Effect takes place.  When applied, the content will never bleed outside this mask."),
+							$d  => $this->l('Apply a mask to the Layer as the Parallax Effect takes place.  When applied, the content will never bleed outside this mask.'),
 							$a  => $u . "layers-parallax-level/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -10245,10 +10264,10 @@ class RevSliderHelp {
 							],
 						],
 						'timeline_scroll' => [
-							$t  => $this->l("Timeline Scroll Based"),
+							$t  => $this->l('Timeline Scroll Based'),
 							$h  => "timeline.scrollBased",
 							$k  => ["parallax", "layer parallax", "parallax layer", "timeline", "timeline scroll", "timeline scroll based", "scroll"],
-							$d  => $this->l("Choose to animate the Layer's animation timeline as the Plugin scrolls into and out of view"),
+							$d  => $this->l('Choose to animate the Layer\'s animation timeline as the Plugin scrolls into and out of view'),
 							$a  => $u . "layers-parallax-level/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -10258,10 +10277,10 @@ class RevSliderHelp {
 							],
 						],
 						'filter_effects'  => [
-							$t  => $this->l("Filter Effect Scroll Based"),
+							$t  => $this->l('Filter Effect Scroll Based'),
 							$h  => "effects.effect",
 							$k  => ["parallax", "layer parallax", "parallax layer", "filter", "filters", "scroll", "filter effect"],
-							$d  => $this->l("Enable/Disable filter effects for the Layer as the Plugin scrolls into and out of view.  Filter effects applied via the <a href='http://docs.themepunch.com/slider-revolution/scroll-effects/' target='_blank'>Plugin Settings</a>"),
+							$d  => $this->l('Enable/Disable filter effects for the Layer as the Plugin scrolls into and out of view.  Filter effects applied via the <a href=\'http://docs.themepunch.com/slider-revolution/scroll-effects/\' target=\'_blank\'>Plugin Settings</a>'),
 							$a  => $u . "layers-parallax-level/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -10273,10 +10292,10 @@ class RevSliderHelp {
 					],
 					'gst_layer_5'  => [
 						'interaction'        => [
-							$t  => $this->l("Interaction"),
+							$t  => $this->l('Interaction'),
 							$h  => "actions.action.#actionindex#.tooltip_event",
 							$k  => ["actions", "interation", "link", "hyperlink", "link layer", "layer link", "click", "hover", "mouseover", "mouse over", "mouse hover", "button", "button action"],
-							$d  => $this->l("Choose if the Action should occur on user-click, mouse-over or mouse-out"),
+							$d  => $this->l('Choose if the Action should occur on user-click, mouse-over or mouse-out'),
 							$a  => $u . "actions-panel-overview/",
 							$hl => [
 								$dp     => ['.single_layer_action:first-child'],
@@ -10288,10 +10307,10 @@ class RevSliderHelp {
 						],
 						'action_type'        => [
 							$di => "layer_action_type",
-							$t  => $this->l("Action Type"),
+							$t  => $this->l('Action Type'),
 							$h  => "actions.action.#actionindex#.action",
 							$k  => ["actions", "action type", "link", "hyperlink", "link layer", "layer link", "click", "hover", "mouseover", "mouse over", "mouse hover"],
-							$d  => $this->l("Choose which Action should occur when the user interacts with the Layer"),
+							$d  => $this->l('Choose which Action should occur when the user interacts with the Layer'),
 							$a  => $u . "actions-panel-overview/",
 							$hl => [
 								$dp     => ['.single_layer_action:first-child'],
@@ -10302,10 +10321,10 @@ class RevSliderHelp {
 							],
 						],
 						'action_delay'       => [
-							$t  => $this->l("Action Delay"),
+							$t  => $this->l('Action Delay'),
 							$h  => "actions.action.#actionindex#.action_speed",
 							$k  => ["action delay", "delay", "delay action"],
-							$d  => $this->l("Add an optional delay before the Action occurs (in milliseconds)"),
+							$d  => $this->l('Add an optional delay before the Action occurs (in milliseconds)'),
 							$a  => $u . "actions-panel-overview/",
 							$hl => [
 								$dp     => ['.single_layer_action:first-child'],
@@ -10318,10 +10337,10 @@ class RevSliderHelp {
 						'link_actions'       => [
 							'simple_link'         => [
 								'link_url'    => [
-									$t  => $this->l("Link URL"),
+									$t  => $this->l('Link URL'),
 									$h  => "actions.action.#actionindex#.image_link",
 									$k  => ["action", "actions", "link", "simple link", "hyperlink", "link layer", "layer link", "link url", "url", "button link", "link button"],
-									$d  => $this->l("The url to navigate to for the 'Simple Link' Action"),
+									$d  => $this->l('The url to navigate to for the \'Simple Link\' Action'),
 									$a  => $u . "simple-link/",
 									$hl => [
 										$dp     => [
@@ -10335,10 +10354,10 @@ class RevSliderHelp {
 									],
 								],
 								'link_target' => [
-									$t  => $this->l("Link Target"),
+									$t  => $this->l('Link Target'),
 									$h  => "actions.action.#actionindex#.link_open_in",
 									$k  => ["link", "simple link", "hyperlink", "link layer", "layer link", "link target"],
-									$d  => $this->l("Choose if the link should be opened in the same window or in a new window"),
+									$d  => $this->l('Choose if the link should be opened in the same window or in a new window'),
 									$a  => $u . "simple-link/",
 									$hl => [
 										$dp     => [
@@ -10352,10 +10371,10 @@ class RevSliderHelp {
 									],
 								],
 								'link_type'   => [
-									$t  => $this->l("Link Type"),
+									$t  => $this->l('Link Type'),
 									$h  => "actions.action.#actionindex#.link_type",
 									$k  => ["simple link", "link type"],
-									$d  => $this->l("Use a traditional HTML hyperlink tag or trigger the Action via a jQuery event"),
+									$d  => $this->l('Use a traditional HTML hyperlink tag or trigger the Action via a jQuery event'),
 									$a  => $u . "simple-link/",
 									$hl => [
 										$dp     => [
@@ -10369,10 +10388,10 @@ class RevSliderHelp {
 									],
 								],
 								'follow'      => [
-									$t  => $this->l("Follow"),
+									$t  => $this->l('Follow'),
 									$h  => "actions.action.#actionindex#.link_follow",
 									$k  => ["simple link", "follow", "nofollow", "no follow"],
-									$d  => $this->l("Choose 'No Follow' to discourage search engines from indexing index the link"),
+									$d  => $this->l('Choose \'No Follow\' to discourage search engines from indexing index the link'),
 									$a  => $u . "simple-link/",
 									$hl => [
 										$dp     => [
@@ -10387,10 +10406,10 @@ class RevSliderHelp {
 								],
 							],
 							'call_back'           => [
-								$t  => $this->l("Call Back Function"),
+								$t  => $this->l('Call Back Function'),
 								$h  => "actions.action.#actionindex#.actioncallback",
 								$k  => ["action", "actions", "call back", "javascript", "javascript callback"],
-								$d  => $this->l("Call an external JavaScript function on user-interaction"),
+								$d  => $this->l('Call an external JavaScript function on user-interaction'),
 								$a  => $u . "simple-link/",
 								$hl => [
 									$dp     => [
@@ -10405,10 +10424,10 @@ class RevSliderHelp {
 							],
 							'scroll_below_slider' => [
 								'scroll_offset' => [
-									$t  => $this->l("Scroll Offset"),
+									$t  => $this->l('Scroll Offset'),
 									$h  => "actions.action.#actionindex#.scrollunder_offset",
 									$k  => ["action", "actions", "scroll", "scroll action", "scroll below slider", "scroll offset"],
-									$d  => $this->l("The page will scroll to content below the Slider, and this offset will add or subtract pixels to the total amount scrolled."),
+									$d  => $this->l('The page will scroll to content below the Slider, and this offset will add or subtract pixels to the total amount scrolled.'),
 									$a  => $u . "simple-link/",
 									$hl => [
 										$dp     => [
@@ -10422,10 +10441,10 @@ class RevSliderHelp {
 									],
 								],
 								'easing'        => [
-									$t  => $this->l("Scroll Easing"),
+									$t  => $this->l('Scroll Easing'),
 									$h  => "actions.action.#actionindex#.action_easing",
 									$k  => ["scroll", "scroll action", "scroll easing"],
-									$d  => $this->l("The easing equation for the Scroll Action.  <a href='https://greensock.com/ease-visualizer' target=_'blank'>View visualization</a>"),
+									$d  => $this->l('The easing equation for the Scroll Action.  <a href=\'https://greensock.com/ease-visualizer\' target=_\'blank\'>View visualization</a>'),
 									$a  => $u . "simple-link/",
 									$hl => [
 										$dp     => [
@@ -10439,10 +10458,10 @@ class RevSliderHelp {
 									],
 								],
 								'duration'      => [
-									$t  => $this->l("Scroll Duration"),
+									$t  => $this->l('Scroll Duration'),
 									$h  => "actions.action.#actionindex#.action_speed",
 									$k  => ["scroll", "scroll action", "scroll duration"],
-									$d  => $this->l("The easing duration for the Scroll Action in milliseconds"),
+									$d  => $this->l('The easing duration for the Scroll Action in milliseconds'),
 									$a  => $u . "simple-link/",
 									$hl => [
 										$dp     => [
@@ -10459,10 +10478,10 @@ class RevSliderHelp {
 						],
 						'slide_actions'      => [
 							'jump_to_slide'     => [
-								$t  => $this->l("Jump to Slide"),
+								$t  => $this->l('Jump to Slide'),
 								$h  => "actions.action.#actionindex#.jump_to_slide",
 								$k  => ["action", "actions", "jump", "jump to slide", "change slides"],
-								$d  => $this->l("Link the Layer to a specific Slide"),
+								$d  => $this->l('Link the Layer to a specific Slide'),
 								$a  => $u . "slide-actions/",
 								$hl => [
 									$dp     => [
@@ -10476,10 +10495,10 @@ class RevSliderHelp {
 								],
 							],
 							'next_prev_slide'   => [
-								$t  => $this->l("Next/Previous Slide"),
+								$t  => $this->l('Next/Previous Slide'),
 								$h  => "layeraction_picker_next",
 								$k  => ["action", "actions", "next slide", "prev slide", "previous slide", "link to slide", "change slides"],
-								$d  => $this->l("Change to the next or previous Slide on user-interaction"),
+								$d  => $this->l('Change to the next or previous Slide on user-interaction'),
 								$a  => $u . "slide-actions/",
 								$hl => [
 									$dp     => [
@@ -10493,10 +10512,10 @@ class RevSliderHelp {
 								],
 							],
 							'pause_play_slider' => [
-								$t  => $this->l("Pause/Play Slider"),
+								$t  => $this->l('Pause/Play Slider'),
 								$h  => "layeraction_picker_pause",
 								$k  => ["action", "actions", "pause slide", "progress", "pause slider", "pause progress", "pause", "play slide", "play slider", "play", "resume", "resume progress", "play button", "pause button"],
-								$d  => $this->l("Pause or Resume the Slider's progress on user-interaction"),
+								$d  => $this->l('Pause or Resume the Slider\'s progress on user-interaction'),
 								$a  => $u . "slide-actions/",
 								$hl => [
 									$dp     => [
@@ -10510,10 +10529,10 @@ class RevSliderHelp {
 								],
 							],
 							'toggle_slider'     => [
-								$t  => $this->l("Toggle Slider"),
+								$t  => $this->l('Toggle Slider'),
 								$h  => "layeraction_picker_toggle_slider",
 								$k  => ["pause slide", "progress", "pause slider", "pause progress", "pause", "play slide", "progress", "play slider", "play", "resume", "resume progress", "toggle", "toggle slider", "toggle progress"],
-								$d  => $this->l("Play/Pause the Slider on user-interaction"),
+								$d  => $this->l('Play/Pause the Slider on user-interaction'),
 								$a  => $u . "slide-actions/",
 								$hl => [
 									$dp     => [
@@ -10529,10 +10548,10 @@ class RevSliderHelp {
 						],
 						'layer_actions'      => [
 							'start_layer_in_out_animation' => [
-								$t  => $this->l("Start Layer In/Out Animation"),
+								$t  => $this->l('Start Layer In/Out Animation'),
 								$h  => "layeraction_picker_start_in",
 								$k  => ["animation", "action", "actions", "start animation", "play animation", "start layer in animation", "start layer out animation", "layer animation"],
-								$d  => $this->l("Play a Layer's animation on-demand to show or hide the Layer"),
+								$d  => $this->l('Play a Layer\'s animation on-demand to show or hide the Layer'),
 								$a  => $u . "layer-actions/",
 								$hl => [
 									$dp     => [
@@ -10546,10 +10565,10 @@ class RevSliderHelp {
 								],
 							],
 							'toggle_layer_animation'       => [
-								$t  => $this->l("Toggle Layer Animation"),
+								$t  => $this->l('Toggle Layer Animation'),
 								$h  => "layeraction_picker_toggle_layer",
 								$k  => ["start animation", "play animation", "start layer out animation", "layer animation", "toggle animation", "toggle layer", "toggle layer animation", "toggle"],
-								$d  => $this->l("Toggle any given Layer's animation in and out of view"),
+								$d  => $this->l('Toggle any given Layer\'s animation in and out of view'),
 								$a  => $u . "layer-actions/",
 								$hl => [
 									$dp     => [
@@ -10563,10 +10582,10 @@ class RevSliderHelp {
 								],
 							],
 							'simulate_click'               => [
-								$t  => $this->l("Simulate Click"),
+								$t  => $this->l('Simulate Click'),
 								$h  => "layeraction_picker_simulate_click",
 								$k  => ["simulate click", "click action", "jQuery click", "trigger", "trigger click"],
-								$d  => $this->l("Trigger a jQuery click event on any given Layer"),
+								$d  => $this->l('Trigger a jQuery click event on any given Layer'),
 								$a  => $u . "layer-actions/",
 								$hl => [
 									$dp     => [
@@ -10580,10 +10599,10 @@ class RevSliderHelp {
 								],
 							],
 							'toggle_class'                 => [
-								$t  => $this->l("Toggle Class"),
+								$t  => $this->l('Toggle Class'),
 								$h  => "actions.action.#actionindex#.toggle_class",
 								$k  => ["action", "actions", "class", "class name", "layer class", "add layer class", "remove layer class", "toggle class"],
-								$d  => $this->l("Toggle (add/remove) a Layer's class name on user-interaction"),
+								$d  => $this->l('Toggle (add/remove) a Layer\'s class name on user-interaction'),
 								$a  => $u . "layer-actions/",
 								$hl => [
 									$dp     => [
@@ -10598,10 +10617,10 @@ class RevSliderHelp {
 							],
 							'layer_action_settings'        => [
 								'target_layer'     => [
-									$t  => $this->l("Target Layer"),
+									$t  => $this->l('Target Layer'),
 									$h  => "actions.action.#actionindex#.layer_target",
 									$k  => ["start animation", "play animation", "start layer in animation", "layer animation", "toggle class"],
-									$d  => $this->l("Choose which Layer to target for the Layer Action"),
+									$d  => $this->l('Choose which Layer to target for the Layer Action'),
 									$a  => $u . "layer-actions/",
 									$hl => [
 										$dp     => [
@@ -10615,10 +10634,10 @@ class RevSliderHelp {
 									],
 								],
 								'animation_timing' => [
-									$t  => $this->l("Animation Timing"),
+									$t  => $this->l('Animation Timing'),
 									$h  => "actions.animationoverwrite",
 									$k  => ["animation timing", "animation action"],
-									$d  => $this->l("Choose the Layer's default animation behavior in relation to the selected Action"),
+									$d  => $this->l('Choose the Layer\'s default animation behavior in relation to the selected Action'),
 									$a  => $u . "layer-actions/",
 									$hl => [
 										$dp     => [
@@ -10632,10 +10651,10 @@ class RevSliderHelp {
 									],
 								],
 								'trigger_memory'   => [
-									$t  => $this->l("Trigger Memory"),
+									$t  => $this->l('Trigger Memory'),
 									$h  => "actions.triggerMemory",
 									$k  => ["trigger memory", "reset animation", "reset", "reset layer", "reset layer animation"],
-									$d  => $this->l("Choose if the Layer's animation behavior should reset or not when the Slide replays again"),
+									$d  => $this->l('Choose if the Layer\'s animation behavior should reset or not when the Slide replays again'),
 									$a  => $u . "layer-actions/",
 									$hl => [
 										$dp     => [
@@ -10652,10 +10671,10 @@ class RevSliderHelp {
 						],
 						'media_actions'      => [
 							'start_stop_media'  => [
-								$t  => $this->l("Play/Pause Media"),
+								$t  => $this->l('Play/Pause Media'),
 								$h  => "layeraction_picker_start_video",
 								$k  => ["media", "video", "audio", "start media", "play media", "pause media", "end media", "resume media", "stop media", "play video", "stop video", "play audio", "stop audio", "resume", "resume media", "play button", "pause button"],
-								$d  => $this->l("Play or pause Video or Audio on user-interaction"),
+								$d  => $this->l('Play or pause Video or Audio on user-interaction'),
 								$a  => $u . "media-actions/",
 								$hl => [
 									$dp     => [
@@ -10669,10 +10688,10 @@ class RevSliderHelp {
 								],
 							],
 							'toggle_media'      => [
-								$t  => $this->l("Toggle Media Play/Pause"),
+								$t  => $this->l('Toggle Media Play/Pause'),
 								$h  => "layeraction_picker_toggle_video",
 								$k  => ["media", "video", "audio", "start media", "play media", "pause media", "end media", "resume media", "stop media", "play video", "stop video", "play audio", "stop audio", "resume", "resume media", "play button", "pause button"],
-								$d  => $this->l("Toggle a video or audio's play state on user-interaction"),
+								$d  => $this->l('Toggle a video or audio\'s play state on user-interaction'),
 								$a  => $u . "media-actions/",
 								$hl => [
 									$dp     => [
@@ -10686,10 +10705,10 @@ class RevSliderHelp {
 								],
 							],
 							'mute_unmute_media' => [
-								$t  => $this->l("Mute/Unmute Media"),
+								$t  => $this->l('Mute/Unmute Media'),
 								$h  => "layeraction_picker_mute_video",
 								$k  => ["media", "video", "audio", "mute", "unmute", "mute media", "unmute media", "sound", "pause sound", "turn off", "turn off sound", "mute button"],
-								$d  => $this->l("Mute or Unmute the sound from a video or audio Layer on user-interaction"),
+								$d  => $this->l('Mute or Unmute the sound from a video or audio Layer on user-interaction'),
 								$a  => $u . "media-actions/",
 								$hl => [
 									$dp     => [
@@ -10703,10 +10722,10 @@ class RevSliderHelp {
 								],
 							],
 							'toggle_mute_media' => [
-								$t  => $this->l("Toggle Mute (All) Media"),
+								$t  => $this->l('Toggle Mute (All) Media'),
 								$h  => "layeraction_picker_toggle_mute_video",
 								$k  => ["media", "video", "audio", "mute", "unmute", "mute media", "unmute media", "sound", "pause sound", "turn off", "turn off sound", "mute button"],
-								$d  => $this->l("Toggle sound from a single video or audio Layer, or toggle all video/audio sound that exists in the Slide"),
+								$d  => $this->l('Toggle sound from a single video or audio Layer, or toggle all video/audio sound that exists in the Slide'),
 								$a  => $u . "media-actions/",
 								$hl => [
 									$dp     => [
@@ -10722,10 +10741,10 @@ class RevSliderHelp {
 						],
 						'fullscreen_actions' => [
 							'enter_exit_fullscreen' => [
-								$t  => $this->l("Enter/Exit Fullscreen"),
+								$t  => $this->l('Enter/Exit Fullscreen'),
 								$h  => "layeraction_picker_gofullscreen",
 								$k  => ["full", "fullscreen", "full screen", "full screen button", "fullscreen button", "exit fullscreen", "enter fullscreen", "enter full screen", "go fullscreen", "go full screen"],
-								$d  => $this->l("Take the Slider fullscreen or exit fullscreen on user-interaction"),
+								$d  => $this->l('Take the Slider fullscreen or exit fullscreen on user-interaction'),
 								$a  => $u . "fullscreen-actions/",
 								$hl => [
 									$dp     => [
@@ -10739,10 +10758,10 @@ class RevSliderHelp {
 								],
 							],
 							'toggle_fullscreen'     => [
-								$t  => $this->l("Toggle Fullscreen"),
+								$t  => $this->l('Toggle Fullscreen'),
 								$h  => "layeraction_picker_togglefullscreen",
 								$k  => ["full", "fullscreen", "full screen", "full screen button", "fullscreen button", "exit fullscreen", "enter fullscreen", "enter full screen", "go fullscreen", "go full screen", "toggle fullscreen", "toggle full"],
-								$d  => $this->l("Toggle the Slider fullscreen and non-fullscreen on user-interaction"),
+								$d  => $this->l('Toggle the Slider fullscreen and non-fullscreen on user-interaction'),
 								$a  => $u . "fullscreen-actions/",
 								$hl => [
 									$dp     => [
@@ -10762,10 +10781,10 @@ class RevSliderHelp {
 
 						'visibility' => [
 							'desktop'           => [
-								$t  => $this->l("Show/Hide on Desktop"),
+								$t  => $this->l('Show/Hide on Desktop'),
 								$h  => "visibility.d",
 								$k  => ["visibility", "layer visibility", "show layer", "hide layer"],
-								$d  => $this->l("Show or hide the Layer for the desktop viewport"),
+								$d  => $this->l('Show or hide the Layer for the desktop viewport'),
 								$a  => $u . "responsive-settings/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -10775,10 +10794,10 @@ class RevSliderHelp {
 								],
 							],
 							'laptop'            => [
-								$t  => $this->l("Show/Hide on Laptop"),
+								$t  => $this->l('Show/Hide on Laptop'),
 								$h  => "visibility.n",
 								$k  => ["visibility", "layer visibility", "show layer", "hide layer"],
-								$d  => $this->l("Show or hide the Layer for the laptop viewport"),
+								$d  => $this->l('Show or hide the Layer for the laptop viewport'),
 								$a  => $u . "responsive-settings/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -10788,10 +10807,10 @@ class RevSliderHelp {
 								],
 							],
 							'tablet'            => [
-								$t  => $this->l("Show/Hide on Tablet"),
+								$t  => $this->l('Show/Hide on Tablet'),
 								$h  => "visibility.t",
 								$k  => ["visibility", "layer visibility", "show layer", "hide layer"],
-								$d  => $this->l("Show or hide the Layer for the tablet viewport"),
+								$d  => $this->l('Show or hide the Layer for the tablet viewport'),
 								$a  => $u . "responsive-settings/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -10801,10 +10820,10 @@ class RevSliderHelp {
 								],
 							],
 							'phone'             => [
-								$t  => $this->l("Show/Hide on Phone"),
+								$t  => $this->l('Show/Hide on Phone'),
 								$h  => "visibility.m",
 								$k  => ["visibility", "layer visibility", "show layer", "hide layer"],
-								$d  => $this->l("Show or hide the Layer for the phone viewport"),
+								$d  => $this->l('Show or hide the Layer for the phone viewport'),
 								$a  => $u . "responsive-settings/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -10814,10 +10833,10 @@ class RevSliderHelp {
 								],
 							],
 							'hide_under'        => [
-								$t  => $this->l("Hide Under Width"),
+								$t  => $this->l('Hide Under Width'),
 								$h  => "visibility.hideunder",
 								$k  => ["layer visibility", "hide under", "hide under width", "show layer", "hide layer"],
-								$d  => $this->l("Hide the Layer when the browser window is equal to or below the value set in the Slider Settings"),
+								$d  => $this->l('Hide the Layer when the browser window is equal to or below the value set in the Slider Settings'),
 								$a  => $u . "responsive-settings/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -10827,10 +10846,10 @@ class RevSliderHelp {
 								],
 							],
 							'show_on_mouseover' => [
-								$t  => $this->l("Show on Mouse Over"),
+								$t  => $this->l('Show on Mouse Over'),
 								$h  => "visibility.onlyOnSlideHover",
 								$k  => ["visibility", "layer visibility", "show layer", "hide layer"],
-								$d  => $this->l("Only show the Layer when the user hovers their mouse over the Slider"),
+								$d  => $this->l('Only show the Layer when the user hovers their mouse over the Slider'),
 								$a  => $u . "responsive-settings/",
 								$hl => [
 									$dp => ['layerselected'],
@@ -10843,10 +10862,10 @@ class RevSliderHelp {
 					],
 					'gst_layer_11' => [
 						'layer_id'        => [
-							$t  => $this->l("Layer ID"),
+							$t  => $this->l('Layer ID'),
 							$h  => "attributes.id",
 							$k  => ["layer id", "layer id attribute"],
-							$d  => $this->l("Define an optional ID for the Layer to target it with custom CSS/JavaScript"),
+							$d  => $this->l('Define an optional ID for the Layer to target it with custom CSS/JavaScript'),
 							$a  => $u . "layer-attributes/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -10856,10 +10875,10 @@ class RevSliderHelp {
 							],
 						],
 						'layer_classes'   => [
-							$t  => $this->l("Layer Classes"),
+							$t  => $this->l('Layer Classes'),
 							$h  => "attributes.classes",
 							$k  => ["layer class", "layer classes"],
-							$d  => $this->l("Add class names to the Layer to target it with custom CSS/JavaScript (separate multiple class names with spaces)"),
+							$d  => $this->l('Add class names to the Layer to target it with custom CSS/JavaScript (separate multiple class names with spaces)'),
 							$a  => $u . "layer-attributes/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -10869,10 +10888,10 @@ class RevSliderHelp {
 							],
 						],
 						'layer_title'     => [
-							$t  => $this->l("Layer Title"),
+							$t  => $this->l('Layer Title'),
 							$h  => "attributes.title",
 							$k  => ["layer title", "layer title attribute"],
-							$d  => $this->l("Define the Layer's title attribute"),
+							$d  => $this->l('Define the Layer\'s title attribute'),
 							$a  => $u . "layer-attributes/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -10882,10 +10901,10 @@ class RevSliderHelp {
 							],
 						],
 						'layer_rel'       => [
-							$t  => $this->l("Layer Rel"),
+							$t  => $this->l('Layer Rel'),
 							$h  => "attributes.rel",
 							$k  => ["layer rel", "layer relattribute"],
-							$d  => $this->l("Define the Layer's 'rel' attribute"),
+							$d  => $this->l('Define the Layer\'s \'rel\' attribute'),
 							$a  => $u . "layer-attributes/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -10895,10 +10914,10 @@ class RevSliderHelp {
 							],
 						],
 						'tab_index'       => [
-							$t  => $this->l("Tab Index"),
+							$t  => $this->l('Tab Index'),
 							$h  => "attributes.tabIndex",
 							$k  => ["layer tab index", "layer tab-index"],
-							$d  => $this->l("Define the Layer's tab-index.  Useful for defining focus on elements."),
+							$d  => $this->l('Define the Layer\'s tab-index.  Useful for defining focus on elements.'),
 							$a  => $u . "layer-attributes/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -10908,10 +10927,10 @@ class RevSliderHelp {
 							],
 						],
 						'wrapper_id'      => [
-							$t  => $this->l("Wrapper ID"),
+							$t  => $this->l('Wrapper ID'),
 							$h  => "attributes.wrapperId",
 							$k  => ["wrapper id", "layer wrapper", "layer wrapper id"],
-							$d  => $this->l("Define an optional ID for the Layer's outer-most wrapper to target it with custom CSS/JavaScript."),
+							$d  => $this->l('Define an optional ID for the Layer\'s outer-most wrapper to target it with custom CSS/JavaScript.'),
 							$a  => $u . "layer-attributes/",
 							$hl => [
 								$dp => ['layerselected'],
@@ -10921,10 +10940,10 @@ class RevSliderHelp {
 							],
 						],
 						'wrapper_classes' => [
-							$t  => $this->l("Wrapper Classes"),
+							$t  => $this->l('Wrapper Classes'),
 							$h  => "attributes.wrapperClasses",
 							$k  => ["wrapper classes", "layer wrapper", "layer wrapper classes"],
-							$d  => $this->l("Add class names to the Layer's outer-most wrapper to target it with custom CSS/JavaScript (separate multiple class names with spaces)"),
+							$d  => $this->l('Add class names to the Layer\'s outer-most wrapper to target it with custom CSS/JavaScript (separate multiple class names with spaces)'),
 							$a  => $u . "layer-attributes/",
 							$hl => [
 								$dp => ['layerselected'],

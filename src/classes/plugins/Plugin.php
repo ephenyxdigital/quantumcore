@@ -16,7 +16,9 @@ use ReflectionClass;
 use User;
 
 
-use \Curl\Curl;
+// Aliasé en PhpCurl : le nom court "Curl" entre en collision avec l'alias
+// EphenyxDigital\QuantumCore\Curl généré par aliases.php.
+use Curl\Curl as PhpCurl;
 
 /**
  * Class PluginCore
@@ -170,6 +172,8 @@ abstract class Plugin {
     protected $current_subtemplate = null;
     /** @var bool $installed */
     public $installed;
+	
+	public $translatable_tables = [];
 
     public $favorite = false;
 
@@ -464,6 +468,7 @@ abstract class Plugin {
         }
 
         $replace = [
+			'DB_USER'        => _DB_USER_,
             'PREFIX_'        => _DB_PREFIX_,
             'ENGINE_DEFAULT' => _MYSQL_ENGINE_,
         ];
@@ -500,6 +505,366 @@ abstract class Plugin {
         }
 
         return true;
+    }
+
+    /**
+     * Public list of `_lang` tables a plugin wants populated from the remote
+     * i18n service hosted on ephenyx.io. Each plugin overrides this property
+     * with its own list, e.g.
+     *
+     *     public $translatable_tables = [
+     *         'book_diary_lang',
+     *         'category_lang',
+     *         ...
+     *     ];
+     *
+     * If the array is empty, installRemoteTranslations() is a no-op.
+     *
+     * @var string[]
+     */
+    
+
+    /**
+     * Base URL of the remote translations service. Override this in a subclass
+     * if you mirror the JSON files elsewhere.
+     *
+     * NOTE — Why /ressource/ and not /api/ :
+     * The /api/ prefix is intercepted by Apache's .htaccess (see lines 87-88
+     * of the root .htaccess) and routed to webephenyx/dispatcher.php, which
+     * expects POST JSON with a license_key/crypto_key payload. Static JSON
+     * files placed under /api/... would therefore never be served as plain
+     * files. The /ressource/ prefix, on the other hand, is the same one the
+     * existing cdn.ephenyx.io and translations.ephenyx.io subdomains rewrite
+     * to (see .htaccess lines 100-110), and it serves static content
+     * directly without going through any PHP dispatcher.
+     *
+     * Files must therefore be deposited on the server at
+     *   /ressource/plugin-i18n/v1/{plugin}/manifest.json
+     *   /ressource/plugin-i18n/v1/{plugin}/{iso}/{table}.json
+     *
+     * @var string
+     */
+    public $remote_i18n_base_url = 'https://cdn.ephenyx.io/plugin-i18n/v1';
+
+    /**
+     * Errors collected by the most recent call to installRemoteTranslations().
+     * Reset at the start of every call. Public read-only accessor because
+     * $_errors itself is protected and used by the wider Plugin lifecycle —
+     * we don't want callers to mutate it.
+     *
+     * @var string[]
+     */
+    protected $_remote_i18n_errors = [];
+
+    /**
+     * Public read-only accessor for the errors collected during the last
+     * installRemoteTranslations() call. Returns a (possibly empty) array of
+     * strings.
+     *
+     * @return string[]
+     */
+    public function getRemoteI18nLastErrors() {
+
+        return is_array($this->_remote_i18n_errors) ? $this->_remote_i18n_errors : [];
+    }
+
+    /**
+     * Hydrate the plugin's `_lang` tables from the remote translation service.
+     *
+     * For each (table, iso_code) pair declared in $translatable_tables and
+     * present in the manifest, downloads the JSON payload, verifies its
+     * SHA-256 checksum against the manifest, then issues
+     * `INSERT ... ON DUPLICATE KEY UPDATE` so that re-running the method is
+     * idempotent and won't lose admin edits performed in the meantime
+     * (unless the row payload itself differs).
+     *
+     * The method NEVER blocks the install if the remote service is
+     * unreachable — it logs the failure and returns false so the caller can
+     * decide whether to fall back to a local seed. Errors are also recorded
+     * in $this->_errors for surfaced diagnostics.
+     *
+     * @param array $options Optional overrides:
+     *   - 'languages'  : restrict to a list of iso codes (default: all installed)
+     *   - 'tables'     : restrict to a list of tables (default: all declared)
+     *   - 'fallback'   : iso to fall back to if a table is missing in target
+     *                    iso (default: 'en' then 'fr')
+     *   - 'timeout_ms' : HTTP timeout per request in ms (default: 8000)
+     *
+     * @return bool true if at least one row was written, false otherwise.
+     */
+    public function installRemoteTranslations(array $options = []) {
+
+        // Reset errors at the start of each call so callers see a clean slate.
+        $this->_remote_i18n_errors = [];
+
+        if (empty($this->translatable_tables)) {
+            // Nothing declared — silently succeed.
+            return true;
+        }
+
+        $tables = isset($options['tables']) ? array_values(array_intersect(
+            $this->translatable_tables, (array) $options['tables']
+        )) : $this->translatable_tables;
+
+        // Resolve which iso codes we want, in order. We always keep the
+        // language that's actually installed in the shop.
+        $installed = \Language::loadIsoCodesLanguages(); // [iso => id_lang]
+
+        if (!empty($options['languages'])) {
+            $installed = array_intersect_key(
+                $installed,
+                array_flip((array) $options['languages'])
+            );
+        }
+
+        if (empty($installed)) {
+            $this->_remote_i18n_errors[] = $this->l('installRemoteTranslations: no installed language to populate.');
+            return false;
+        }
+
+        $timeoutMs = isset($options['timeout_ms']) ? (int) $options['timeout_ms'] : 8000;
+        $fallbacks = isset($options['fallback']) ? (array) $options['fallback'] : ['en', 'fr'];
+
+        // -- 1. Fetch the manifest --------------------------------------------
+        $manifestUrl = rtrim($this->remote_i18n_base_url, '/') . '/' . rawurlencode($this->name) . '/manifest.json';
+        $manifest = $this->_fetchRemoteI18nJson($manifestUrl, $timeoutMs);
+
+        if ($manifest === null || !isset($manifest['tables']) || !is_array($manifest['tables'])) {
+            $this->_remote_i18n_errors[] = $this->l('installRemoteTranslations: invalid or unreachable manifest at ') . $manifestUrl;
+            return false;
+        }
+
+        // Build a quick lookup: { table_name => entry }
+        $manifestByTable = [];
+        foreach ($manifest['tables'] as $entry) {
+
+            if (isset($entry['table'])) {
+                $manifestByTable[$entry['table']] = $entry;
+            }
+
+        }
+
+        $availableIsos = isset($manifest['available_iso_codes']) ? (array) $manifest['available_iso_codes'] : [];
+
+        $rowsWritten = 0;
+
+        // -- 2. Hydrate each (table, iso) -------------------------------------
+        foreach ($tables as $table) {
+
+            if (!isset($manifestByTable[$table])) {
+                $this->_remote_i18n_errors[] = $this->l('installRemoteTranslations: table not in manifest: ') . $table;
+                continue;
+            }
+
+            $entry   = $manifestByTable[$table];
+            $columns = isset($entry['columns']) ? (array) $entry['columns'] : [];
+            $files   = isset($entry['files']) ? (array) $entry['files'] : [];
+            $cksums  = isset($entry['checksums']) ? (array) $entry['checksums'] : [];
+
+            // Guarantee we always have id_lang in the insert payload even
+            // though it's not in the JSON columns.
+            $insertColumns = array_values(array_unique(array_merge(['id_lang'], $columns)));
+
+            foreach ($installed as $iso => $idLang) {
+
+                // Resolve which iso the manifest actually has data for.
+                $sourceIso = $this->_resolveTranslationIso($iso, $availableIsos, $fallbacks);
+
+                if ($sourceIso === null) {
+                    $this->_remote_i18n_errors[] = sprintf(
+                        $this->l('installRemoteTranslations: no source iso for table=%s, target=%s'),
+                        $table, $iso
+                    );
+                    continue;
+                }
+
+                if (!isset($files[$sourceIso])) {
+                    continue;
+                }
+
+                $fileUrl = rtrim($this->remote_i18n_base_url, '/') . '/' . rawurlencode($this->name) . '/' . $files[$sourceIso];
+                $payload = $this->_fetchRemoteI18nJson($fileUrl, $timeoutMs, isset($cksums[$sourceIso]) ? $cksums[$sourceIso] : null);
+
+                if ($payload === null || empty($payload['rows'])) {
+                    $this->_remote_i18n_errors[] = $this->l('installRemoteTranslations: bad payload for ') . $fileUrl;
+                    continue;
+                }
+
+                // -- 3. Insert each row with ON DUPLICATE KEY UPDATE ----------
+                foreach ($payload['rows'] as $row) {
+                    $values = ['id_lang' => (int) $idLang];
+
+                    foreach ($columns as $col) {
+                        // PCG-style fallback rows might be flagged generated=1
+                        $values[$col] = isset($row[$col]) ? $row[$col] : null;
+                    }
+
+                    $this->_upsertTranslationRow($table, $insertColumns, $values);
+                    $rowsWritten++;
+                }
+
+            }
+
+        }
+
+        return $rowsWritten > 0;
+    }
+
+    /**
+     * Fetch a remote JSON URL using the same Curl wrapper as updateIoPlugins().
+     * If $expectedChecksum is supplied (format 'sha256:<hex>'), the response is
+     * verified before being decoded.
+     *
+     * @param string      $url
+     * @param int         $timeoutMs
+     * @param string|null $expectedChecksum
+     *
+     * @return array|null Decoded JSON (assoc) or null on failure.
+     */
+    protected function _fetchRemoteI18nJson($url, $timeoutMs = 8000, $expectedChecksum = null) {
+
+        $context = \Context::getContext();
+        $licenseKey = $context->phenyxConfig->get('_EPHENYX_LICENSE_KEY_');
+        $companyUrl = ($context && isset($context->company) && isset($context->company->company_url))
+            ? $context->company->company_url : '';
+        $cryptoKey  = \Tools::encrypt_decrypt(
+            'encrypt',
+            $licenseKey . '/' . $companyUrl,
+            _PHP_ENCRYPTION_KEY_,
+            _COOKIE_KEY_
+        );
+
+        $curl = new PhpCurl();
+        $curl->setDefaultJsonDecoder($assoc = true);
+        $curl->setHeader('Accept', 'application/json');
+        $curl->setHeader('X-Plugin-Name', (string) $this->name);
+        $curl->setHeader('X-Plugin-License', (string) $licenseKey);
+        $curl->setHeader('X-Plugin-Crypto', (string) $cryptoKey);
+        // Re-using the same hardening as updateIoPlugins() — see fix #16.
+        $curl->setOpt(CURLOPT_SSL_VERIFYPEER, true);
+        // Follow 301/302 redirects. Required because cdn.ephenyx.io 301-rewrites
+        // to ephenyx.io/ressource/... (see .htaccess lines 100-102). Without
+        // this, the first GET returns a redirect and `$curl->error` is true.
+        $curl->setOpt(CURLOPT_FOLLOWLOCATION, true);
+        $curl->setOpt(CURLOPT_MAXREDIRS, 5);
+        $curl->setOpt(CURLOPT_CONNECTTIMEOUT_MS, max(2000, (int) round($timeoutMs / 2)));
+        $curl->setOpt(CURLOPT_TIMEOUT_MS, $timeoutMs);
+
+        $curl->get($url);
+
+        if ($curl->error) {
+            // Surface as much detail as we can so the admin UI shows something
+            // actionable. http_status_code is 0 when the connection itself
+            // failed (DNS, TLS, timeout) and non-zero when the server replied
+            // with a 4xx/5xx that the wrapper considers an error.
+            $httpCode = isset($curl->httpStatusCode) ? (int) $curl->httpStatusCode : 0;
+            $errMsg   = is_string($curl->errorMessage) ? $curl->errorMessage : '';
+            $this->_remote_i18n_errors[] = sprintf(
+                $this->l('installRemoteTranslations: HTTP error %d / cURL %d (%s) for %s'),
+                $httpCode,
+                (int) $curl->errorCode,
+                $errMsg !== '' ? $errMsg : 'no detail',
+                $url
+            );
+            return null;
+        }
+
+        $rawBody = is_string($curl->rawResponse) ? $curl->rawResponse : (string) $curl->response;
+
+        // Optional integrity check
+        if ($expectedChecksum !== null && strpos($expectedChecksum, 'sha256:') === 0) {
+            $expected = strtolower(substr($expectedChecksum, 7));
+            $actual   = hash('sha256', $rawBody);
+
+            if (!hash_equals($expected, $actual)) {
+                $this->_remote_i18n_errors[] = $this->l('installRemoteTranslations: checksum mismatch for ') . $url;
+                return null;
+            }
+
+        }
+
+        // Curl wrapper already decoded JSON when called with setDefaultJsonDecoder(true);
+        // fall back to a manual decode if we needed the raw body for checksum verification.
+        $decoded = $curl->response;
+
+        if (!is_array($decoded)) {
+            $decoded = json_decode($rawBody, true);
+        }
+
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    /**
+     * Decide which iso code from the manifest to use to populate a row that
+     * is targeted at a given installed iso. The preference order is:
+     *   1. The exact target iso (if available)
+     *   2. Each fallback iso, in declared order
+     *   3. The first iso the manifest knows about (last-resort heuristic)
+     *
+     * @return string|null
+     */
+    protected function _resolveTranslationIso($targetIso, array $availableIsos, array $fallbacks) {
+
+        if (in_array($targetIso, $availableIsos, true)) {
+            return $targetIso;
+        }
+
+        foreach ($fallbacks as $iso) {
+
+            if (in_array($iso, $availableIsos, true)) {
+                return $iso;
+            }
+
+        }
+
+        return !empty($availableIsos) ? reset($availableIsos) : null;
+    }
+
+    /**
+     * Issue a parametrised `INSERT ... ON DUPLICATE KEY UPDATE` for one row of
+     * a `_lang` table. Centralised here so the SQL construction is in one
+     * place and properly escapes its inputs through pSQL().
+     *
+     * @param string $table   Bare table name (no PREFIX_)
+     * @param array  $columns Column list (must include id_lang)
+     * @param array  $values  [col => value] map. NULLs are inserted as NULL.
+     */
+    protected function _upsertTranslationRow($table, array $columns, array $values) {
+        $cols = [];
+        $vals = [];
+        $upd  = [];
+
+        foreach ($columns as $col) {
+            $v = array_key_exists($col, $values) ? $values[$col] : null;
+
+            if ($v === null) {
+                $sqlVal = 'NULL';
+            } else if (is_int($v) || is_float($v)) {
+                $sqlVal = (string) $v;
+            } else if (is_bool($v)) {
+                $sqlVal = $v ? '1' : '0';
+            } else {
+                $sqlVal = '\'' . pSQL((string) $v, true) . '\'';
+            }
+
+            $cols[] = '`' . bqSQL($col) . '`';
+            $vals[] = $sqlVal;
+
+            // id_lang is part of the unique key — never updated.
+            if ($col !== 'id_lang') {
+                $upd[] = '`' . bqSQL($col) . '` = VALUES(`' . bqSQL($col) . '`)';
+            }
+
+        }
+
+        $sql = 'INSERT INTO `' . _DB_PREFIX_ . bqSQL($table) . '` (' . implode(',', $cols) . ') '
+             . 'VALUES (' . implode(',', $vals) . ')';
+
+        if (!empty($upd)) {
+            $sql .= ' ON DUPLICATE KEY UPDATE ' . implode(', ', $upd);
+        }
+
+        \Db::getInstance()->execute($sql);
     }
 
     public function uninstallsql($file) {
@@ -1750,13 +2115,17 @@ abstract class Plugin {
             'plugins'     => $plugins,
         ];
 
-        $curl = new Curl();
+        $curl = new PhpCurl();
         $curl->setDefaultJsonDecoder($assoc = true);
         $curl->setHeader('Content-Type', 'application/json');
         // Fix #16: SSL verification was disabled (CURLOPT_SSL_VERIFYPEER = false),
         // exposing license key transmission to man-in-the-middle attacks.
         // Re-enabled — the remote endpoint at ephenyx.io should have a valid certificate.
         $curl->setOpt(CURLOPT_SSL_VERIFYPEER, true);
+        // Timeouts explicites : éviter qu'un endpoint distant lent/injoignable
+        // ne bloque le worker PHP-FPM jusqu'à max_execution_time (300 s).
+        $curl->setOpt(CURLOPT_CONNECTTIMEOUT_MS, 2000);
+        $curl->setOpt(CURLOPT_TIMEOUT_MS, 5000);
         $curl->post($url, json_encode($data_array));
         $response = $curl->response;
 

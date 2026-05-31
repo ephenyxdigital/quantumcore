@@ -136,6 +136,28 @@ class PhenyxTool {
 
         return $result;
     }
+	
+	public function mkdirRecursive($string) {
+    	$parts = explode('/', $string);
+    	$path = '';
+
+    	foreach ($parts as $part) {
+        	if ($part === '') {
+            	$path .= '/';
+            	continue;
+        	}
+
+        	$path = rtrim($path, '/') . '/' . $part;
+
+        	if (!is_dir($path)) {
+            	if (!mkdir($path)) {
+                	return false;
+            	}
+        	}
+    	}
+
+    	return true;
+	}
     
     public function getCategoryFullPath($category) {
         
@@ -2253,7 +2275,7 @@ class PhenyxTool {
                 $w();
                 $w('# Sous-domaine translations.ephenyx.io → ressource/');
                 $w('RewriteCond %{HTTP_HOST} ^translations\.ephenyx\.io$ [NC]');
-                $w('RewriteRule ^(.*)$ https://ephenyx.io/ressource/$1 [L,R=301,NC,QSA]');
+                $w('RewriteRule ^(.*)$ https://ephenyx.io/packs/$1 [L,R=301,NC,QSA]');
                 $w();
             }
 
@@ -5766,7 +5788,7 @@ class PhenyxTool {
         try {
             $translation->add();
         } catch (exception $e) {
-            PhenyxLogger::addLog($this->l('getGoogleTranslation', 'PhenyxTool', false, false), 1, null, 'Tools', $e->getMessage(), true, 0);
+            PhenyxLogger::addLog('getGoogleTranslation', 1, null, 'PhenyxTool', $e->getMessage(), true, 0);
         }
 
         $return = [
