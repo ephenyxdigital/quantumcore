@@ -102,23 +102,13 @@ class DbPDO extends Db {
         try {
             $this->link = $this->_getPDO($this->server, $this->user, $this->password, $this->database, 5);
         } catch (PDOException $e) {
-            // Avant : die() — une base injoignable tuait TOUT le site, même quand il
-            // s'agissait d'une base secondaire (ex. traductions). On lève désormais une
-            // exception attrapable : l'appelant peut la capter et dégrader proprement.
-            // On utilise \RuntimeException (et non PhenyxException) car le constructeur de
-            // cette dernière accède à la base — ce qui provoquerait une récursion si c'est
-            // justement la connexion qui échoue.
-            throw new \RuntimeException(
-                'Link to database cannot be established: ' . $e->getMessage(),
-                (int) $e->getCode(),
-                $e
-            );
+            die(sprintf(Tools::displayError('Link to database cannot be established: %s'), mb_convert_encoding($e->getMessage(), 'UTF-8', 'ISO-8859-1')));
         }
 
         // UTF-8 support
 
         if ($this->link->exec('SET NAMES \'utf8mb4\'') === false) {
-            throw new \RuntimeException('ephenyx Fatal error: no UTF-8 support. Please check your server configuration.');
+            die(Tools::displayError('ephenyx Fatal error: no UTF-8 support. Please check your server configuration.'));
         }
 
         $this->link->exec('SET SESSION sql_mode = \'\'');

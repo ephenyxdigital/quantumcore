@@ -5,6 +5,7 @@ namespace ReCaptcha\RequestMethod;
 use ReCaptcha\ReCaptcha;
 use ReCaptcha\RequestMethod;
 use ReCaptcha\RequestParameters;
+use \Curl\Curl;
 
 /**
  * Sends cURL request to the reCAPTCHA service.
