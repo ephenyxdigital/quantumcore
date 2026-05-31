@@ -128,6 +128,7 @@ return [
     'ErrorPlugin' => 'EphenyxDigital\\QuantumCore\\ErrorPlugin',
     'FileBased' => 'EphenyxDigital\\QuantumCore\\FileBased',
     'FileLogger' => 'EphenyxDigital\\QuantumCore\\FileLogger',
+	'Flags' => 'EphenyxDigital\\QuantumCore\\Flags',
     'Gender' => 'EphenyxDigital\\QuantumCore\\Gender',
     'GsiteMap' => 'EphenyxDigital\\QuantumCore\\GsiteMap',
     'Helper' => 'EphenyxDigital\\QuantumCore\\Helper',

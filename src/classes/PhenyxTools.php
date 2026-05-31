@@ -1362,65 +1362,41 @@ class PhenyxTools {
 	public function getPluginFilesList($isoFrom, $themeFrom, $plugins) {
 
 		$filesPlugins = [];
+		$number = 0;
 
 		foreach ($plugins as $mod) {
 
+			$modDir = null;
+
 			if (is_dir(_EPH_PLUGIN_DIR_ . $mod)) {
 				$modDir = _EPH_PLUGIN_DIR_ . $mod;
-			} else
-
-			if (is_dir(_EPH_SPECIFIC_PLUGIN_DIR_ . $mod)) {
+			} else if (is_dir(_EPH_SPECIFIC_PLUGIN_DIR_ . $mod)) {
 				$modDir = _EPH_SPECIFIC_PLUGIN_DIR_ . $mod;
 			}
 
-			// Lang file
+			if (!$modDir) {
+				continue;
+			}
+
+			// Legacy flat lang file
 
 			if (file_exists($modDir . '/translations/' . (string) $isoFrom . '.php')) {
 				$filesPlugins[$modDir . '/translations/' . (string) $isoFrom . '.php'] = ++$number;
-			} else
-
-			if (file_exists($modDir . '/translations/' . (string) $isoFrom . '/admin.php')) {
-				$filesPlugins[$modDir . '/translations/' . (string) $isoFrom . '/admin.php'] = ++$number;
-			} else
-
-			if (file_exists($modDir . '/translations/' . (string) $isoFrom . '/class.php')) {
-				$filesPlugins[$modDir . '/translations/' . (string) $isoFrom . '/class.php'] = ++$number;
-			} else
-
-			if (file_exists($modDir . '/translations/' . (string) $isoFrom . '/front.php')) {
-				$filesPlugins[$modDir . '/translations/' . (string) $isoFrom . '/front.php'] = ++$number;
 			}
 
-			// Mails files
-			$modMailDirFrom = $modDir . '/mails/' . (string) $isoFrom;
+			// Per-domain lang files (admin, class, front, mail, pdf): each is independent and must all be exported
 
-			if (file_exists($modMailDirFrom)) {
-				$dirFiles = scandir($modMailDirFrom);
+			foreach (['admin', 'class', 'front', 'mail', 'pdf'] as $domain) {
 
-				foreach ($dirFiles as $file) {
+				$domainFile = $modDir . '/translations/' . (string) $isoFrom . '/' . $domain . '.php';
 
-					if (file_exists($modMailDirFrom . '/' . $file) && $file != '.' && $file != '..' && $file != '.svn') {
-						$filesPlugins[$modMailDirFrom . '/' . $file] = ++$number;
-					}
-
+				if (file_exists($domainFile)) {
+					$filesPlugins[$domainFile] = ++$number;
 				}
 
 			}
 
-			$modPdfDirFrom = $modDir . '/pdf/' . (string) $isoFrom;
-
-			if (file_exists($modPdfDirFrom)) {
-				$dirFiles = scandir($modPdfDirFrom);
-
-				foreach ($dirFiles as $file) {
-
-					if (file_exists($modPdfDirFrom . '/' . $file) && $file != '.' && $file != '..' && $file != '.svn') {
-						$filesPlugins[$modPdfDirFrom . '/' . $file] = ++$number;
-					}
-
-				}
-
-			}
+			
 
 		}
 
