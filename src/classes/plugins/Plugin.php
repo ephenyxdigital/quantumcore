@@ -1912,13 +1912,7 @@ abstract class Plugin {
         Group::addRestrictionsForPlugin($this->id);
         $this->context->_hook->exec('actionPluginInstallAfter', ['object' => $this]);
 
-        if (!defined('EPH_INSTALLATION_IN_PROGRESS') || !EPH_INSTALLATION_IN_PROGRESS) {
-
-            if (Plugin::$update_translations_after_install) {
-                //  $this->updatePluginTranslations();
-            }
-
-        }
+       
 
         // Refactor 2026-05 : appel à $this->mergeLanguages() retiré — Translate.php
         // charge maintenant les traductions du plugin à la demande, plus besoin
@@ -2672,11 +2666,6 @@ abstract class Plugin {
         $this->updateIoPlugins();
 
         return true;
-    }
-
-    public function updatePluginTranslations() {
-
-        Language::updatePluginsTranslations([$this->name]);
     }
 
     public function disable($forceAll = false) {
@@ -4280,6 +4269,27 @@ abstract class Plugin {
 
                 if (!empty($_PLUG[$PhenyxShopKey])) {
                     $ret = stripslashes($_PLUG[$PhenyxShopKeyFile]);
+                } else {
+                    $ret = $string;
+                }
+
+            }
+
+            break;
+		case 'tab':
+
+            if (is_null($source)) {
+                return $string;
+            }
+
+            $file = _EPH_PLUGIN_DIR_ . $this->name . '/translations/' . $iso . '/tab.php';
+
+            if (file_exists($file)) {
+                @include $file;
+                
+
+                if (!empty($_TABS[$source])) {
+                    $ret = stripslashes($_TABS[$source]);
                 } else {
                     $ret = $string;
                 }

@@ -5,6 +5,18 @@ namespace EphenyxDigital\QuantumCore;
  * @since 1.9.1.0
  */
 class Flags extends PhenyxObjectModel {
+	
+	/** @var string */
+    protected $dbUser;
+
+    /** @var string */
+    protected $dbPasswd;
+
+    /** @var string */
+    protected $dbName;
+
+    /** @var string */
+    protected $dbServer;
 
     // @codingStandardsIgnoreStart
     /**
@@ -39,7 +51,39 @@ class Flags extends PhenyxObjectModel {
      */
     public function __construct($id = null, $idLang = null) {
 
-        parent::__construct($id, $idLang);
+        $this->className = get_class($this);
+        $this->context   = Context::getContext();
+
+        if (!PhenyxObjectModel::$hook_instance) {
+            PhenyxObjectModel::$hook_instance = Hook::getInstance();
+            $this->context->_hook = PhenyxObjectModel::$hook_instance;
+        }
+
+        if (!isset(PhenyxObjectModel::$loaded_classes[$this->className])) {
+            $this->def = PhenyxObjectModel::getDefinition($this->className);
+            PhenyxObjectModel::$loaded_classes[$this->className] = get_object_vars($this);
+        } else {
+            foreach (PhenyxObjectModel::$loaded_classes[$this->className] as $key => $value) {
+                $this->{$key} = $value;
+            }
+        }
+
+        // Credentials lus depuis les constantes (définies dans defines_inc.php
+        // à partir du fichier .env — voir _EPH_CRM_DB_* ci-dessous).
+        $this->dbUser   = defined('_EPH_CRM_DB_USER_')   ? _EPH_CRM_DB_USER_   : '';
+        $this->dbPasswd = defined('_EPH_CRM_DB_PASSWD_') ? _EPH_CRM_DB_PASSWD_ : '';
+        $this->dbName   = defined('_EPH_CRM_DB_NAME_')   ? _EPH_CRM_DB_NAME_   : '';
+        $this->dbServer = defined('_EPH_CRM_DB_SERVER_') ? _EPH_CRM_DB_SERVER_ : '';
+       
+        if ($id) {
+            $this->id      = (int) $id;
+            $entityMapper  = Adapter_ServiceLocator::get('Adapter_EntityMapper');
+            // Base LOCALE : on ne passe plus les credentials CRM distants.
+            $entityMapper->load(
+                $this->id, null, $this, $this->def, false,
+                $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
+            );
+        }
 		
     }
 	
@@ -49,7 +93,9 @@ class Flags extends PhenyxObjectModel {
             die(Tools::displayError('Fatal error: ISO code is not correct') . ' ' . Tools::safeOutput($isoCode));
         }
 
-        return Db::getInstance(_EPH_USE_SQL_SLAVE_)->getValue(
+        return Db::getCrmInstance(
+                $this->dbUser, $this->dbPasswd, $this->dbName, $this->dbServer
+            )->getValue(
             (new DbQuery())
                 ->select('`flag_hash`')
                 ->from('flags')

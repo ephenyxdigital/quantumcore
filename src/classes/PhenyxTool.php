@@ -137,6 +137,38 @@ class PhenyxTool {
         return $result;
     }
 	
+	public function recurseDeleteDir($dir) {
+
+        if (!is_dir($dir)) {
+            return false;
+        }
+
+        if ($handle = @opendir($dir)) {
+
+            while (false !== ($file = readdir($handle))) {
+
+                if ($file != '.' && $file != '..') {
+
+                    if (is_dir($dir . '/' . $file)) {
+                        $this->recurseDeleteDir($dir . '/' . $file);
+                    } else
+                    if (file_exists($dir . '/' . $file)) {
+                        @unlink($dir . '/' . $file);
+                    }
+
+                }
+
+            }
+
+            closedir($handle);
+        }
+
+        if (is_writable($dir)) {
+            rmdir($dir);
+        }
+
+    }
+	
 	public function mkdirRecursive($string) {
     	$parts = explode('/', $string);
     	$path = '';
