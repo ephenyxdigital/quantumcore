@@ -218,28 +218,31 @@ class Company extends PhenyxObjectModel {
             $this->setUrl();
             $this->multi_domain = $this->isMultiDomain();
 			$this->country = Country::getNameById($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'), $this->id_country_registration);
-			if(Plugin::isInstalled('ph_ecommerce')) {
+			if(Validate::isDate($this->accounting_period_start)) {
             	$date = new DateTime($this->accounting_period_start);
 				$date->modify('+1 year');
 				$this->next_accounting_start = $date->format('Y-m-d');
+				$date = new DateTime($this->accounting_period_start);
+            	$date->modify('+11 month');
+            	$this->currentExerciceEnd = $date->format('Y-m-t');
+			}
+			if(Validate::isDate($this->accounting_period_end)) {
 				$date = new DateTime($this->accounting_period_end);
 				$date->modify('+1 year');
 				$this->next_accounting_end = $date->format('Y-m-d');
 				$date = new DateTime($this->accounting_period_end);
 				$date->modify('+2 year');
 				$this->saisie_end = $date->format('Y-m-d');
-				$this->rcs = $this->formatRcs();
+				
 				if (Validate::isJSON($this->working_plan)) {
 					$this->working_plan = PhenyxTool::getInstance()->jsonDecode($this->working_plan, true);
 				}			
-            	$date = new DateTime($this->accounting_period_start);
-            	$date->modify('+11 month');
-            	$this->currentExerciceEnd = $date->format('Y-m-t');
+            	
             	$this->exercices = $this->getExercices();
             	// Fix #9: corrected typo in property name.
             	$this->previous_exercices = $this->getPastExercices();
-            	$this->previous_ecercices = $this->previous_exercices; // backward-compat alias
 			}
+			$this->rcs = $this->formatRcs();
 			
 		} 
         if (!isset($this->context->company)) {
