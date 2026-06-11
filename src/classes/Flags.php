@@ -6,6 +6,7 @@ namespace EphenyxDigital\QuantumCore;
  */
 class Flags extends PhenyxObjectModel {
 	
+	protected static $instance;
 	/** @var string */
     protected $dbUser;
 
@@ -87,7 +88,16 @@ class Flags extends PhenyxObjectModel {
 		
     }
 	
-    public static function getFlagByIso($isoCode) {
+	public static function getInstance($id = null, $idLang = null) {
+
+        if (!isset(static::$instance)) {
+            static::$instance = new Flags($id, $idLang);
+        }
+
+        return static::$instance;
+    }
+	
+    public function getFlagByIso($isoCode) {
 
         if (!Validate::isLanguageIsoCode($isoCode)) {
             die(Tools::displayError('Fatal error: ISO code is not correct') . ' ' . Tools::safeOutput($isoCode));

@@ -1153,12 +1153,12 @@ class Tools {
             $hasMbStrtolower = function_exists('mb_strtolower');
         }
 
-        if (isset($arrayStr[$str])) {
-            return $arrayStr[$str];
-        }
-
         if (!is_string($str)) {
             return false;
+        }
+
+        if (isset($arrayStr[$str])) {
+            return $arrayStr[$str];
         }
 
         if ($str == '') {

@@ -703,15 +703,7 @@ class BackTab extends PhenyxObjectModel {
             $context = Context::getContext();
         }
 
-        if (!$context->employee || !$context->employee->id_profile) {
-            $rights = 0;
-        } else {
-            $rights = $profile['id_profile'] == $context->employee->id_profile ? 1 : 0;
-        }
-
-        if ($Tab->id_parent == 0) {
-            $rights = 1;
-        }
+        $idCurrentProfile = (!$context->employee || !$context->employee->id_profile) ? 0 : (int) $context->employee->id_profile;
 
         $profiles = Db::getInstance(_EPH_USE_SQL_SLAVE_)->executeS(
             (new DbQuery())
@@ -746,6 +738,7 @@ class BackTab extends PhenyxObjectModel {
                         'delete'      => (int) $accesses[$profile['id_profile']]['delete'],
                     ];
                 } else {
+                    $rights = ($Tab->id_parent == 0 || (int) $profile['id_profile'] === $idCurrentProfile) ? 1 : 0;
                     $replace[] = [
                         'id_profile'  => (int) $profile['id_profile'],
                         'id_back_tab' => (int) $Tab->id,

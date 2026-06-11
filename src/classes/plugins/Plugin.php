@@ -206,6 +206,20 @@ abstract class Plugin {
     public $_translations;
 
     public $ajax = false;
+	
+	public static $definition = [
+		
+        'table'     => 'plugin',
+        'primary'   => 'id_plugin',
+        'fields'    => [
+            'name'         => ['type' => 3, 'validate' => 'isFileName', 'required' => true, 'size' => 64],
+			'active'       => ['type' => 2],
+			'position'     => ['type' => 1, 'validate' => 'isUnsignedInt'],
+            'enable_device'   => ['type' =>1, 'validate' => 'isUnsignedInt'],
+            'version'       => ['type' => 3],         
+
+        ],
+    ];
 
     public function __construct($name = null, $context = null) {
 

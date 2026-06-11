@@ -48,9 +48,9 @@ class Meta extends PhenyxObjectModel {
         ],
     ];
 
-    public function __construct($id = null) {
+    public function __construct($id = null, $idLang = null) {
 
-        parent::__construct($id);
+        parent::__construct($id, $idLang);
     }
     
     public static function buildObject( $id, $idLang = null, $className = null) {

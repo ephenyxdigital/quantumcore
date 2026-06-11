@@ -921,15 +921,18 @@ abstract class PhenyxController {
 
         $idLang = $this->context->_tools->getValue('id_lang');
 
-        $language = $this->context->_tools->jsonDecode($this->context->_tools->jsonEncode(Language::buildObject((int) $idLang)));
+        $language = new Language((int) $idLang);
 
         if (Validate::isLoadedObject($language) && $language->active) {
             $this->context->cookie->id_lang = $idLang;
             $this->context->cookie->write();
-            $this->_language = $this->context->language = $language;
+            $this->context->language = $language;
             $this->context->employee->id_lang = $idLang;
             $this->context->employee->update();
-            $this->processClearRedisCache;
+            $this->_session->destroy();
+			if($this->context->cache_enable && is_object($this->context->cache_api)) {
+             	$this->context->cache_api->cleanCache();
+         	}
         }
 
         $result = [
@@ -3386,6 +3389,10 @@ abstract class PhenyxController {
 
                 foreach ($fieldset['input'] as $input) {
 
+                    if (!isset($input['name'])) {
+                        continue;
+                    }
+
                     if (!isset($this->fields_value[$input['name']])) {
 
                         if (isset($input['lang']) && $input['lang']) {
@@ -3437,6 +3444,10 @@ abstract class PhenyxController {
             if (isset($fieldset['input'])) {
 
                 foreach ($fieldset['input'] as $input) {
+
+                    if (!isset($input['name'])) {
+                        continue;
+                    }
 
                     if (!isset($this->fields_value[$input['name']])) {
 
@@ -3494,6 +3505,10 @@ abstract class PhenyxController {
             if (isset($fieldset['form']['input'])) {
 
                 foreach ($fieldset['form']['input'] as $input) {
+
+                    if (!isset($input['name'])) {
+                        continue;
+                    }
 
                     if (!isset($this->fields_value[$input['name']])) {
 
