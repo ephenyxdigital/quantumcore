@@ -38,7 +38,7 @@ class PhenyxTools {
 	public $plugins = [];
 
 	public $license;
-	
+
 	public $license_key;
 
 	public function __construct() {
@@ -85,8 +85,8 @@ class PhenyxTools {
         if ($this->context->company->company_url !== 'ephenyx.io') {
     		$this->license_key = $this->context->phenyxConfig->get('_EPHENYX_LICENSE_KEY_', null, false);
             $this->_url = _EPH_PHENYX_API_;
-            $string = $this->license_ke . '/' . $this->context->company->company_url;
-            $this->_crypto_key = $this->context->_tools->encrypt_decrypt('encrypt', $string, _PHP_ENCRYPTION_KEY_,  $this->license_ke);
+            $string = $this->license_key . '/' . $this->context->company->company_url;
+            $this->_crypto_key = $this->context->_tools->encrypt_decrypt('encrypt', $string, _PHP_ENCRYPTION_KEY_,  $this->license_key);
 
             $this->license = $this->checkLicense();
             $this->context->license = $this->license;
