@@ -63,6 +63,12 @@ class License extends PhenyxObjectModel {
     public $ftp_ssl;
     public $ftp_path;
     public $crypto_key;
+    /** Clé publique Ed25519 du site (base64), pour l'auth API par signature. */
+    public $public_key;
+    /** Algorithme de signature (réservé : 'ed25519'). */
+    public $key_alg = 'ed25519';
+    /** Identifiant/version de la clé, pour la rotation. */
+    public $key_id = 1;
     public $ftp_passwd;
     public $user_ip;
     public $active;
@@ -99,6 +105,9 @@ class License extends PhenyxObjectModel {
             'ftp_ssl'      => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
             'ftp_path'     => ['type' => self::TYPE_STRING, 'copy_post' => false],
             'crypto_key'   => ['type' => self::TYPE_STRING, 'validate' => 'isPasswd'],
+            'public_key'   => ['type' => self::TYPE_STRING, 'validate' => 'isString', 'size' => 120, 'copy_post' => false],
+            'key_alg'      => ['type' => self::TYPE_STRING, 'validate' => 'isString', 'size' => 16, 'copy_post' => false],
+            'key_id'       => ['type' => self::TYPE_INT, 'copy_post' => false],
             'ftp_passwd'   => ['type' => self::TYPE_STRING, 'validate' => 'isString', 'size' => 60],
             'user_ip'      => ['type' => self::TYPE_STRING, 'copy_post' => false],
             'active'       => ['type' => self::TYPE_BOOL],
@@ -400,6 +409,103 @@ class License extends PhenyxObjectModel {
         }
 
         return false;
+    }
+
+    // =========================================================================
+    // AUTH API PAR SIGNATURE (Ed25519) — côté serveur ephenyx.io
+    // =========================================================================
+
+    /**
+     * Vérifie une requête signée reçue par le dispatcher.
+     *
+     * Attend sur $data : license_key, action, ts, nonce, body (string JSON), sig (base64).
+     * Retourne l'objet License authentifié, ou false (et journalise la raison).
+     */
+    public static function verifyDispatcherRequest($data) {
+
+        foreach (['license_key', 'action', 'ts', 'nonce', 'sig', 'body'] as $field) {
+            if (!isset($data->$field)) {
+                self::authLog('champ manquant: ' . $field);
+                return false;
+            }
+        }
+
+        // Fenêtre temporelle (anti-rejeu de premier niveau).
+        if (abs(time() - (int) $data->ts) > 300) {
+            self::authLog('timestamp hors fenêtre pour ' . $data->license_key);
+            return false;
+        }
+
+        $license = self::getLicenceBykey($data->license_key);
+        if (!$license || !$license->active) {
+            self::authLog('licence inconnue ou inactive: ' . $data->license_key);
+            return false;
+        }
+        if (empty($license->public_key)) {
+            self::authLog('aucune clé publique enrôlée pour ' . $data->license_key);
+            return false;
+        }
+
+        // Message canonique : on hash le body tel quel (string) pour éviter
+        // tout problème de re-sérialisation entre client et serveur.
+        $base = $data->license_key . "\n" . $data->action . "\n" . $data->ts . "\n"
+            . $data->nonce . "\n" . hash('sha256', (string) $data->body);
+
+        $pk  = base64_decode($license->public_key, true);
+        $sig = base64_decode($data->sig, true);
+
+        if ($pk === false || $sig === false
+            || strlen($pk) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES
+            || strlen($sig) !== SODIUM_CRYPTO_SIGN_BYTES) {
+            self::authLog('clé publique ou signature malformée pour ' . $data->license_key);
+            return false;
+        }
+
+        if (!sodium_crypto_sign_verify_detached($sig, $base, $pk)) {
+            self::authLog('signature invalide pour ' . $data->license_key);
+            return false;
+        }
+
+        // Nonce consommé APRÈS validation de la signature, pour ne pas polluer
+        // la table avec des requêtes non authentifiées.
+        if (!self::consumeNonce($data->nonce)) {
+            self::authLog('nonce rejoué pour ' . $data->license_key);
+            return false;
+        }
+
+        return $license;
+    }
+
+    /**
+     * Insère le nonce et renvoie true s'il était inédit (donc requête acceptable),
+     * false s'il a déjà été vu dans la fenêtre de validité (rejeu).
+     */
+    public static function consumeNonce($nonce, $ttl = 600) {
+
+        $nonce = pSQL((string) $nonce);
+        if (strlen($nonce) < 8 || strlen($nonce) > 64) {
+            return false;
+        }
+
+        $now   = time();
+        $table = _DB_PREFIX_ . 'webservice_nonce';
+
+        // Purge légère des nonces expirés.
+        Db::getInstance()->execute('DELETE FROM `' . $table . '` WHERE `expires_at` < ' . (int) $now);
+
+        // PRIMARY KEY sur `nonce` : un doublon est ignoré → 0 ligne affectée.
+        Db::getInstance()->execute(
+            'INSERT IGNORE INTO `' . $table . '` (`nonce`, `expires_at`) VALUES (\''
+            . $nonce . '\', ' . (int) ($now + $ttl) . ')'
+        );
+
+        return (int) Db::getInstance()->Affected_Rows() === 1;
+    }
+
+    protected static function authLog($message) {
+        if (class_exists(PhenyxLogger::class)) {
+            PhenyxLogger::addLog('Dispatcher auth: ' . $message, 2, null, 'License.php');
+        }
     }
 
     public function getLicense($purchaseKey, $website) {

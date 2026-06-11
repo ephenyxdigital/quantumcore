@@ -38,6 +38,8 @@ class PhenyxTools {
 	public $plugins = [];
 
 	public $license;
+	
+	public $license_key;
 
 	public function __construct() {
 
@@ -57,7 +59,7 @@ class PhenyxTools {
 		}
 
 		if (!isset($this->context->language)) {
-			$this->context->language = Tools::jsonDecode(Tools::jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'))));
+			$this->context->language = $this->context->_tools->jsonDecode($this->context->_tools->jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'))));
 		}
 
 		if (!isset($this->context->_link)) {
@@ -68,19 +70,23 @@ class PhenyxTools {
 
 			$this->context->translations = new Translate($this->context->language->iso_code, $this->context->company);
 		}
+		
+		if (!isset($this->context->_tools)) {
+            $this->context->_tools = PhenyxTool::getInstance();
+        }
 
 		$this->default_theme = $this->context->theme->directory;
 
 		if (!isset($this->context->language)) {
-			$this->context->language = Tools::jsonDecode(Tools::jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'))));
+			$this->context->language = $this->context->_tools->jsonDecode($this->context->_tools->jsonEncode(Language::buildObject($this->context->phenyxConfig->get('EPH_LANG_DEFAULT'))));
 		}
 
 		$this->ephenyx_shop_active = $this->context->phenyxConfig->get('_EPHENYX_SHOP_ACTIVE_');
         if ($this->context->company->company_url !== 'ephenyx.io') {
-    
+    		$this->license_key = $this->context->phenyxConfig->get('_EPHENYX_LICENSE_KEY_', null, false);
             $this->_url = _EPH_PHENYX_API_;
-            $string = $this->context->phenyxConfig->get('_EPHENYX_LICENSE_KEY_', null, false) . '/' . $this->context->company->company_url;
-            $this->_crypto_key = Tools::encrypt_decrypt('encrypt', $string, _PHP_ENCRYPTION_KEY_, _COOKIE_KEY_);
+            $string = $this->license_ke . '/' . $this->context->company->company_url;
+            $this->_crypto_key = $this->context->_tools->encrypt_decrypt('encrypt', $string, _PHP_ENCRYPTION_KEY_,  $this->license_ke);
 
             $this->license = $this->checkLicense();
             $this->context->license = $this->license;
@@ -421,44 +427,135 @@ class PhenyxTools {
 		return Context::getContext()->media->addJsDefL($params, $content, $smarty, $repeat);
 	}
 
-	public function checkLicense() {
+	// =========================================================================
+	// AUTH API PAR SIGNATURE (Ed25519) — côté client
+	// =========================================================================
 
-		$data_array = [
-			'action'      => 'checkLicence',
-			'license_key' => $this->context->phenyxConfig->get('_EPHENYX_LICENSE_KEY_', null, false),
-			'crypto_key'  => $this->_crypto_key,
+	/**
+	 * Génère la paire de clés Ed25519 au premier appel et enrôle la clé publique
+	 * auprès d'ephenyx.io (requête authentifiée par le schéma legacy, accepté par
+	 * le dispatcher en mode dual). Idempotent : ne refait rien une fois enrôlé.
+	 */
+	private function ensureApiEnrollment() {
+
+		$cfg = $this->context->phenyxConfig;
+
+		if (!$cfg->get('_EPH_API_PRIVATE_KEY_', null, false)) {
+			$pair = sodium_crypto_sign_keypair();
+			$cfg->updateValue('_EPH_API_PRIVATE_KEY_', base64_encode(sodium_crypto_sign_secretkey($pair)));
+			$cfg->updateValue('_EPH_API_PUBLIC_KEY_', base64_encode(sodium_crypto_sign_publickey($pair)));
+			$cfg->updateValue('_EPH_API_KEY_ID_', 1);
+		}
+
+		if (!$cfg->get('_EPH_API_KEY_REGISTERED_', null, false)) {
+			if ($this->registerApiPublicKey()) {
+				$cfg->updateValue('_EPH_API_KEY_REGISTERED_', 1);
+			}
+		}
+	}
+
+	/**
+	 * Construit le payload signé d'une requête API.
+	 * Les paramètres métier sont transportés dans `body` (string JSON), dont on
+	 * signe le sha256 avec ts + nonce pour garantir intégrité et anti-rejeu.
+	 */
+	private function signedPayload($action, array $params = []) {
+
+		$cfg        = $this->context->phenyxConfig;
+		$licenseKey = $cfg->get('_EPHENYX_LICENSE_KEY_', null, false);
+		$sk         = base64_decode($cfg->get('_EPH_API_PRIVATE_KEY_', null, false), true);
+
+		$bodyStr = json_encode($params, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+		$ts      = time();
+		$nonce   = bin2hex(random_bytes(16));
+		$base    = $licenseKey . "\n" . $action . "\n" . $ts . "\n" . $nonce . "\n" . hash('sha256', $bodyStr);
+		$sig     = base64_encode(sodium_crypto_sign_detached($base, $sk));
+
+		return [
+			'action'      => $action,
+			'license_key' => $licenseKey,
+			'ts'          => $ts,
+			'nonce'       => $nonce,
+			'body'        => $bodyStr,
+			'sig'         => $sig,
+			'alg'         => 'ed25519',
+			'kid'         => (int) $cfg->get('_EPH_API_KEY_ID_', null, false) ?: 1,
 		];
+	}
+
+	/** Appel API générique. Signe la requête si la clé est enrôlée, sinon repli legacy. */
+	private function apiCall($action, array $params = []) {
+
+		$this->ensureApiEnrollment();
+
+		$cfg = $this->context->phenyxConfig;
+
+		if ($cfg->get('_EPH_API_KEY_REGISTERED_', null, false)) {
+			// Schéma cible : requête signée Ed25519.
+			$data_array = $this->signedPayload($action, $params);
+		} else {
+			// Repli legacy tant que la clé publique n'est pas enrôlée côté serveur
+			// (ex. serveur pas encore migré). Garantit la compatibilité ascendante.
+			$data_array = array_merge($params, [
+				'action'      => $action,
+				'license_key' => $cfg->get('_EPHENYX_LICENSE_KEY_', null, false),
+				'crypto_key'  => $this->_crypto_key,
+			]);
+		}
+
 		$curl = new Curl();
 		$curl->setDefaultJsonDecoder($assoc = true);
 		$curl->setHeader('Content-Type', 'application/json');
-		$curl->setTimeout(6000);
+		$curl->setTimeout(30);
 		$curl->post($this->_url, json_encode($data_array));
-		return $curl->response;
 
+		return $curl->response;
+	}
+
+	/**
+	 * Enregistre la clé publique du site sur ephenyx.io. Authentifié par le
+	 * schéma legacy (crypto_key) le temps de la transition.
+	 */
+	public function registerApiPublicKey() {
+
+		$cfg = $this->context->phenyxConfig;
+
+		$data_array = [
+			'action'      => 'registerPublicKey',
+			'license_key' => $cfg->get('_EPHENYX_LICENSE_KEY_', null, false),
+			'crypto_key'  => $this->_crypto_key,
+			'public_key'  => $cfg->get('_EPH_API_PUBLIC_KEY_', null, false),
+			'key_alg'     => 'ed25519',
+			'key_id'      => 1,
+		];
+
+		$curl = new Curl();
+		$curl->setDefaultJsonDecoder($assoc = true);
+		$curl->setHeader('Content-Type', 'application/json');
+		$curl->setTimeout(30);
+		$curl->post($this->_url, json_encode($data_array));
+
+		$resp = $curl->response;
+
+		return is_array($resp) ? !empty($resp['success']) : false;
+	}
+
+	public function checkLicense() {
+
+		return $this->apiCall('checkLicence', []);
 	}
 
 	public function getPhenyxPlugins() {
 
 		$plugins = Plugin::getInstalledPluginsOnDisk();
 
-		$data_array = [
-			'action'      => 'getPhenyxPlugins',
-			'license_key' => $this->context->phenyxConfig->get('_EPHENYX_LICENSE_KEY_', null, false),
-			'crypto_key'  => $this->_crypto_key,
-			'plugins'     => $plugins,
-		];
-		$curl = new Curl();
-		$curl->setDefaultJsonDecoder($assoc = true);
-		$curl->setHeader('Content-Type', 'application/json');
-		$curl->setTimeout(6000);
-		$curl->post($this->_url, json_encode($data_array));
+		$response = $this->apiCall('getPhenyxPlugins', ['plugins' => $plugins]);
+		$response = Tools::jsonDecode(Tools::jsonEncode($response), true);
 
-		$plugins = Tools::jsonDecode(Tools::jsonEncode($curl->response), true);
-
-		if (is_array($plugins)) {
+		if (is_array($response)) {
 			file_put_contents(
 				_EPH_CONFIG_DIR_ . 'json/plugin_sources.json',
-				json_encode($plugins, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+				json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
 			);
 			chmod(_EPH_CONFIG_DIR_ . 'json/plugin_sources.json', 0777);
 			return true;
