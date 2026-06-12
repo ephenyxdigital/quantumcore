@@ -3319,6 +3319,26 @@ abstract class Plugin {
             $this->context->_hook->exec('actionPluginRegisterHookAfter', ['object' => $this, 'hook_name' => $hookName]);
         }
 
+        // Purge des caches de hooks. Sans cela, un hook nouvellement enregistre
+        // (a l'install, au reset, ou a chaud) n'est pas pris en compte tant que
+        // le cache n'est pas vide a la main. Cibles :
+        //  - hook_plugin_exec_list_* : la liste d'execution par hook (exec())
+        //  - getPlugins*             : couvre getPlugins<id_hook> et getPluginHooks_<id_plugin>
+        // cleanByStartingKey n'existe que sur certains backends (Redis/APCu) :
+        // on garde method_exists + repli full-flush pour ne fataliser sur aucun.
+        if ($this->context->cache_enable && is_object($this->context->cache_api)) {
+            $cache = $this->context->cache_api;
+
+            if (method_exists($cache, 'cleanByStartingKey')) {
+                $cache->cleanByStartingKey('hook_plugin_exec_list_');
+                $cache->cleanByStartingKey('getPlugins');
+            } elseif (method_exists($cache, 'flush')) {
+                $cache->flush();
+            } elseif (method_exists($cache, 'cleanCache')) {
+                $cache->cleanCache();
+            }
+        }
+
         return $return;
     }
 

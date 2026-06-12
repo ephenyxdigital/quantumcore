@@ -279,7 +279,7 @@ class PhenyxTools {
         	}
     	}
 
-    	$excludedFiles = ['.', '..', '.htaccess', '.env', 'composer.lock', 'settings.inc.php', '.gitattributes', '.php-ini', '.php-version'];
+    	$excludedFiles = ['.', '..', '.htaccess', '.env', 'composer.lock', 'settings.inc.php', '.gitattributes', '.php-ini', '.php-version', 'config.json'];
     	$excludedExtensions = ['txt', 'zip', 'dat', 'log'];
     	$excludedPaths = ['/uploads/', '/cache/', '/views/docs/', 'sitemap.xml'];
 

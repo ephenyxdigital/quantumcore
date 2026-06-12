@@ -59,9 +59,6 @@ class License extends PhenyxObjectModel {
     public $is_main;
     public $id_customer;
     public $purchase_key;
-    public $ftp_user;
-    public $ftp_ssl;
-    public $ftp_path;
     public $crypto_key;
     /** Clé publique Ed25519 du site (base64), pour l'auth API par signature. */
     public $public_key;
@@ -69,8 +66,6 @@ class License extends PhenyxObjectModel {
     public $key_alg = 'ed25519';
     /** Identifiant/version de la clé, pour la rotation. */
     public $key_id = 1;
-    public $ftp_passwd;
-    public $user_ip;
     public $active;
     public $master_shop = 0;
     public $iso_langs = [];
@@ -101,15 +96,10 @@ class License extends PhenyxObjectModel {
             'is_main'      => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
             'id_customer'  => ['type' => self::TYPE_INT],
             'purchase_key' => ['type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'copy_post' => false],
-            'ftp_user'     => ['type' => self::TYPE_STRING, 'validate' => 'isPasswd', 'required' => true, 'size' => 60],
-            'ftp_ssl'      => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
-            'ftp_path'     => ['type' => self::TYPE_STRING, 'copy_post' => false],
-            'crypto_key'   => ['type' => self::TYPE_STRING, 'validate' => 'isPasswd'],
+            'crypto_key'   => ['type' => self::TYPE_STRING],
             'public_key'   => ['type' => self::TYPE_STRING, 'validate' => 'isString', 'size' => 120, 'copy_post' => false],
             'key_alg'      => ['type' => self::TYPE_STRING, 'validate' => 'isString', 'size' => 16, 'copy_post' => false],
             'key_id'       => ['type' => self::TYPE_INT, 'copy_post' => false],
-            'ftp_passwd'   => ['type' => self::TYPE_STRING, 'validate' => 'isString', 'size' => 60],
-            'user_ip'      => ['type' => self::TYPE_STRING, 'copy_post' => false],
             'active'       => ['type' => self::TYPE_BOOL],
             'has_device'   => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
             'master_shop'  => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
@@ -330,58 +320,30 @@ class License extends PhenyxObjectModel {
         return false;
     }
 
-    // =========================================================================
-    // VÉRIFICATION & ENREGISTREMENT DE LICENCE
-    // =========================================================================
+    /**
+     * Recherche une licence par son website (unique). Sert a l'auto-register
+     * (dedup) et a tout besoin de levee non ambigue, le purchase_key n'etant
+     * pas garanti unique en pratique.
+     *
+     * @param string $website
+     *
+     * @return License|false
+     */
+    public static function getLicenceByWebsite($website) {
 
-    public static function checkLicenseValidity($website, $purchaseKey, $userIp, $requestLang, $psVersion, $ephVersion) {
-
-        require_once _EPH_CONFIG_DIR_ . 'bootstrap.php';
-
-        $isCorrectWebsite = true;
-        $isCorrectIp      = true;
-        $interval         = 0;
-
-        $sql = new DbQuery();
-        $sql->select('*');
-        $sql->from(bqSQL(static::$definition['table']));
-        $sql->where('`purchase_key` = \'' . pSQL($purchaseKey) . '\'');
-
-        $result = Db::getInstance()->getRow($sql);
-
-        if (!empty($result)) {
-            $id_license = (int) $result['id_license'];
-
-            if (!empty($result['website']) && $result['website'] != $website) {
-                $isCorrectWebsite = false;
-            } else {
-                $license = new License($id_license);
-
-                if ($license->active == 0) {
-                    $interval = License::registerLicense($license, $userIp);
-                } else {
-
-                    if ($license->user_ip != $userIp) {
-                        $isCorrectIp = false;
-                    }
-
-                    $expiryDate  = new DateTime($license->date_exp);
-                    $currentTime = new DateTime('now');
-                    $interval    = $currentTime->diff($expiryDate)->format('%R%a');
-                }
-            }
-        }
-
-        return VersionController::checkLicense(
-            $website, $purchaseKey, $userIp, $requestLang,
-            $psVersion, $ephVersion, $isCorrectWebsite, $isCorrectIp, $interval
+        $id = Db::getInstance()->getValue(
+            (new DbQuery())
+                ->select('id_license')
+                ->from('license')
+                ->where('`website` = \'' . pSQL($website) . '\'')
         );
-    }
 
+        return $id ? new License($id) : false;
+    }
+    
     public static function registerLicense(License $license, $userIp) {
 
         $license->active   = 1;
-        $license->user_ip  = $userIp;
         $license->date_exp = date('Y-m-d H:i:s', strtotime('+1 years'));
 
         if ($license->update()) {
@@ -396,6 +358,7 @@ class License extends PhenyxObjectModel {
         $sql = new DbQuery();
         $sql->select('*');
         $sql->from(bqSQL(static::$definition['table']));
+		$sql->where('`purchase_key` = \'' . pSQL($purchaseKey) . '\'');
         $sql->where('`website` LIKE \'' . pSQL($website) . '\'');
         $result = Db::getInstance()->getRow($sql);
 
@@ -403,9 +366,7 @@ class License extends PhenyxObjectModel {
             $id_license = (int) $result['id_license'];
             $license    = new License($id_license);
 
-            if ($license->purchase_key == $purchaseKey) {
-                return $license;
-            }
+            return $license;
         }
 
         return false;
@@ -664,10 +625,7 @@ class License extends PhenyxObjectModel {
         $license->website      = $session->website;
         $license->type         = 'is_corporate';
         $license->purchase_key = self::generateLicenceKey();
-        $license->ftp_user     = $session->ftp_user;
         $license->crypto_key   = $session->crypto_key;
-        $license->ftp_passwd   = $session->ftp_password;
-        $license->user_ip      = $session->databaseServer;
         $license->iso_langs    = [$session->companyCountry];
 
         if ($license->add()) {
@@ -767,7 +725,7 @@ class License extends PhenyxObjectModel {
 
         $excludedFiles = [
             '.', '..', '.htaccess', '.env', 'composer.lock', 'settings.inc.php',
-            '.gitattributes', '.user.ini', '.php-ini', '.php-version',
+            '.gitattributes', '.user.ini', '.php-ini', '.php-version', 'config.json'
         ];
 
         $excludedPaths = [
