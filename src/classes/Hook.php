@@ -970,7 +970,7 @@ class Hook extends PhenyxObjectModel {
 
     public function getCachedHooks() {
 
-        $hookSettings = json_decode($this->context->phenyxConfig->get('EPH_PAGE_CACHE_HOOKS'), true);
+        $hookSettings = PhenyxTool::getInstance()->jsonDecode($this->context->phenyxConfig->get('EPH_PAGE_CACHE_HOOKS'), true);
 
         if (!is_array($hookSettings)) {
             return [];

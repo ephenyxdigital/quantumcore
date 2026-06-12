@@ -565,58 +565,86 @@ class PhenyxTools {
 
 	}
 
+	// =========================================================================
+	// ph_upgrader — actions de mise a jour du coeur (meme auth que getPhenyxPlugins)
+	// =========================================================================
+
+	public function checkCoreUpdate($channel = 'stable') {
+
+		return $this->apiCall('checkCoreUpdate', ['channel' => $channel, 'version' => _EPH_VERSION_]);
+	}
+
+	public function getCorePackage($version) {
+
+		return $this->apiCall('getCorePackage', ['version' => $version]);
+	}
+
+	public function reportUpgrade($from, $to, $state, $message = '') {
+
+		return $this->apiCall('reportUpgrade', [
+			'version_from' => $from,
+			'version_to'   => $to,
+			'state'        => $state,
+			'message'      => $message,
+		]);
+	}
+
+	/**
+	 * Met a jour UNIQUEMENT la version (_EPH_VERSION_) dans settings.inc.php,
+	 * en place. Les adresses de base et les secrets sont desormais charges depuis
+	 * .env ($_ENV) : on ne reecrit donc plus tout le fichier (ce qui figerait les
+	 * credentials en dur et casserait le schema .env).
+	 *
+	 * @param string $version
+	 *
+	 * @return bool
+	 */
 	public function writeNewSettings($version) {
 
-		$seeting_files = _EPH_CONFIG_DIR_ . 'settings.inc.php';
+		$settingsFile = _EPH_CONFIG_DIR_ . 'settings.inc.php';
 
-		$mysqlEngine = (defined('_MYSQL_ENGINE_') ? _MYSQL_ENGINE_ : 'InnoDB');
-
-		copy($seeting_files, str_replace('.php', '.old.php', $seeting_files));
-		$confFile = fopen($seeting_files, 'w');
-		fwrite($confFile, '<?php' . PHP_EOL . PHP_EOL);
-
-		$caches = ['CacheMemcache', 'CacheApc', 'FileBased', 'AwsRedis', 'CacheMemcached', 'CacheXcache'];
-		$current_cache = !(empty($this->context->phenyxConfig->get('EPH_PAGE_CACHE_TYPE'))) ? $this->context->phenyxConfig->get('EPH_PAGE_CACHE_TYPE') : 'FileBased';
-
-		$datas = [
-			['_EPH_CACHING_SYSTEM_', (defined('_EPH_CACHING_SYSTEM_') && in_array(_EPH_CACHING_SYSTEM_, $caches)) ? _EPH_CACHING_SYSTEM_ : $current_cache],
-			['_DB_NAME_', _DB_NAME_],
-			['_MYSQL_ENGINE_', $mysqlEngine],
-			['_DB_SERVER_', _DB_SERVER_],
-			['_DB_USER_', _DB_USER_],
-			['_DB_PASSWD_', _DB_PASSWD_],
-			['_DB_PREFIX_', _DB_PREFIX_],
-			['_COOKIE_KEY_', _COOKIE_KEY_],
-			['_COOKIE_IV_', _COOKIE_IV_],
-			['_EPH_CREATION_DATE_', defined("_EPH_CREATION_DATE_") ? _PS_CREATION_DATE_ : date('Y-m-d')],
-			['_RIJNDAEL_KEY_', _RIJNDAEL_KEY_],
-			['_RIJNDAEL_IV_', _RIJNDAEL_IV_],
-			['_EPH_VERSION_', $version],
-			['_EPH_VENDOR_DIR_', _EPH_VENDOR_DIR_],
-			['_PHP_ENCRYPTION_KEY_', _PHP_ENCRYPTION_KEY_],
-		];
-
-		if (defined('_FORUM_MODE_')) {
-			$datas[] = ['_FORUM_MODE_', _FORUM_MODE_];
+		if (!is_file($settingsFile) || !is_writable($settingsFile)) {
+			PhenyxLogger::addLog('writeNewSettings: settings.inc.php absent ou non inscriptible', 3, null, 'PhenyxTools');
+			return false;
 		}
 
-		if (defined('_BLOG_MODE_')) {
-			$datas[] = ['_BLOG_MODE_', _BLOG_MODE_];
+		$content = file_get_contents($settingsFile);
+
+		if ($content === false) {
+			return false;
 		}
 
-		if (defined('_WIKI_MODE_')) {
-			$datas[] = ['_WIKI_MODE_', _WIKI_MODE_];
+		// Sauvegarde de securite.
+		@copy($settingsFile, str_replace('.php', '.old.php', $settingsFile));
+
+		$safeVersion = addslashes($version);
+		$count       = 0;
+
+		// Remplacement en place de la valeur du define _EPH_VERSION_.
+		$new = preg_replace(
+			"/define\\(\\s*'_EPH_VERSION_'\\s*,\\s*'[^']*'\\s*\\)\\s*;/",
+			"define('_EPH_VERSION_', '" . $safeVersion . "');",
+			$content,
+			1,
+			$count
+		);
+
+		if ($new === null) {
+			return false;
 		}
 
-		if (defined('_EPHENYX_MODE_')) {
-			$datas[] = ['_EPHENYX_MODE_', _EPHENYX_MODE_];
+		// Si le define n'existait pas, on l'ajoute en fin de fichier.
+		if ($count === 0) {
+			$new = rtrim($content) . PHP_EOL . "define('_EPH_VERSION_', '" . $safeVersion . "');" . PHP_EOL;
 		}
 
-		foreach ($datas as $data) {
-			fwrite($confFile, 'define(\'' . $data[0] . '\', \'' . $this->checkString($data[1]) . '\');' . PHP_EOL);
+		$ok = (bool) @file_put_contents($settingsFile, $new);
+
+		if ($ok && function_exists('opcache_invalidate')) {
+			opcache_invalidate($settingsFile, true);
 		}
 
-		return true;
+		return $ok;
 	}
 
 	public function alterSqlTable(string $table, string $column, string $type, string $after): void {
