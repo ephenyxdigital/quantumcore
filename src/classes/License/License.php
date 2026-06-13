@@ -724,7 +724,7 @@ class License extends PhenyxObjectModel {
         $iterator->append(new DirectoryIterator(_EPH_ROOT_DIR_ . '/phenyxDigital/'));
 
         $excludedFiles = [
-            '.', '..', '.htaccess', '.env', 'composer.lock', 'settings.inc.php',
+            '.', '..', '.htaccess', '.env', 'composer.lock', 'settings.inc.php', 'settings.inc.old.php',
             '.gitattributes', '.user.ini', '.php-ini', '.php-version', 'config.json'
         ];
 
